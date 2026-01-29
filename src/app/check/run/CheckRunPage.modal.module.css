@@ -8,7 +8,7 @@
 /* ======================================
    Photo Modal
 ====================================== */
-.qscPhotoModal {
+.qscPhotoModal{
   position: fixed;
   inset: 0;
   z-index: 80;
@@ -16,25 +16,25 @@
   place-items: center;
 }
 
-.qscPhotoModalBackdrop {
+.qscPhotoModalBackdrop{
   position: absolute;
   inset: 0;
   background: rgba(15, 17, 21, 0.62);
   backdrop-filter: blur(18px);
 }
 
-.qscPhotoModalCard {
+.qscPhotoModalCard{
   position: relative;
   width: min(980px, calc(100% - 24px));
   max-height: calc(100dvh - 24px);
   border-radius: 26px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.10);
   box-shadow: 0 30px 90px rgba(0, 0, 0, 0.35);
   overflow: hidden;
 }
 
-.qscPhotoModalTop {
+.qscPhotoModalTop{
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -43,33 +43,33 @@
   color: rgba(255, 255, 255, 0.92);
 }
 
-.qscPhotoModalTitle {
+.qscPhotoModalTitle{
   font-weight: 950;
   letter-spacing: 0.02em;
 }
 
-.qscPhotoModalRight {
+.qscPhotoModalRight{
   display: inline-flex;
   align-items: center;
   gap: 10px;
 }
 
-.qscPhotoModalCount {
+.qscPhotoModalCount{
   font-size: 12px;
   font-weight: 950;
   padding: 6px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.20);
+  background: rgba(255, 255, 255, 0.10);
 }
 
 .qscPhotoModalIcon,
-.qscPhotoModalClose {
+.qscPhotoModalClose{
   width: 42px;
   height: 42px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.10);
   color: rgba(255, 255, 255, 0.95);
   cursor: pointer;
   display: grid;
@@ -78,17 +78,17 @@
 }
 
 .qscPhotoModalIcon:active,
-.qscPhotoModalClose:active {
+.qscPhotoModalClose:active{
   transform: scale(0.98);
 }
 
 .qscPhotoModalIcon:hover,
-.qscPhotoModalClose:hover {
+.qscPhotoModalClose:hover{
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.22);
 }
 
-.qscPhotoModalMain {
+.qscPhotoModalMain{
   position: relative;
   display: grid;
   grid-template-columns: 64px 1fr 64px;
@@ -97,16 +97,16 @@
   padding: 0 10px 14px;
 }
 
-/* ✅ 旧 isLeft/isRight をやめる（ユニーク命名） */
-.navLeft {}
-.navRight {}
+/* ✅ 方向クラス（衝突防止のため空でOK、JSXで使う） */
+.navLeft{}
+.navRight{}
 
-.qscPhotoNav {
+.qscPhotoNav{
   width: 54px;
   height: 54px;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.10);
   color: rgba(255, 255, 255, 0.95);
   cursor: pointer;
   display: grid;
@@ -115,16 +115,14 @@
   transition: transform 0.08s ease, filter 0.18s ease, background 0.18s ease;
 }
 
-.qscPhotoNav:active {
-  transform: scale(0.98);
-}
+.qscPhotoNav:active{ transform: scale(0.98); }
 
-.qscPhotoNav:disabled {
+.qscPhotoNav:disabled{
   opacity: 0.35;
   cursor: not-allowed;
 }
 
-.qscPhotoStage {
+.qscPhotoStage{
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -135,26 +133,26 @@
   place-items: center;
 }
 
-.qscPhotoBig {
+.qscPhotoBig{
   width: 100%;
   height: 100%;
   object-fit: contain;
   display: block;
 }
 
-.qscPhotoStrip {
+.qscPhotoStrip{
   padding: 12px 14px 14px;
   display: flex;
   gap: 10px;
   overflow-x: auto;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.10);
 }
 
-/* ✅ stripのONもユニーク命名 */
-.stripOn {}
+/* ✅ ONクラス（JSXで使う） */
+.stripOn{}
 
-.qscPhotoStripBtn {
+.qscPhotoStripBtn{
   width: 76px;
   height: 58px;
   border-radius: 16px;
@@ -167,24 +165,22 @@
   transition: transform 0.08s ease, border-color 0.18s ease, background 0.18s ease;
 }
 
-.qscPhotoStripBtn:active {
-  transform: scale(0.99);
-}
+.qscPhotoStripBtn:active{ transform: scale(0.99); }
 
-.qscPhotoStripBtn.stripOn {
+.qscPhotoStripBtn.stripOn{
   border-color: rgba(255, 255, 255, 0.32);
   background: rgba(255, 255, 255, 0.14);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.25);
 }
 
-.qscPhotoStripBtn img {
+.qscPhotoStripBtn img{
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
 }
 
-.qscPhotoModalHint {
+.qscPhotoModalHint{
   padding: 10px 14px 14px;
   text-align: center;
   font-size: 12px;
@@ -195,7 +191,7 @@
 /* ======================================
    iOS Action Sheet
 ====================================== */
-.qscSheet {
+.qscSheet{
   position: fixed;
   inset: 0;
   z-index: 90;
@@ -205,7 +201,7 @@
   padding: 14px;
 }
 
-.qscSheetBackdrop {
+.qscSheetBackdrop{
   position: absolute;
   inset: 0;
   border: none;
@@ -214,7 +210,7 @@
   cursor: pointer;
 }
 
-.qscSheetWrap {
+.qscSheetWrap{
   position: relative;
   width: min(520px, calc(100% - 12px));
   display: grid;
@@ -223,18 +219,12 @@
   animation: qscSheetIn 0.18s ease both;
 }
 
-@keyframes qscSheetIn {
-  from {
-    transform: translateY(14px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+@keyframes qscSheetIn{
+  from{ transform: translateY(14px); opacity: 0; }
+  to{ transform: translateY(0); opacity: 1; }
 }
 
-.qscSheetCard {
+.qscSheetCard{
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.12);
@@ -244,14 +234,14 @@
   text-align: center;
 }
 
-.qscSheetTitle {
+.qscSheetTitle{
   font-weight: 950;
   color: rgba(255, 255, 255, 0.92);
   margin-bottom: 6px;
   letter-spacing: 0.01em;
 }
 
-.qscSheetMsg {
+.qscSheetMsg{
   font-weight: 900;
   color: rgba(255, 255, 255, 0.75);
   font-size: 13px;
@@ -259,7 +249,7 @@
   margin-bottom: 12px;
 }
 
-.qscSheetBtn {
+.qscSheetBtn{
   width: 100%;
   border-radius: 18px;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -271,35 +261,25 @@
   transition: transform 0.08s ease, background 0.18s ease, border-color 0.18s ease;
 }
 
-.qscSheetBtn:active {
-  transform: scale(0.99);
-}
+.qscSheetBtn:active{ transform: scale(0.99); }
 
-/* ✅ sheetボタンもユニーク命名 */
-.sheetDestructive {
+.sheetDestructive{
   background: rgba(255, 59, 48, 0.18);
   border-color: rgba(255, 59, 48, 0.28);
   color: rgba(255, 255, 255, 0.96);
 }
 
-.sheetCancel {
+.sheetCancel{
   background: rgba(255, 255, 255, 0.14);
   border-color: rgba(255, 255, 255, 0.18);
 }
 
 /* Responsive (modal) */
-@media (max-width: 720px) {
-  .qscPhotoModalMain {
-    grid-template-columns: 54px 1fr 54px;
-  }
-  .qscPhotoStage {
-    height: min(54dvh, 460px);
-  }
+@media (max-width: 720px){
+  .qscPhotoModalMain{ grid-template-columns: 54px 1fr 54px; }
+  .qscPhotoStage{ height: min(54dvh, 460px); }
 }
 
-@media (max-width: 420px) {
-  .qscPhotoStripBtn {
-    width: 68px;
-    height: 52px;
-  }
+@media (max-width: 420px){
+  .qscPhotoStripBtn{ width: 68px; height: 52px; }
 }

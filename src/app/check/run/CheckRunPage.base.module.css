@@ -1,737 +1,610 @@
 /* =========================================================
    CheckRunPage.base.module.css (QSC Run - BASE / FULL)
-   - Tokens / Page / Panel
-   - Topbar (Area only sticky)
-   - Store Card (not sticky)
-   - Drawer
-   - Sections / Items
-   - Choices（衝突しない命名）
-   - Note / Hold / Photo Grid (modalは別ファイル)
+   ✅ 画面は固定（100dvh）
+   ✅ スクロールは main のみ（縦だけ）
+   ✅ 左右スクロール・横スワイプを抑止
+   ✅ TopBar / Drawer / Section / Item / Note / Photos まで全部ここ
    ========================================================= */
 
 /* =========================
-   Tokens
+   Root page layout
    ========================= */
-:root {
-  --bg: #f6f8fb;
-  --fg: #0f1115;
-  --muted: rgba(15, 17, 21, 0.62);
 
-  --line: rgba(15, 17, 21, 0.12);
-  --line2: rgba(15, 17, 21, 0.08);
+.qscCheckRunPage{
+  height: 100dvh;
+  overflow: hidden;
 
-  --card: rgba(255, 255, 255, 0.96);
+  display: grid;
+  grid-template-rows: var(--run-topbar-h, 84px) 1fr;
 
-  --r-lg: 18px;
-  --r-md: 14px;
+  background: var(--bg, #f6f8fb);
+  color: var(--fg, #0f1115);
 
-  --accent: #0a84ff;
-  --ok: #34c759;
-  --hold: #ff9f0a;
-  --ng: #ff3b30;
-
-  --focus: rgba(10, 132, 255, 0.35);
-
-  --topbarH: 64px;
-  --bottomH: 96px;
+  max-width: 100%;
+  touch-action: pan-y; /* ✅ できるだけ縦のみ */
 }
 
-/* =========================
-   Page / Panel
-   ========================= */
-.qscCheckRunPage {
-  min-height: 100dvh;
-  background: var(--bg);
-  color: var(--fg);
-
-  /* ✅ bottom bar overlap防止（最重要） */
-  padding-bottom: calc(var(--bottomH) + 24px + env(safe-area-inset-bottom));
+.qscCheckRunPage,
+.qscCheckRunPage *{
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
 }
 
-.qscPanel {
-  width: min(980px, calc(100% - 24px));
-  margin: 12px auto;
+/* 横はみ出しの温床を潰す */
+.qscCheckRunPage *{
+  max-width: 100%;
+}
+
+/* 親の flex/grid で子が横に溢れないように */
+.qscCheckRunPage :where(.qscMain, .qscSection, .qscItemCard, .qscBottomInner, .qscBottomLeft){
+  min-width: 0;
+}
+
+.qscPanel{
   border-radius: 22px;
-  background: rgba(255, 255, 255, 0.96);
-  border: 1px solid rgba(15, 17, 21, 0.08);
-  box-shadow: 0 18px 55px rgba(15, 17, 21, 0.08);
-}
-
-@media (max-width: 720px) {
-  .qscPanel {
-    width: calc(100% - 16px);
-    border-radius: 20px;
-  }
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 55px rgba(15, 17, 21, 0.10);
 }
 
 /* =========================
-   Topbar（Areaのみ固定）
+   Top bar
    ========================= */
-.qscTopbar {
+
+.qscTopbar{
   position: sticky;
   top: 0;
-  z-index: 55;
+  z-index: 40;
+
+  height: var(--run-topbar-h, 84px);
   padding: 10px 12px;
-  backdrop-filter: blur(10px);
+
+  display: grid;
+  gap: 8px;
+
+  overflow: hidden; /* ✅ sticky周りの横はみ出し対策 */
 }
 
-.qscTopbarRow {
-  display: flex;
+.qscTopbarRow3{
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
 }
 
-.qscBack {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-
-  padding: 10px 12px;
-  border-radius: 14px;
-  text-decoration: none;
-
-  color: var(--fg);
-  background: rgba(15, 17, 21, 0.04);
-  border: 1px solid rgba(15, 17, 21, 0.08);
-
-  font-weight: 900;
-}
-
-.qscBack:hover {
-  background: rgba(15, 17, 21, 0.06);
-}
-
-.qscAreaBtn {
+.qscBack{
   display: inline-flex;
   align-items: center;
   gap: 8px;
 
   padding: 10px 12px;
-  border-radius: 14px;
+  border-radius: 16px;
 
-  border: 1px solid rgba(15, 17, 21, 0.1);
-  background: rgba(255, 255, 255, 0.75);
-  color: var(--fg);
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.78);
+
+  text-decoration: none;
+  color: var(--fg, #0f1115);
+  font-weight: 950;
 
   cursor: pointer;
-  font-weight: 900;
+  transition: transform 0.08s ease, background 0.18s ease, border-color 0.18s ease;
 }
 
-.qscAreaBtn:hover {
-  background: rgba(255, 255, 255, 0.92);
-}
+.qscBack:active{ transform: scale(0.99); }
 
-/* 互換：page.tsx 側に残ってても壊れないように定義 */
-.qscTopbarRow2 {
-  display: none;
-}
-.qscTitleWrap {
-  display: none;
-}
-.qscTitle {
-  display: none;
-}
-.qscStorePill {
-  display: none;
-}
-.qscMetaPills {
-  display: none;
-}
-.qscPill {
-  display: none;
-}
+.qscPlace{
+  justify-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
 
-/* =========================
-   Store Card（NOT sticky）
-   ========================= */
-.qscStoreCard {
-  margin: 12px 0;
   padding: 12px 14px;
+  border-radius: 999px;
 
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.78);
+
+  font-weight: 950;
+
+  max-width: 100%;
+  min-width: 0;
 }
 
-.qscStoreCardTitle {
-  font-size: 12px;
-  font-weight: 950;
-  color: rgba(15, 17, 21, 0.62);
+.qscPlaceText{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: min(62vw, 420px);
 }
 
-.qscStoreCardName {
-  font-size: 15px;
+.qscAreaIconBtn{
+  width: 44px;
+  height: 44px;
+  border-radius: 16px;
+
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.78);
+
+  display: grid;
+  place-items: center;
+
+  cursor: pointer;
+  transition: transform 0.08s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.qscAreaIconBtn:active{ transform: scale(0.98); }
+
+/* （互換）Row2 */
+.qscTopbarRow2{ display: none; }
+.qscTitleWrap{ display: flex; align-items: center; gap: 10px; }
+.qscTitle{ font-size: 16px; font-weight: 950; margin: 0; }
+.qscStorePill{
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.78);
   font-weight: 950;
-  letter-spacing: 0.01em;
+}
+.qscMetaPills{ display: flex; gap: 8px; overflow: hidden; min-width: 0; }
+.qscPill{
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 8px 10px; border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.78);
+  font-weight: 950;
+  white-space: nowrap;
 }
 
 /* =========================
-   Drawer
+   Main scroll area（ここだけスクロール）
    ========================= */
-.qscDrawerOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 60;
-  display: grid;
-  justify-items: end;
+
+.qscMain{
+  overflow-y: auto;
+  overflow-x: hidden; /* ✅ 横スクロール禁止 */
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+
+  padding: 12px 12px calc(var(--bottomH, 96px) + 18px);
+
+  max-width: 100%;
+  touch-action: pan-y;
 }
 
-.qscDrawerOverlayClose {
+/* 横スクロールが生まれやすい要素を抑制 */
+.qscMain :where(img, svg, video, canvas){
+  max-width: 100%;
+  height: auto;
+}
+
+.qscBottomSpacer{
+  height: 10px;
+}
+
+/* =========================
+   Drawer (Area)
+   ========================= */
+
+.qscDrawerOverlay{
   position: fixed;
   inset: 0;
-  background: rgba(15, 17, 21, 0.35);
+  z-index: 70;
+  display: grid;
+  place-items: start end;
+}
+
+.qscDrawerOverlayClose{
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 17, 21, 0.42);
+  backdrop-filter: blur(10px);
   border: none;
   cursor: pointer;
 }
 
-.qscDrawer {
+.qscDrawer{
   position: relative;
-  z-index: 61;
+  width: min(420px, 92vw);
+  height: 100dvh;
 
-  width: min(380px, 88vw);
-  height: 100%;
+  background: rgba(255,255,255,0.92);
+  border-left: 1px solid rgba(15,17,21,0.10);
+  box-shadow: -20px 0 70px rgba(0,0,0,0.20);
 
-  background: rgba(255, 255, 255, 0.98);
-  border-left: 1px solid rgba(15, 17, 21, 0.1);
-  box-shadow: -24px 0 70px rgba(15, 17, 21, 0.18);
-
-  padding: 14px;
-
-  display: flex;
-  flex-direction: column;
+  padding: 12px;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 10px;
 }
 
-.qscDrawerHead {
+.qscDrawerHead{
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-
-  padding-bottom: 10px;
-  border-bottom: 1px solid rgba(15, 17, 21, 0.08);
 }
 
-.qscDrawerTitle {
-  font-size: 15px;
+.qscDrawerTitle{
   font-weight: 950;
+  font-size: 15px;
 }
 
-.qscDrawerClose {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
+.qscDrawerClose{
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
 
-  border: 1px solid rgba(15, 17, 21, 0.1);
-  background: rgba(15, 17, 21, 0.04);
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.86);
 
+  display: grid;
+  place-items: center;
   cursor: pointer;
 }
 
-.qscDrawerClose:hover {
-  background: rgba(15, 17, 21, 0.06);
-}
+.qscDrawerBody{
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
 
-.qscDrawerBody {
-  padding-top: 12px;
   display: grid;
-  gap: 10px;
-  overflow: auto;
+  gap: 8px;
 }
 
-.qscAreaItem {
+.qscAreaItem{
+  width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 
   padding: 12px 12px;
-  border-radius: 16px;
+  border-radius: 18px;
 
-  border: 1px solid rgba(15, 17, 21, 0.1);
-  background: rgba(255, 255, 255, 0.78);
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.86);
 
   cursor: pointer;
   text-align: left;
 }
 
-.qscAreaItem:hover {
-  background: rgba(255, 255, 255, 0.95);
-}
-
-.qscAreaItemTitle {
+.qscAreaItemTitle{
   font-weight: 950;
-  color: rgba(15, 17, 21, 0.9);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
 }
 
-.qscAreaItemCount {
+.qscAreaItemCount{
+  font-weight: 950;
   font-size: 12px;
-  font-weight: 950;
-
-  color: rgba(15, 17, 21, 0.7);
   padding: 6px 10px;
 
   border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.1);
-  background: rgba(15, 17, 21, 0.03);
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(15,17,21,0.04);
 }
 
 /* =========================
-   Main / Sections
+   Sections / Items
    ========================= */
-.qscMain {
-  padding-bottom: calc(var(--bottomH) + 24px + env(safe-area-inset-bottom));
+
+.qscSection{
+  padding: 12px;
+  margin-bottom: 12px;
 }
 
-.qscBottomSpacer {
-  height: 14px;
-}
-
-.qscSection {
-  padding: 14px;
-  scroll-margin-top: calc(var(--topbarH) + 14px);
-}
-
-.qscSectionHead {
+.qscSectionHead{
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 12px;
   margin-bottom: 10px;
+  min-width: 0;
 }
 
-.qscSectionTitle {
-  font-size: 14px;
-  font-weight: 1000;
-  letter-spacing: 0.02em;
-}
-
-.qscSectionCount {
-  font-size: 12px;
+.qscSectionTitle{
   font-weight: 950;
+  font-size: 15px;
+  min-width: 0;
+}
 
-  color: rgba(15, 17, 21, 0.65);
+.qscSectionCount{
+  font-weight: 950;
+  font-size: 12px;
   padding: 6px 10px;
 
   border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.1);
-  background: rgba(15, 17, 21, 0.03);
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(15,17,21,0.04);
 }
 
-.qscItems {
-  display: grid;
-  gap: 12px;
-}
-
-/* =========================
-   Item Card
-   ========================= */
-.qscItemCard {
-  border-radius: 18px;
-  border: 1px solid rgba(15, 17, 21, 0.1);
-  background: rgba(255, 255, 255, 0.76);
-  overflow: hidden;
-  transition: box-shadow 0.18s ease, border-color 0.18s ease;
-}
-
-/* ✅ 旧 isError → itemError */
-.itemError {
-  border-color: rgba(255, 59, 48, 0.55);
-  box-shadow: 0 12px 40px rgba(255, 59, 48, 0.12);
-}
-
-.qscItemTop {
-  padding: 12px 12px 10px;
+.qscItems{
   display: grid;
   gap: 10px;
 }
 
-.qscItemLabel {
-  font-size: 14px;
-  font-weight: 950;
-  color: rgba(15, 17, 21, 0.92);
-  line-height: 1.35;
+.qscItemCard{
+  border-radius: 20px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.96);
+  overflow: hidden;
 }
 
-/* =========================
-   Choices（衝突しない命名）
-   ========================= */
-.qscChoices {
+.itemError{
+  border-color: rgba(255, 59, 48, 0.28);
+  box-shadow: 0 18px 55px rgba(255, 59, 48, 0.08);
+}
+
+.qscItemTop{
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.qscItemLabel{
+  font-weight: 950;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+/* choices */
+.qscChoices{
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
 }
 
-@media (max-width: 720px) {
-  .qscChoices {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* ✅ export保証（ここは「ユニーク名」なので衝突しない） */
-.choiceOk {}
-.choiceHold {}
-.choiceNg {}
-.choiceNa {}
-.choiceOn {}
-
-.qscChoice {
-  position: relative;
-
+.qscChoice{
+  width: 100%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 8px;
 
-  width: 100%;
   padding: 10px 10px;
+  border-radius: 16px;
 
-  border-radius: 14px;
-  border: 1px solid rgba(15, 17, 21, 0.12);
-  background: rgba(255, 255, 255, 0.68);
-  color: var(--fg);
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.90);
 
   cursor: pointer;
+  font-weight: 950;
   user-select: none;
 
-  transition: transform 0.08s ease, box-shadow 0.15s ease, background 0.15s ease,
-    border-color 0.15s ease, filter 0.15s ease;
-
-  font-size: 12.5px;
-  line-height: 1;
-  letter-spacing: 0.02em;
-  font-weight: 900;
-  white-space: nowrap;
+  transition: transform 0.08s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
 }
 
-.qscChoice:hover {
-  background: rgba(255, 255, 255, 0.86);
-}
+.qscChoice:active{ transform: scale(0.99); }
 
-.qscChoice:active {
-  transform: scale(0.99);
-}
-
-.qscChoice svg {
-  opacity: 0.9;
-}
-
-.qscChoiceDot {
+.qscChoiceDot{
   width: 8px;
   height: 8px;
   border-radius: 999px;
-
-  border: 1px solid rgba(15, 17, 21, 0.22);
-  background: rgba(255, 255, 255, 0.4);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+  background: rgba(15,17,21,0.22);
 }
 
-/* ✅ ON共通（旧 isOn → choiceOn） */
-.qscChoice.choiceOn {
-  background: rgba(255, 255, 255, 0.96);
-  border-color: rgba(15, 17, 21, 0.22);
-  box-shadow: 0 10px 26px rgba(15, 17, 21, 0.1);
+.choiceOk{}
+.choiceHold{}
+.choiceNg{}
+.choiceNa{}
+
+.choiceOn{
+  background: rgba(35, 110, 255, 0.12);
+  border-color: rgba(35, 110, 255, 0.22);
+  box-shadow: 0 10px 26px rgba(35, 110, 255, 0.12);
 }
 
-.qscChoice.choiceOn svg {
-  opacity: 1;
-}
-
-.qscChoice.choiceOn .qscChoiceDot {
-  background: rgba(15, 17, 21, 0.72);
-  border-color: rgba(15, 17, 21, 0.72);
-  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.85);
-}
-
-.qscChoice.choiceOn::after {
-  content: "";
-  position: absolute;
-  left: 10px;
-  right: 10px;
-  bottom: 8px;
-
-  height: 2px;
-  border-radius: 999px;
-  opacity: 0.92;
-  background: rgba(15, 17, 21, 0.65);
-}
-
-/* ✅ 状態別カラー（旧 isOk/isHold/isNg/isNa → choiceOk等） */
-.qscChoice.choiceOk.choiceOn {
-  border-color: rgba(52, 199, 89, 0.35);
-  background: rgba(52, 199, 89, 0.14);
-}
-.qscChoice.choiceOk.choiceOn::after {
-  background: rgba(52, 199, 89, 0.88);
-}
-
-.qscChoice.choiceHold.choiceOn {
-  border-color: rgba(255, 159, 10, 0.38);
-  background: rgba(255, 159, 10, 0.16);
-}
-.qscChoice.choiceHold.choiceOn::after {
-  background: rgba(255, 204, 0, 0.92);
-}
-
-.qscChoice.choiceNg.choiceOn {
-  border-color: rgba(255, 59, 48, 0.38);
-  background: rgba(255, 59, 48, 0.14);
-}
-.qscChoice.choiceNg.choiceOn::after {
-  background: rgba(255, 59, 48, 0.92);
-}
-
-.qscChoice.choiceNa.choiceOn {
-  border-color: rgba(15, 17, 21, 0.22);
-  background: rgba(15, 17, 21, 0.06);
-}
-.qscChoice.choiceNa.choiceOn::after {
-  background: rgba(142, 142, 147, 0.92);
-}
-
-/* =========================
-   Note / Photo (grid)
-   ========================= */
-.qscItemBottom {
-  padding: 10px 12px 12px;
-  border-top: 1px solid rgba(15, 17, 21, 0.08);
-  background: rgba(15, 17, 21, 0.015);
-
+.qscItemBottom{
+  padding: 12px;
+  border-top: 1px solid rgba(15,17,21,0.08);
   display: grid;
   gap: 10px;
 }
 
-.qscNoteHead {
+/* =========================
+   Note / Photos
+   ========================= */
+
+.qscNoteHead{
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  flex-wrap: wrap;
+  min-width: 0;
 }
 
-.qscNoteTitle {
+.qscNoteTitle{
   display: inline-flex;
   align-items: center;
   gap: 8px;
-
   font-weight: 950;
-  font-size: 12.5px;
-  color: rgba(15, 17, 21, 0.85);
+  min-width: 0;
 }
 
-.qscRequired {
+.qscRequired{
   margin-left: 8px;
-
   font-size: 11px;
   font-weight: 950;
   padding: 4px 8px;
 
   border-radius: 999px;
-  border: 1px solid rgba(255, 59, 48, 0.28);
-  background: rgba(255, 59, 48, 0.1);
+  background: rgba(255, 59, 48, 0.10);
+  border: 1px solid rgba(255, 59, 48, 0.18);
   color: rgba(255, 59, 48, 0.95);
 }
 
-.qscPhotoHead {
-  display: flex;
+.qscPhotoHead{
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
-.qscPhotoAdd {
+.qscPhotoAdd{
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 8px;
 
-  padding: 9px 12px;
-  border-radius: 999px;
+  padding: 10px 10px;
+  border-radius: 16px;
 
-  border: 1px solid rgba(15, 17, 21, 0.12);
-  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.90);
 
   cursor: pointer;
-
   font-weight: 950;
-  font-size: 12px;
-  color: rgba(15, 17, 21, 0.9);
+  user-select: none;
 }
 
-.qscPhotoAdd:hover {
-  background: rgba(255, 255, 255, 0.92);
-}
-
-.qscPhotoAdd input {
+.qscPhotoAdd input{
   position: absolute;
   inset: 0;
   opacity: 0;
   cursor: pointer;
 }
 
-.qscNote {
+/* textarea */
+.qscNote{
   width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(15, 17, 21, 0.12);
-  background: rgba(255, 255, 255, 0.92);
+  max-width: 100%;
 
-  padding: 10px 12px;
-  font-size: 13px;
-  outline: none;
+  border-radius: 18px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.92);
+
+  padding: 12px 12px;
+  font-weight: 900;
+  line-height: 1.45;
 
   resize: vertical;
-  min-height: 54px;
-
-  color: rgba(15, 17, 21, 0.92);
-  transition: box-shadow 0.18s ease, border-color 0.18s ease, filter 0.18s ease;
+  outline: none;
 }
 
-.qscNote::placeholder {
-  color: rgba(15, 17, 21, 0.45);
-  font-weight: 700;
+.noteMissing{
+  border-color: rgba(255, 59, 48, 0.28);
+  background: rgba(255, 59, 48, 0.06);
 }
 
-/* ✅ 旧 isMissing → noteMissing */
-.noteMissing {
-  border-color: rgba(255, 59, 48, 0.55);
-  box-shadow: 0 10px 26px rgba(255, 59, 48, 0.12);
+.noteGuide{
+  animation: qscNotePulse 0.9s ease both;
+  border-color: rgba(35, 110, 255, 0.35);
+  box-shadow: 0 0 0 6px rgba(35, 110, 255, 0.10);
 }
 
-/* ✅ 旧 isGuide → noteGuide */
-.noteGuide {
-  border-color: rgba(0, 122, 255, 0.38);
-  box-shadow: 0 14px 42px rgba(15, 17, 21, 0.1), 0 0 0 5px rgba(0, 122, 255, 0.14);
-  filter: saturate(1.02);
-  animation: qscGuidePulse 0.9s ease both;
+@keyframes qscNotePulse{
+  0%{ box-shadow: 0 0 0 0 rgba(35,110,255,0.0); }
+  40%{ box-shadow: 0 0 0 8px rgba(35,110,255,0.12); }
+  100%{ box-shadow: 0 0 0 0 rgba(35,110,255,0.0); }
 }
 
-@keyframes qscGuidePulse {
-  0% {
-    box-shadow: 0 10px 28px rgba(15, 17, 21, 0.08), 0 0 0 0 rgba(0, 122, 255, 0);
-  }
-  45% {
-    box-shadow: 0 14px 46px rgba(15, 17, 21, 0.1), 0 0 0 6px rgba(0, 122, 255, 0.16);
-  }
-  100% {
-    box-shadow: 0 12px 36px rgba(15, 17, 21, 0.09), 0 0 0 5px rgba(0, 122, 255, 0.12);
-  }
-}
-
-.qscErrorLine {
+.qscErrorLine{
   display: inline-flex;
   align-items: center;
   gap: 8px;
-
-  font-size: 12.5px;
   font-weight: 950;
   color: rgba(255, 59, 48, 0.95);
-
-  padding: 8px 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(255, 59, 48, 0.24);
-  background: rgba(255, 59, 48, 0.1);
 }
 
-.qscHoldBox {
-  border-radius: 16px;
-  border: 1px solid rgba(15, 17, 21, 0.1);
-  background: rgba(255, 255, 255, 0.72);
-
+/* hold detail */
+.qscHoldBox{
+  border-radius: 18px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(15,17,21,0.03);
   padding: 10px;
-
   display: grid;
   gap: 8px;
 }
 
-.qscHoldTitle {
+.qscHoldTitle{
   display: inline-flex;
   align-items: center;
   gap: 8px;
-
-  font-size: 12.5px;
   font-weight: 950;
-  color: rgba(15, 17, 21, 0.82);
 }
 
-.qscHoldNote {
+.qscHoldNote{
   width: 100%;
-  border-radius: 14px;
-  border: 1px solid rgba(15, 17, 21, 0.12);
-  background: rgba(255, 255, 255, 0.92);
+  max-width: 100%;
 
-  padding: 10px 12px;
-  font-size: 13px;
+  border-radius: 16px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.92);
+
+  padding: 12px;
+  font-weight: 900;
+  line-height: 1.45;
   outline: none;
 
   resize: vertical;
-  min-height: 54px;
-
-  color: rgba(15, 17, 21, 0.92);
 }
 
-.qscPhotoGrid {
+/* photo thumbs */
+.qscPhotoGrid{
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+
+  overflow-x: hidden; /* ✅ 横は殺す */
 }
 
-@media (max-width: 720px) {
-  .qscPhotoGrid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 420px) {
-  .qscPhotoGrid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.qscPhotoThumb {
+.qscPhotoThumb{
   position: relative;
-  aspect-ratio: 1 / 1;
-
-  border-radius: 14px;
+  border-radius: 18px;
   overflow: hidden;
-
-  border: 1px solid rgba(15, 17, 21, 0.12);
-  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.90);
 }
 
-.qscPhotoOpen {
+.qscPhotoOpen{
   width: 100%;
-  height: 100%;
-
   border: none;
-  padding: 0;
   background: transparent;
-
+  padding: 0;
   cursor: pointer;
   display: block;
 }
 
-.qscPhotoThumb img {
+.qscPhotoOpen img{
   width: 100%;
-  height: 100%;
+  height: 110px;
   object-fit: cover;
   display: block;
 }
 
-.qscPhotoDel {
+.qscPhotoDel{
   position: absolute;
-  top: 6px;
-  right: 6px;
+  right: 8px;
+  top: 8px;
 
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
+  border-radius: 14px;
 
-  border-radius: 12px;
-  border: 1px solid rgba(15, 17, 21, 0.16);
-  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.92);
 
+  display: grid;
+  place-items: center;
   cursor: pointer;
 }
 
-.qscPhotoDel:hover {
-  background: rgba(255, 255, 255, 0.98);
+/* =========================
+   Responsive
+   ========================= */
+
+@media (max-width: 720px){
+  .qscChoice span{ font-size: 12px; }
+  .qscPhotoOpen img{ height: 104px; }
+}
+
+@media (max-width: 420px){
+  .qscChoices{
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .qscPlaceText{
+    max-width: 52vw;
+  }
 }

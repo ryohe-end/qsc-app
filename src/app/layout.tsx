@@ -1,8 +1,7 @@
 // src/app/layout.tsx
 import type { Metadata } from "next";
 import "./globals.css";
-import AppHeader from "@/components/AppHeader";
-import AppBottomNav from "@/components/AppBottomNav";
+import AppChrome from "@/components/AppChrome";
 
 export const metadata: Metadata = {
   title: "QSC Check",
@@ -15,18 +14,7 @@ export default function RootLayout({
   return (
     <html lang="ja">
       <body>
-        {/* 固定ヘッダー */}
-        <AppHeader />
-
-        {/* ✅ 全ページを “スマホ枠” に入れる */}
-        <main className="qsc-frame" role="application" aria-label="QSC App">
-          <section className="qsc-frame-shell" aria-label="App shell">
-            <div className="qsc-frame-scroll">{children}</div>
-          </section>
-        </main>
-
-        {/* 固定フッター（下タブ） */}
-        <AppBottomNav />
+        <AppChrome>{children}</AppChrome>
       </body>
     </html>
   );
