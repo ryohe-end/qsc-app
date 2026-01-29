@@ -1,0 +1,737 @@
+/* =========================================================
+   CheckRunPage.base.module.css (QSC Run - BASE / FULL)
+   - Tokens / Page / Panel
+   - Topbar (Area only sticky)
+   - Store Card (not sticky)
+   - Drawer
+   - Sections / Items
+   - Choices（衝突しない命名）
+   - Note / Hold / Photo Grid (modalは別ファイル)
+   ========================================================= */
+
+/* =========================
+   Tokens
+   ========================= */
+:root {
+  --bg: #f6f8fb;
+  --fg: #0f1115;
+  --muted: rgba(15, 17, 21, 0.62);
+
+  --line: rgba(15, 17, 21, 0.12);
+  --line2: rgba(15, 17, 21, 0.08);
+
+  --card: rgba(255, 255, 255, 0.96);
+
+  --r-lg: 18px;
+  --r-md: 14px;
+
+  --accent: #0a84ff;
+  --ok: #34c759;
+  --hold: #ff9f0a;
+  --ng: #ff3b30;
+
+  --focus: rgba(10, 132, 255, 0.35);
+
+  --topbarH: 64px;
+  --bottomH: 96px;
+}
+
+/* =========================
+   Page / Panel
+   ========================= */
+.qscCheckRunPage {
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--fg);
+
+  /* ✅ bottom bar overlap防止（最重要） */
+  padding-bottom: calc(var(--bottomH) + 24px + env(safe-area-inset-bottom));
+}
+
+.qscPanel {
+  width: min(980px, calc(100% - 24px));
+  margin: 12px auto;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid rgba(15, 17, 21, 0.08);
+  box-shadow: 0 18px 55px rgba(15, 17, 21, 0.08);
+}
+
+@media (max-width: 720px) {
+  .qscPanel {
+    width: calc(100% - 16px);
+    border-radius: 20px;
+  }
+}
+
+/* =========================
+   Topbar（Areaのみ固定）
+   ========================= */
+.qscTopbar {
+  position: sticky;
+  top: 0;
+  z-index: 55;
+  padding: 10px 12px;
+  backdrop-filter: blur(10px);
+}
+
+.qscTopbarRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.qscBack {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+  text-decoration: none;
+
+  color: var(--fg);
+  background: rgba(15, 17, 21, 0.04);
+  border: 1px solid rgba(15, 17, 21, 0.08);
+
+  font-weight: 900;
+}
+
+.qscBack:hover {
+  background: rgba(15, 17, 21, 0.06);
+}
+
+.qscAreaBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 12px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(15, 17, 21, 0.1);
+  background: rgba(255, 255, 255, 0.75);
+  color: var(--fg);
+
+  cursor: pointer;
+  font-weight: 900;
+}
+
+.qscAreaBtn:hover {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+/* 互換：page.tsx 側に残ってても壊れないように定義 */
+.qscTopbarRow2 {
+  display: none;
+}
+.qscTitleWrap {
+  display: none;
+}
+.qscTitle {
+  display: none;
+}
+.qscStorePill {
+  display: none;
+}
+.qscMetaPills {
+  display: none;
+}
+.qscPill {
+  display: none;
+}
+
+/* =========================
+   Store Card（NOT sticky）
+   ========================= */
+.qscStoreCard {
+  margin: 12px 0;
+  padding: 12px 14px;
+
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.qscStoreCardTitle {
+  font-size: 12px;
+  font-weight: 950;
+  color: rgba(15, 17, 21, 0.62);
+}
+
+.qscStoreCardName {
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: 0.01em;
+}
+
+/* =========================
+   Drawer
+   ========================= */
+.qscDrawerOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  justify-items: end;
+}
+
+.qscDrawerOverlayClose {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 21, 0.35);
+  border: none;
+  cursor: pointer;
+}
+
+.qscDrawer {
+  position: relative;
+  z-index: 61;
+
+  width: min(380px, 88vw);
+  height: 100%;
+
+  background: rgba(255, 255, 255, 0.98);
+  border-left: 1px solid rgba(15, 17, 21, 0.1);
+  box-shadow: -24px 0 70px rgba(15, 17, 21, 0.18);
+
+  padding: 14px;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.qscDrawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(15, 17, 21, 0.08);
+}
+
+.qscDrawerTitle {
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.qscDrawerClose {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+
+  border: 1px solid rgba(15, 17, 21, 0.1);
+  background: rgba(15, 17, 21, 0.04);
+
+  cursor: pointer;
+}
+
+.qscDrawerClose:hover {
+  background: rgba(15, 17, 21, 0.06);
+}
+
+.qscDrawerBody {
+  padding-top: 12px;
+  display: grid;
+  gap: 10px;
+  overflow: auto;
+}
+
+.qscAreaItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  padding: 12px 12px;
+  border-radius: 16px;
+
+  border: 1px solid rgba(15, 17, 21, 0.1);
+  background: rgba(255, 255, 255, 0.78);
+
+  cursor: pointer;
+  text-align: left;
+}
+
+.qscAreaItem:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.qscAreaItemTitle {
+  font-weight: 950;
+  color: rgba(15, 17, 21, 0.9);
+}
+
+.qscAreaItemCount {
+  font-size: 12px;
+  font-weight: 950;
+
+  color: rgba(15, 17, 21, 0.7);
+  padding: 6px 10px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.1);
+  background: rgba(15, 17, 21, 0.03);
+}
+
+/* =========================
+   Main / Sections
+   ========================= */
+.qscMain {
+  padding-bottom: calc(var(--bottomH) + 24px + env(safe-area-inset-bottom));
+}
+
+.qscBottomSpacer {
+  height: 14px;
+}
+
+.qscSection {
+  padding: 14px;
+  scroll-margin-top: calc(var(--topbarH) + 14px);
+}
+
+.qscSectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.qscSectionTitle {
+  font-size: 14px;
+  font-weight: 1000;
+  letter-spacing: 0.02em;
+}
+
+.qscSectionCount {
+  font-size: 12px;
+  font-weight: 950;
+
+  color: rgba(15, 17, 21, 0.65);
+  padding: 6px 10px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.1);
+  background: rgba(15, 17, 21, 0.03);
+}
+
+.qscItems {
+  display: grid;
+  gap: 12px;
+}
+
+/* =========================
+   Item Card
+   ========================= */
+.qscItemCard {
+  border-radius: 18px;
+  border: 1px solid rgba(15, 17, 21, 0.1);
+  background: rgba(255, 255, 255, 0.76);
+  overflow: hidden;
+  transition: box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+/* ✅ 旧 isError → itemError */
+.itemError {
+  border-color: rgba(255, 59, 48, 0.55);
+  box-shadow: 0 12px 40px rgba(255, 59, 48, 0.12);
+}
+
+.qscItemTop {
+  padding: 12px 12px 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.qscItemLabel {
+  font-size: 14px;
+  font-weight: 950;
+  color: rgba(15, 17, 21, 0.92);
+  line-height: 1.35;
+}
+
+/* =========================
+   Choices（衝突しない命名）
+   ========================= */
+.qscChoices {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .qscChoices {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ✅ export保証（ここは「ユニーク名」なので衝突しない） */
+.choiceOk {}
+.choiceHold {}
+.choiceNg {}
+.choiceNa {}
+.choiceOn {}
+
+.qscChoice {
+  position: relative;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+
+  width: 100%;
+  padding: 10px 10px;
+
+  border-radius: 14px;
+  border: 1px solid rgba(15, 17, 21, 0.12);
+  background: rgba(255, 255, 255, 0.68);
+  color: var(--fg);
+
+  cursor: pointer;
+  user-select: none;
+
+  transition: transform 0.08s ease, box-shadow 0.15s ease, background 0.15s ease,
+    border-color 0.15s ease, filter 0.15s ease;
+
+  font-size: 12.5px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.qscChoice:hover {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.qscChoice:active {
+  transform: scale(0.99);
+}
+
+.qscChoice svg {
+  opacity: 0.9;
+}
+
+.qscChoiceDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(15, 17, 21, 0.22);
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+}
+
+/* ✅ ON共通（旧 isOn → choiceOn） */
+.qscChoice.choiceOn {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(15, 17, 21, 0.22);
+  box-shadow: 0 10px 26px rgba(15, 17, 21, 0.1);
+}
+
+.qscChoice.choiceOn svg {
+  opacity: 1;
+}
+
+.qscChoice.choiceOn .qscChoiceDot {
+  background: rgba(15, 17, 21, 0.72);
+  border-color: rgba(15, 17, 21, 0.72);
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.85);
+}
+
+.qscChoice.choiceOn::after {
+  content: "";
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  bottom: 8px;
+
+  height: 2px;
+  border-radius: 999px;
+  opacity: 0.92;
+  background: rgba(15, 17, 21, 0.65);
+}
+
+/* ✅ 状態別カラー（旧 isOk/isHold/isNg/isNa → choiceOk等） */
+.qscChoice.choiceOk.choiceOn {
+  border-color: rgba(52, 199, 89, 0.35);
+  background: rgba(52, 199, 89, 0.14);
+}
+.qscChoice.choiceOk.choiceOn::after {
+  background: rgba(52, 199, 89, 0.88);
+}
+
+.qscChoice.choiceHold.choiceOn {
+  border-color: rgba(255, 159, 10, 0.38);
+  background: rgba(255, 159, 10, 0.16);
+}
+.qscChoice.choiceHold.choiceOn::after {
+  background: rgba(255, 204, 0, 0.92);
+}
+
+.qscChoice.choiceNg.choiceOn {
+  border-color: rgba(255, 59, 48, 0.38);
+  background: rgba(255, 59, 48, 0.14);
+}
+.qscChoice.choiceNg.choiceOn::after {
+  background: rgba(255, 59, 48, 0.92);
+}
+
+.qscChoice.choiceNa.choiceOn {
+  border-color: rgba(15, 17, 21, 0.22);
+  background: rgba(15, 17, 21, 0.06);
+}
+.qscChoice.choiceNa.choiceOn::after {
+  background: rgba(142, 142, 147, 0.92);
+}
+
+/* =========================
+   Note / Photo (grid)
+   ========================= */
+.qscItemBottom {
+  padding: 10px 12px 12px;
+  border-top: 1px solid rgba(15, 17, 21, 0.08);
+  background: rgba(15, 17, 21, 0.015);
+
+  display: grid;
+  gap: 10px;
+}
+
+.qscNoteHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.qscNoteTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-weight: 950;
+  font-size: 12.5px;
+  color: rgba(15, 17, 21, 0.85);
+}
+
+.qscRequired {
+  margin-left: 8px;
+
+  font-size: 11px;
+  font-weight: 950;
+  padding: 4px 8px;
+
+  border-radius: 999px;
+  border: 1px solid rgba(255, 59, 48, 0.28);
+  background: rgba(255, 59, 48, 0.1);
+  color: rgba(255, 59, 48, 0.95);
+}
+
+.qscPhotoHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.qscPhotoAdd {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 9px 12px;
+  border-radius: 999px;
+
+  border: 1px solid rgba(15, 17, 21, 0.12);
+  background: rgba(255, 255, 255, 0.75);
+
+  cursor: pointer;
+
+  font-weight: 950;
+  font-size: 12px;
+  color: rgba(15, 17, 21, 0.9);
+}
+
+.qscPhotoAdd:hover {
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.qscPhotoAdd input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.qscNote {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 17, 21, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+
+  padding: 10px 12px;
+  font-size: 13px;
+  outline: none;
+
+  resize: vertical;
+  min-height: 54px;
+
+  color: rgba(15, 17, 21, 0.92);
+  transition: box-shadow 0.18s ease, border-color 0.18s ease, filter 0.18s ease;
+}
+
+.qscNote::placeholder {
+  color: rgba(15, 17, 21, 0.45);
+  font-weight: 700;
+}
+
+/* ✅ 旧 isMissing → noteMissing */
+.noteMissing {
+  border-color: rgba(255, 59, 48, 0.55);
+  box-shadow: 0 10px 26px rgba(255, 59, 48, 0.12);
+}
+
+/* ✅ 旧 isGuide → noteGuide */
+.noteGuide {
+  border-color: rgba(0, 122, 255, 0.38);
+  box-shadow: 0 14px 42px rgba(15, 17, 21, 0.1), 0 0 0 5px rgba(0, 122, 255, 0.14);
+  filter: saturate(1.02);
+  animation: qscGuidePulse 0.9s ease both;
+}
+
+@keyframes qscGuidePulse {
+  0% {
+    box-shadow: 0 10px 28px rgba(15, 17, 21, 0.08), 0 0 0 0 rgba(0, 122, 255, 0);
+  }
+  45% {
+    box-shadow: 0 14px 46px rgba(15, 17, 21, 0.1), 0 0 0 6px rgba(0, 122, 255, 0.16);
+  }
+  100% {
+    box-shadow: 0 12px 36px rgba(15, 17, 21, 0.09), 0 0 0 5px rgba(0, 122, 255, 0.12);
+  }
+}
+
+.qscErrorLine {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 12.5px;
+  font-weight: 950;
+  color: rgba(255, 59, 48, 0.95);
+
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 59, 48, 0.24);
+  background: rgba(255, 59, 48, 0.1);
+}
+
+.qscHoldBox {
+  border-radius: 16px;
+  border: 1px solid rgba(15, 17, 21, 0.1);
+  background: rgba(255, 255, 255, 0.72);
+
+  padding: 10px;
+
+  display: grid;
+  gap: 8px;
+}
+
+.qscHoldTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  font-size: 12.5px;
+  font-weight: 950;
+  color: rgba(15, 17, 21, 0.82);
+}
+
+.qscHoldNote {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 17, 21, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+
+  padding: 10px 12px;
+  font-size: 13px;
+  outline: none;
+
+  resize: vertical;
+  min-height: 54px;
+
+  color: rgba(15, 17, 21, 0.92);
+}
+
+.qscPhotoGrid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (max-width: 720px) {
+  .qscPhotoGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 420px) {
+  .qscPhotoGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.qscPhotoThumb {
+  position: relative;
+  aspect-ratio: 1 / 1;
+
+  border-radius: 14px;
+  overflow: hidden;
+
+  border: 1px solid rgba(15, 17, 21, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.qscPhotoOpen {
+  width: 100%;
+  height: 100%;
+
+  border: none;
+  padding: 0;
+  background: transparent;
+
+  cursor: pointer;
+  display: block;
+}
+
+.qscPhotoThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.qscPhotoDel {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+
+  width: 30px;
+  height: 30px;
+
+  border-radius: 12px;
+  border: 1px solid rgba(15, 17, 21, 0.16);
+  background: rgba(255, 255, 255, 0.92);
+
+  cursor: pointer;
+}
+
+.qscPhotoDel:hover {
+  background: rgba(255, 255, 255, 0.98);
+}

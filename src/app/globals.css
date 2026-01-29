@@ -1,26 +1,2989 @@
-@import "tailwindcss";
+/* =========================================================
+   src/app/globals.css (QSC Clean / Field Ops - CLEAN FULL)
+   ✅ 1セレクタ1定義（重複排除）
+   ✅ Login(.qsc-auth/.qsc-login)のみスクロール禁止 + 縦横センター
+   ✅ 全ページ：スマホ枠(.qsc-frame) + 枠内スクロール(.qsc-frame-scroll)
+   ✅ Home：縦流れ + カルーセルは枠内から絶対はみ出さない
+   ✅ BottomTab + FAB + Badge もここで一括定義
+   ========================================================= */
 
+/* =========================
+   Tokens
+   ========================= */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #f6f8fb;
+  --fg: #0f1115;
+  --muted: rgba(15, 17, 21, 0.62);
+  --line: rgba(15, 17, 21, 0.10);
+
+  --card: rgba(255, 255, 255, 0.96);
+  --shadow: 0 18px 55px rgba(15, 17, 21, 0.10);
+  --shadow2: 0 10px 30px rgba(15, 17, 21, 0.08);
+
+  --radius: 22px;
+  --header-h: 72px;
+
+  /* brand */
+  --q-blue: #2f8ce6;
+  --q-green: #2fb36d;
+  --q-red: #ff3b30;
+
+  /* focus */
+  --focus: rgba(47, 140, 230, 0.55);
+  --focusRing: rgba(47, 140, 230, 0.18);
+
+  /* motion */
+  --e-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --e-inout: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* login position tuning */
+  --login-shift-desktop: 4vh;
+  --login-shift-mobile: 3vh;
+  --login-shift-short: 2vh;
+  --login-shift-force: 0vh; /* ← 上げたいなら -10vh など */
+
+  /* bottom tab */
+  --tabbar-h: 66px;
+  --tabbar-safe: env(safe-area-inset-bottom, 0px);
+
+  /* selected (light blue) */
+  --sel-bg: rgba(25, 130, 255, 0.10);
+  --sel-line: rgba(25, 130, 255, 0.28);
+  --sel-ink: rgba(15, 17, 21, 0.92);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+/* =========================
+   Base
+   ========================= */
+* { box-sizing: border-box; }
+html, body { height: 100%; }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  margin: 0;
+  color: var(--fg);
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, "Noto Sans JP", "Apple Color Emoji", "Segoe UI Emoji";
+
+  background:
+    radial-gradient(900px 520px at 20% 0%, rgba(47,140,230,.09), transparent 65%),
+    radial-gradient(900px 560px at 50% 0%, rgba(47,179,109,.08), transparent 65%),
+    radial-gradient(900px 600px at 80% 0%, rgba(255,59,48,.09), transparent 65%),
+    var(--bg);
+}
+
+a { color: inherit; }
+input, button, select, textarea { font: inherit; }
+
+/* =========================
+   Header (fixed)
+   ========================= */
+.qsc-header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--line);
+}
+
+.qsc-header-inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  height: var(--header-h);
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.qsc-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  min-width: 0;
+}
+
+.qsc-header-brandText { min-width: 0; }
+.qsc-header-title { font-weight: 900; font-size: 14px; line-height: 1.1; margin: 0; }
+.qsc-header-sub { font-size: 11px; opacity: .65; margin-top: 2px; }
+
+.qsc-nav-desktop { display: flex; gap: 14px; align-items: center; }
+.qsc-nav-link { text-decoration: none; font-weight: 800; font-size: 12px; opacity: .72; }
+.qsc-nav-link:hover { opacity: 1; }
+
+.qsc-header-right { display: flex; gap: 10px; align-items: center; }
+
+.qsc-userbtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.95);
+  color: var(--fg);
+  font-weight: 900;
+  font-size: 12px;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(15,17,21,.06);
+  transition: transform 160ms var(--e-out), box-shadow 160ms var(--e-out), opacity 160ms var(--e-out);
+}
+.qsc-userbtn:hover { transform: translateY(-1px); box-shadow: 0 14px 26px rgba(15,17,21,.08); }
+
+.qsc-burger {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.92);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  cursor: pointer;
+}
+.qsc-burger span {
+  width: 18px;
+  height: 2px;
+  background: rgba(15,17,21,.70);
+  display: block;
+  border-radius: 999px;
+}
+
+.qsc-nav-mobile {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 8px 16px 14px;
+  display: none;
+}
+.qsc-nav-m-link {
+  display: block;
+  padding: 10px 10px;
+  border-radius: 14px;
+  text-decoration: none;
+  font-weight: 900;
+  border: 1px solid rgba(15,17,21,.06);
+  background: rgba(255,255,255,.92);
+  margin-top: 8px;
+}
+
+/* =========================
+   Buttons / Badge
+   ========================= */
+.qsc-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(15,17,21,0.12);
+  background: rgba(255,255,255,.95);
+  color: var(--fg);
+  font-weight: 900;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 160ms var(--e-out), box-shadow 160ms var(--e-out), opacity 160ms var(--e-out);
+  box-shadow: 0 14px 30px rgba(15,17,21,0.06);
+}
+.qsc-btn:active { transform: translateY(1px) scale(0.99); }
+.qsc-btn:disabled { opacity: .60; cursor: not-allowed; box-shadow: none; }
+
+.qsc-btn-primary{
+  background: linear-gradient(180deg, #1b2230 0%, #121826 100%);
+  color: #fff;
+  border: 0;
+  box-shadow: 0 12px 28px rgba(15,17,21,.25);
+}
+.qsc-btn-primary:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 16px 36px rgba(15,17,21,.32); }
+
+.qsc-btn-secondary{ background: rgba(255,255,255,.96); color: var(--fg); }
+.qsc-btn-secondary:hover:not(:disabled){ transform: translateY(-1px); box-shadow: 0 18px 45px rgba(15,17,21,0.10); }
+
+.qsc-badge {
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,.10);
+  background: rgba(255,255,255,.95);
+  opacity: .92;
+}
+
+/* =========================
+   Logo (共通)
+   ========================= */
+.qsc-auth-top img,
+.qsc-login-top img,
+.qsc-hero-logo img,
+.qsc-loading-logo img {
+  display: block;
+  background: transparent !important;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.qsc-logo-wrap {
+  display: inline-block;
+  position: relative;
+  background: transparent;
+}
+
+.qsc-auth-top .qsc-logo-wrap img,
+.qsc-login-top .qsc-logo-wrap img,
+.qsc-hero-logo .qsc-logo-wrap img,
+.qsc-loading-logo .qsc-logo-wrap img {
+  width: clamp(150px, 48vw, 260px) !important;
+  height: auto !important;
+}
+
+.qsc-logo-wrap img {
+  width: 100% !important;
+  height: auto !important;
+}
+
+.qsc-logo-wrap.is-tight { max-width: 140px; }
+
+/* =========================
+   Animations
+   ========================= */
+.qsc-logo-anim {
+  opacity: 0;
+  transform: translateY(8px) scale(0.99);
+  filter: blur(10px);
+  animation: qscLogoIn 720ms var(--e-out) forwards;
+  animation-delay: var(--qsc-delay, 0ms);
+  will-change: transform, opacity, filter;
+}
+
+@keyframes qscLogoIn {
+  0% { opacity: 0; transform: translateY(12px) scale(0.985); filter: blur(12px); }
+  70% { opacity: 1; transform: translateY(-1px) scale(1.006); filter: blur(2px); }
+  100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.qsc-reveal {
+  opacity: 0;
+  transform: translateY(12px) scale(0.99);
+  filter: blur(8px);
+  animation: qscReveal 680ms var(--e-out) forwards;
+  animation-delay: var(--qsc-reveal-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+
+@keyframes qscReveal{
+  0%{ opacity: 0; transform: translateY(14px) scale(0.985); filter: blur(10px); }
+  70%{ opacity: 1; transform: translateY(-1px) scale(1.006); filter: blur(2px); }
+  100%{ opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+}
+
+.qsc-enter { animation: qscFadeIn .25s ease-out both; }
+.qsc-enter--d2 { animation-delay: 120ms; }
+.qsc-enter--d3 { animation-delay: 220ms; }
+.qsc-enter--d4 { animation-delay: 340ms; }
+.qsc-enter--d5 { animation-delay: 480ms; }
+
+html.qsc-leave body { transition: opacity 180ms ease; opacity: .86; }
+
+@keyframes qscFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================
+   Loading
+   ========================= */
+.qsc-loading{
+  min-height: calc(100svh - var(--header-h));
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  animation: qscFadeIn .25s ease-out;
+}
+.qsc-loading-inner{
+  width: min(420px, 92vw);
+  border-radius: 22px;
+  border: 1px solid rgba(15,17,21,.08);
+  background: rgba(255,255,255,.95);
+  box-shadow: var(--shadow);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.qsc-spinner{
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 3px solid rgba(15,17,21,.14);
+  border-top-color: rgba(15,17,21,.65);
+  animation: qscSpin .8s linear infinite;
+}
+.qsc-loading-text{ font-size: 12px; opacity: .7; }
+@keyframes qscSpin { to { transform: rotate(360deg); } }
+
+/* =========================================================
+   Auth / Login (全画面)
+   ========================================================= */
+.qsc-auth,
+.qsc-login {
+  overflow: hidden;
+  min-height: 100svh;
+  display: grid;
+  place-items: center;
+  padding: 0 14px;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: auto;
+}
+
+.qsc-auth-inner,
+.qsc-login-inner {
+  width: min(520px, calc(100vw - 28px));
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transform: translateY(var(--login-shift-desktop));
+}
+
+/* tokenで最終上書き */
+body:has(.qsc-login) .qsc-login-inner,
+body:has(.qsc-auth)  .qsc-auth-inner {
+  transform: translateY(var(--login-shift-force));
+}
+
+.qsc-auth-top,
+.qsc-login-top {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 6px;
+  padding: 10px 0 4px;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.qsc-auth-title,
+.qsc-login-title { font-weight: 950; letter-spacing: -0.02em; font-size: 22px; margin: 0; }
+
+.qsc-auth-sub,
+.qsc-login-sub { margin: 0; font-size: 13px; opacity: 0.65; }
+
+.qsc-auth-card,
+.qsc-login-card {
+  width: 100%;
+  border-radius: 22px;
+  border: 1px solid rgba(15,17,21,0.08);
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 18px 50px rgba(15,17,21,0.12);
+  padding: 18px;
+}
+
+.qsc-form,
+.qsc-login-form { width: 100%; display: flex; flex-direction: column; gap: 14px; }
+
+.qsc-label,
+.qsc-login-field { display: flex; flex-direction: column; gap: 8px; }
+
+.qsc-label-text,
+.qsc-login-label { font-weight: 900; opacity: 0.92; font-size: 13px; }
+
+.qsc-input,
+.qsc-login-input {
+  width: 100%;
+  border: 1px solid rgba(15,17,21,0.14);
+  border-radius: 16px;
+  padding: 14px;
+  font-size: 16px;
+  outline: none;
+  background: rgba(255,255,255,0.96);
+  transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+.qsc-input::placeholder,
+.qsc-login-input::placeholder { opacity: 0.55; }
+
+.qsc-input:focus,
+.qsc-login-input:focus {
+  border-color: var(--focus);
+  box-shadow: 0 0 0 5px var(--focusRing), 0 10px 30px rgba(15,17,21,0.10);
+  transform: translateY(-1px);
+}
+
+.qsc-or,
+.qsc-login-or {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  opacity: 0.6;
+  font-weight: 900;
+  font-size: 12px;
+  width: 100%;
+}
+.qsc-or::before,
+.qsc-or::after,
+.qsc-login-or::before,
+.qsc-login-or::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: rgba(15,17,21,0.14);
+}
+
+.qsc-footer,
+.qsc-login-footer {
+  text-align: center;
+  opacity: 0.6;
+  font-weight: 900;
+  padding: 6px 0 0;
+  font-size: 12px;
+}
+
+/* Remember Me */
+.qsc-remember { margin-top: -4px; margin-bottom: 4px; }
+.qsc-remember-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  user-select: none;
+  width: fit-content;
+}
+.qsc-checkbox {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+  position: relative;
+  transition: all 180ms var(--e-out);
+  cursor: pointer;
+}
+.qsc-checkbox:checked { background: var(--q-blue); border-color: var(--q-blue); }
+.qsc-checkbox:checked::after {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 2px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.qsc-checkbox:focus { box-shadow: 0 0 0 4px var(--focusRing); outline: none; }
+
+.qsc-remember-text {
+  font-size: 13px;
+  font-weight: 800;
+  opacity: 0.72;
+  transition: opacity 180ms ease;
+}
+.qsc-remember-label:hover .qsc-remember-text { opacity: 1; }
+
+/* Login/Authだけ全体スクロールロック */
+html:has(.qsc-login),
+body:has(.qsc-login),
+html:has(.qsc-auth),
+body:has(.qsc-auth) {
+  height: 100%;
+  overflow: hidden !important;
+}
+body:has(.qsc-login) > div,
+body:has(.qsc-auth) > div {
+  height: 100svh;
+  overflow: hidden !important;
+}
+
+/* =========================================================
+   GLOBAL APP FRAME (All pages)
+   - 全ページを “スマホ枠” に入れる
+   - スクロールは枠内(.qsc-frame-scroll)だけ
+   ========================================================= */
+.qsc-app {
+  /* 旧来のページ内paddingを無効化（枠に一本化） */
+  padding-top: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.qsc-frame {
+  min-height: 100svh;
+  padding-top: var(--header-h);
+  padding-bottom: calc(var(--tabbar-h) + var(--tabbar-safe));
+
+  display: grid;
+  place-items: start center;
+
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.qsc-frame-shell {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 24px;
+
+  overflow: hidden;
+  min-width: 0;
+
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: 0 18px 60px rgba(15, 17, 21, 0.10);
+
+  height: calc(
+    100svh
+    - var(--header-h)
+    - (var(--tabbar-h) + var(--tabbar-safe))
+    - 24px
+  );
+
+  display: flex;
+  flex-direction: column;
+}
+
+.qsc-frame-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+
+  padding: 16px;
+}
+
+.qsc-frame-shell * { max-width: 100%; }
+
+/* Login/Authは枠を出さない（全画面優先） */
+body:has(.qsc-login) .qsc-frame,
+body:has(.qsc-auth) .qsc-frame {
+  display: none !important;
+}
+
+/* 旧 .qsc-page paddingは枠と二重になるので切る（ページ側で必要な余白は内側で付ける） */
+.qsc-page { padding: 0 !important; }
+
+/* =========================================================
+   Panels (News/Ranking/Generic)
+   ========================================================= */
+.qsc-panel {
+  border-radius: 22px;
+  border: 1px solid rgba(15,17,21,0.08);
+  background: rgba(255,255,255,0.92);
+  box-shadow: 0 18px 55px rgba(15,17,21,0.08);
+  padding: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.qsc-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.qsc-panel-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 950;
+  letter-spacing: -0.01em;
+}
+
+.qsc-panel-link {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.72;
+  text-decoration: none;
+}
+.qsc-panel-link:hover { opacity: 1; }
+
+/* News cards */
+.qsc-news-list { display: grid; gap: 10px; }
+
+.qsc-news {
+  border-radius: 16px;
+  border: 1px solid rgba(15,17,21,0.08);
+  background: rgba(255,255,255,0.96);
+  padding: 12px;
+  box-shadow: 0 12px 30px rgba(15,17,21,0.05);
+  min-width: 0;
+}
+
+.qsc-news-meta { display: flex; gap: 8px; align-items: center; margin-bottom: 6px; }
+.qsc-news-date { font-size: 11px; font-weight: 900; opacity: 0.66; }
+.qsc-news-tag {
+  font-size: 10px;
+  font-weight: 950;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.92);
+  opacity: 0.92;
+}
+.qsc-news-title { font-size: 13px; font-weight: 950; margin-bottom: 4px; }
+.qsc-news-body { font-size: 12px; line-height: 1.55; opacity: 0.72; }
+
+/* =========================================================
+   Carousel (汎用/Ranking)
+   - 枠内から絶対はみ出さない
+   ========================================================= */
+.qsc-carousel,
+.qsc-rank-carousel {
+  overflow: hidden;  /* 外にはみ出す描画をカット */
+  margin-top: 2px;
+}
+
+.qsc-carousel-inner,
+.qsc-rank-carousel-inner {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+
+  display: grid;
+  grid-auto-flow: column;
+  gap: 12px;
+
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+
+  padding: 6px 0; /* 横幅を増やさない */
+}
+
+.qsc-carousel-inner { grid-auto-columns: calc(100% - 16px); }
+.qsc-rank-carousel-inner { grid-auto-columns: calc(100% - 16px); }
+
+@media (min-width: 768px) {
+  .qsc-carousel-inner { grid-auto-columns: calc(100% - 20px); }
+  .qsc-rank-carousel-inner { grid-auto-columns: calc(100% - 20px); }
+}
+
+.qsc-feature,
+.qsc-rank-card {
+  scroll-snap-align: start;
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255,255,255,0.96);
+  border: 1px solid rgba(15,17,21,0.08);
+  box-shadow: 0 14px 35px rgba(15,17,21,0.06);
+  display: grid;
+  gap: 10px;
+
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.qsc-feature-title { font-weight: 950; font-size: 13px; }
+.qsc-feature-text  { opacity: 0.80; line-height: 1.5; font-size: 12px; }
+.qsc-feature-hint  { opacity: 0.55; font-size: 11px; font-weight: 900; }
+
+/* Ranking list in card */
+.qsc-swipehint { font-size: 11px; font-weight: 900; opacity: 0.55; margin-top: -6px; }
+
+.qsc-rank-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.qsc-rank-title { font-weight: 950; font-size: 13px; }
+.qsc-rank-sub { font-weight: 950; font-size: 11px; opacity: 0.6; margin-left: 6px; }
+
+.qsc-rank-more {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.72;
+  text-decoration: none;
+}
+.qsc-rank-more:hover { opacity: 1; }
+
+.qsc-rank-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+
+.qsc-rank-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(15,17,21,0.06);
+  background: rgba(255,255,255,0.92);
+  min-width: 0;
+}
+
+.qsc-rank-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+
+.qsc-rank-no {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.92);
+  font-size: 11px;
+  font-weight: 950;
+  flex: 0 0 auto;
+}
+
+.qsc-rank-store {
+  font-size: 12px;
+  font-weight: 900;
+  opacity: 0.90;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qsc-rank-score { font-size: 12px; font-weight: 950; opacity: 0.78; flex: 0 0 auto; }
+
+.qsc-rank-footnote { font-size: 10px; font-weight: 900; opacity: 0.50; text-align: right; }
+
+/* =========================================================
+   Pills (icon + label) - 共通
+   ========================================================= */
+.qsc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+}
+
+/* =========================================================
+   HOME Widget (one definitive version)
+   ========================================================= */
+.qsc-homeWidget {
+  position: relative;
+  overflow: hidden;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--shadow2);
+  padding: 14px;
+}
+
+.qsc-homeWidget::before {
+  content: "";
+  position: absolute;
+  inset: -40px -30px auto -30px;
+  height: 120px;
+  background:
+    radial-gradient(140px 100px at 18% 28%, rgba(15, 17, 21, 0.09), rgba(15, 17, 21, 0)),
+    radial-gradient(160px 120px at 72% 8%, rgba(15, 17, 21, 0.06), rgba(15, 17, 21, 0)),
+    linear-gradient(90deg, rgba(15, 17, 21, 0.04), rgba(15, 17, 21, 0));
+  pointer-events: none;
+}
+
+.qsc-homeWidget-top {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.qsc-homeWidget-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+/* 日付：MM/DD big + YYYY + (曜) */
+.qsc-homeWidget-dateWrap { text-align: right; position: relative; }
+.qsc-homeWidget-dateBig {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: var(--fg);
+}
+.qsc-homeWidget-mmdd {
+  font-size: 24px;
+  font-weight: 850;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.qsc-homeWidget-yearWrap { display: inline-flex; align-items: baseline; gap: 4px; }
+.qsc-homeWidget-year {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fg);
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+.qsc-homeWidget-dow {
+  font-size: 12px;
+  font-weight: 650;
+  color: var(--muted);
+}
+
+.qsc-homeWidget-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 10px;
+}
+
+.qsc-homeTile {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 10px 10px;
+  background: rgba(255, 255, 255, 0.68);
+  min-width: 0;
+}
+
+.qsc-homeTile-wide { grid-column: 1 / -1; }
+
+.qsc-homeTile-k {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.qsc-homeTile-v {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg);
+  line-height: 1.35;
+}
+
+.qsc-homeTile-mini {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 650;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .qsc-homeWidget { padding: 12px; }
+  .qsc-homeWidget-grid { grid-template-columns: 1fr; }
+  .qsc-homeWidget-mmdd { font-size: 23px; }
+}
+
+/* =========================================================
+   Bottom Tab Bar (iOS-ish)
+   ========================================================= */
+.qsc-tabbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 80;
+  pointer-events: none;
+}
+
+.qsc-tabbar-inner {
+  pointer-events: auto;
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto;
+  height: var(--tabbar-h);
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(15,17,21,0.10);
+  box-shadow: 0 -18px 40px rgba(15,17,21,0.08);
+}
+
+.qsc-tabbar-safe {
+  height: var(--tabbar-safe);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.qsc-tab {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+
+  border-radius: 16px;
+  text-decoration: none;
+  color: rgba(15,17,21,0.60);
+  padding: 8px 6px;
+  transition: transform 160ms var(--e-out), background 160ms var(--e-out), color 160ms var(--e-out);
+}
+.qsc-tab:hover { background: rgba(15,17,21,0.04); }
+.qsc-tab:active { transform: translateY(1px) scale(0.99); }
+
+.qsc-tab-icon {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.qsc-tab-label {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.qsc-tab.is-active {
+  color: rgba(15,17,21,0.90);
+  background: rgba(15,17,21,0.05);
+}
+
+@media (max-width: 380px) {
+  .qsc-tabbar-inner { padding: 8px 10px; height: 62px; }
+  .qsc-tab { border-radius: 14px; }
+}
+
+/* Badge (NG count) */
+.qsc-badge-dot {
+  position: absolute;
+  top: -6px;
+  right: -10px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: 0.01em;
+  color: #fff;
+
+  background: var(--q-red);
+  border: 2px solid rgba(255,255,255,0.90);
+  box-shadow: 0 10px 22px rgba(15,17,21,0.16);
+}
+
+/* =========================================================
+   FAB
+   ========================================================= */
+.qsc-fab {
+  position: absolute;
+  right: 16px;
+  top: calc(-56px - 10px);
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  text-decoration: none;
+  pointer-events: auto;
+}
+
+.qsc-fab-wrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+}
+
+.qsc-fab-inner {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+
+  background: linear-gradient(180deg, #1b2230 0%, #121826 100%);
+  color: #fff;
+
+  box-shadow: 0 18px 45px rgba(15,17,21,0.35);
+  border: 1px solid rgba(255,255,255,0.18);
+  transition: transform 160ms var(--e-out), box-shadow 160ms var(--e-out);
+}
+.qsc-fab:hover .qsc-fab-inner {
+  transform: translateY(-1px);
+  box-shadow: 0 22px 58px rgba(15,17,21,0.42);
+}
+.qsc-fab:active .qsc-fab-inner { transform: translateY(1px) scale(0.99); }
+
+.qsc-fab-label {
+  position: absolute;
+  left: 50%;
+  bottom: calc(56px + 10px);
+  transform: translateX(-50%);
+  padding: 6px 10px;
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+
+  color: rgba(15,17,21,0.92);
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(15,17,21,0.10);
+  box-shadow: 0 14px 28px rgba(15,17,21,0.12);
+  backdrop-filter: blur(10px);
+}
+
+@media (max-width: 380px) { .qsc-fab { right: 10px; } }
+
+/* =========================
+   Header responsive
+   ========================= */
+@media (max-width: 920px) {
+  .qsc-nav-desktop { display: none; }
+  .qsc-burger { display: flex; }
+  .qsc-nav-mobile { display: block; }
+}
+
+/* =========================
+   Login responsive
+   ========================= */
+@media (max-width: 480px){
+  .qsc-auth-inner,
+  .qsc-login-inner { gap: 12px; transform: translateY(var(--login-shift-mobile)); }
+
+  .qsc-auth-title,
+  .qsc-login-title{ font-size: 20px; }
+
+  .qsc-auth-sub,
+  .qsc-login-sub{ font-size: 12px; }
+
+  .qsc-auth-card,
+  .qsc-login-card{ padding: 14px; border-radius: 18px; }
+
+  .qsc-form,
+  .qsc-login-form{ gap: 12px; }
+
+  .qsc-input,
+  .qsc-login-input{ padding: 12px; border-radius: 14px; }
+
+  .qsc-btn{ height: 42px; border-radius: 14px; }
+}
+
+@media (max-height: 720px){
+  .qsc-auth-inner,
+  .qsc-login-inner{ transform: translateY(var(--login-shift-short)); }
+
+  .qsc-auth-top .qsc-logo-wrap img,
+  .qsc-login-top .qsc-logo-wrap img{
+    width: clamp(140px, 44vw, 230px) !important;
+  }
+}
+
+/* =========================
+   Reduced motion
+   ========================= */
+@media (prefers-reduced-motion: reduce) {
+  .qsc-logo-anim,
+  .qsc-reveal,
+  .qsc-enter {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+}
+
+/* =========================================================
+   CHECK PAGE (Final)
+   - Quarter widget / company bottom sheet / chips / store cards
+   ========================================================= */
+.qsc-checkPage { display: grid; gap: 14px; }
+
+/* ① 固定：日付 + Quarter */
+.qsc-quarterWidget {
+  position: sticky;
+  top: 10px;
+  z-index: 30;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 12px 14px;
+
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow2);
+  overflow: hidden;
+}
+.qsc-quarterWidget::before {
+  content: "";
+  position: absolute;
+  inset: -40px -40px auto -40px;
+  height: 120px;
+  background:
+    radial-gradient(180px 120px at 18% 30%, rgba(25, 130, 255, 0.10), rgba(25, 130, 255, 0)),
+    radial-gradient(160px 120px at 78% 10%, rgba(15, 17, 21, 0.06), rgba(15, 17, 21, 0));
+  pointer-events: none;
+}
+
+.qsc-quarterLeft { position: relative; display: grid; gap: 2px; }
+
+.qsc-mmdd {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--fg);
+}
+
+.qsc-yearDow {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.qsc-year, .qsc-dow { font-size: 12px; font-variant-numeric: tabular-nums; }
+
+.qsc-quarterRight { position: relative; display: grid; justify-items: end; gap: 4px; }
+
+.qsc-qChip {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+
+  padding: 8px 12px;
+  border-radius: 999px;
+
+  border: 1px solid var(--sel-line);
+  background: var(--sel-bg);
+
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: 0.08em;
+  color: var(--sel-ink);
+  white-space: nowrap;
+}
+
+.qsc-qChipYear {
+  font-size: 11px;
+  font-weight: 750;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.qsc-qHint {
+  font-size: 11px;
+  font-weight: 750;
+  color: var(--muted);
+  letter-spacing: 0.10em;
+}
+
+/* ② Company button */
+.qsc-companyBtn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+
+  padding: 12px 12px;
+  text-align: left;
+
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.qsc-companyBtn:hover { transform: translateY(-1px); box-shadow: var(--shadow2); }
+.qsc-companyBtn.is-selected { border-color: var(--sel-line); background: var(--sel-bg); }
+
+.qsc-companyBtnLeft { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+
+.qsc-companyBtnIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  display: grid;
+  place-items: center;
+  color: rgba(15, 17, 21, 0.70);
+}
+.qsc-companyBtn.is-selected .qsc-companyBtnIcon {
+  border-color: var(--sel-line);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.qsc-companyBtnText {
+  font-size: 15px;
+  font-weight: 950;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qsc-companyBtnRight { display: inline-flex; align-items: center; gap: 10px; color: rgba(15, 17, 21, 0.70); flex-shrink: 0; }
+
+.qsc-companySelected {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: rgba(25, 130, 255, 0.85);
+}
+
+/* Bottom sheet */
+.qsc-sheetOverlay { position: fixed; inset: 0; z-index: 9999; }
+
+.qsc-sheetBackdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 17, 21, 0.48);
+  border: none;
+}
+
+.qsc-sheet {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  transform: translateX(-50%);
+  width: min(720px, calc(100% - 16px));
+  max-height: 82vh;
+
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 22px 70px rgba(15, 17, 21, 0.30);
+  overflow: hidden;
+
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+}
+
+.qsc-sheetHandle {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(15, 17, 21, 0.12);
+  margin: 10px auto 0 auto;
+}
+
+.qsc-sheetHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 10px 12px;
+}
+
+.qsc-sheetTitle {
+  font-size: 13px;
+  font-weight: 950;
+  letter-spacing: 0.10em;
+  color: var(--fg);
+}
+
+.qsc-sheetClose {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  display: grid;
+  place-items: center;
+  color: rgba(15, 17, 21, 0.75);
+}
+
+.qsc-sheetSearch {
+  display: grid;
+  grid-template-columns: 42px 1fr 42px;
+  gap: 10px;
+  align-items: center;
+  padding: 0 12px 12px 12px;
+}
+
+.qsc-sheetSearchIcon {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.qsc-sheetSearchInput {
+  height: 42px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0 12px;
+  font-size: 14px;
+  font-weight: 850;
+  outline: none;
+}
+.qsc-sheetSearchInput:focus { border-color: var(--sel-line); background: var(--sel-bg); }
+
+.qsc-sheetSearchClear {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(15, 17, 21, 0.65);
+  font-weight: 950;
+}
+
+.qsc-sheetList { overflow: auto; border-top: 1px solid rgba(15, 17, 21, 0.06); }
+
+.qsc-sheetOpt {
+  width: 100%;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 14px 1fr 28px;
+  align-items: center;
+  gap: 10px;
+
+  padding: 12px 14px;
+  border: none;
+  border-top: 1px solid rgba(15, 17, 21, 0.06);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--fg);
+}
+.qsc-sheetOpt:first-child { border-top: none; }
+.qsc-sheetOpt:hover { background: rgba(15, 17, 21, 0.04); }
+.qsc-sheetOpt.is-active { background: var(--sel-bg); }
+
+.qsc-sheetOptDot { width: 10px; height: 10px; border-radius: 999px; background: rgba(15, 17, 21, 0.22); }
+.qsc-sheetOpt.is-active .qsc-sheetOptDot { background: rgba(25, 130, 255, 0.65); }
+
+.qsc-sheetOptText { font-weight: 900; }
+.qsc-sheetOptCheck { display: grid; place-items: center; color: rgba(25, 130, 255, 0.85); }
+
+.qsc-sheetEmpty { padding: 14px; font-size: 12px; font-weight: 800; color: var(--muted); }
+
+/* ③ Chips */
+.qsc-chipScroll2 {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+.qsc-chipScroll2::-webkit-scrollbar { height: 6px; }
+.qsc-chipScroll2::-webkit-scrollbar-thumb { background: rgba(15, 17, 21, 0.12); border-radius: 999px; }
+.qsc-chipScroll2.is-disabled { opacity: 0.55; pointer-events: none; }
+
+.qsc-chip2 {
+  scroll-snap-align: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--fg);
+
+  font-size: 12px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.qsc-chip2:hover { transform: translateY(-1px); box-shadow: var(--shadow2); }
+.qsc-chip2:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.qsc-chip2-ic { display: grid; place-items: center; color: rgba(15, 17, 21, 0.70); }
+
+.qsc-chip2-ok {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.14);
+  display: grid;
+  place-items: center;
+  color: rgba(25, 130, 255, 0.0);
+  background: rgba(255, 255, 255, 0.90);
+}
+.qsc-chip2-ok.is-on { color: rgba(25, 130, 255, 0.90); border-color: var(--sel-line); background: rgba(255, 255, 255, 0.96); }
+
+.qsc-chip2.is-active { border-color: var(--sel-line); background: var(--sel-bg); box-shadow: var(--shadow2); }
+
+/* ④ Search row */
+.qsc-searchRow2 { display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: center; }
+
+.qsc-searchIcon2 {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+/* ⑤ Store cards */
+.qsc-storeCards { display: grid; gap: 10px; }
+
+.qsc-storeCard {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.92);
+  padding: 12px;
+
+  text-align: left;
+
+  transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+}
+.qsc-storeCard:hover { transform: translateY(-1px); box-shadow: var(--shadow2); }
+.qsc-storeCard:disabled { opacity: 0.62; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.qsc-storeCardLeft { display: grid; gap: 8px; min-width: 0; }
+
+.qsc-storeTitle {
+  font-size: 15px;
+  font-weight: 950;
+  color: var(--fg);
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+}
+
+.qsc-storeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 800;
+  font-size: 12px;
+}
+
+.qsc-storeMetaItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(15, 17, 21, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 999px;
+  padding: 6px 10px;
+  max-width: 100%;
+}
+
+.qsc-storeCardRight { display: grid; justify-items: end; gap: 10px; flex-shrink: 0; }
+
+.qsc-statusPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 950;
+  border: 1px solid rgba(15, 17, 21, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+/* 状態 */
+.qsc-storeCard.status-new { border-left: 4px solid rgba(15, 17, 21, 0.16); }
+.qsc-storeCard.status-draft { border-left: 4px solid rgba(25, 130, 255, 0.35); background: var(--sel-bg); border-color: var(--sel-line); }
+.qsc-storeCard.status-done { border-left: 4px solid rgba(0, 160, 80, 0.35); background: rgba(245, 247, 248, 0.96); }
+
+/* Empty / muted */
+.qsc-empty {
+  border: 1px dashed rgba(15, 17, 21, 0.14);
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.60);
+}
+.qsc-emptyTitle { font-weight: 950; color: var(--fg); margin-bottom: 6px; }
+.qsc-emptyBody { font-size: 12px; font-weight: 750; color: var(--muted); }
+.qsc-mutedLine { font-size: 12px; font-weight: 750; color: var(--muted); }
+
+/* Mobile tweaks */
+@media (max-width: 560px) {
+  .qsc-quarterWidget { top: 8px; padding: 11px 12px; }
+  .qsc-mmdd { font-size: 24px; }
+  .qsc-storeCard { border-radius: 16px; padding: 11px 12px; }
+}
+/* =========================
+   Check page: 天気/気温 + タイトルの質感改善（追記）
+========================= */
+
+/* --- ① QuarterWidget内：中央（天気/気温） --- */
+.qsc-quarterWidget {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr; /* Left / Mid / Right */
+  gap: 10px;
+  align-items: center;
+}
+
+.qsc-quarterMid {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  justify-self: center;
+  padding: 6px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
+}
+
+/* chip */
+.qsc-weatherChip,
+.qsc-tempChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(15, 17, 21, 0.04);
+  font-weight: 850;
+  font-size: 12px;
+  letter-spacing: -0.01em;
+}
+
+.qsc-weatherChip.is-loading,
+.qsc-tempChip.is-loading {
+  opacity: 0.6;
+}
+
+.qsc-weatherLabel {
+  line-height: 1;
+}
+
+.qsc-tempChip {
+  background: rgba(0, 122, 255, 0.10);
+  border-color: rgba(0, 122, 255, 0.18);
+}
+
+.qsc-tempNum {
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.qsc-tempUnit {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+/* --- タイトル/説明文の“ダサさ”改善（Apple寄り） --- */
+.qsc-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.18;
+}
+
+.qsc-sub {
+  font-size: 13px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  line-height: 1.55;
+  opacity: 0.72;
+}
+
+/* 小さい画面で3カラムが詰まるので、中央を下に落とす */
+@media (max-width: 520px) {
+  .qsc-quarterWidget {
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "left right"
+      "mid mid";
+  }
+  .qsc-quarterLeft { grid-area: left; }
+  .qsc-quarterRight { grid-area: right; }
+  .qsc-quarterMid {
+    grid-area: mid;
+    justify-self: stretch;
+    justify-content: center;
+  }
+}
+/* =========================
+   Check: Quarter/Date widget polish (ADD)
+   ========================= */
+
+/* 既存の qsc-quarterWidget を “締まったカード” に */
+.qsc-quarterWidget{
+  border-radius: 18px;
+  padding: 16px 16px 12px;
+  background: rgba(255,255,255,.82);
+  border: 1px solid rgba(15,17,21,.08);
+  box-shadow: 0 14px 40px rgba(15,17,21,.08);
+  backdrop-filter: blur(10px);
+}
+
+/* 日付の主役感は維持しつつ、文字の階層を整える */
+.qsc-mmdd{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-weight: 760;
+  letter-spacing: -0.02em;
+}
+.qsc-mmdd span{
+  font-size: 44px; /* でかいのはOK。ここを主役にする */
+  line-height: 1;
+}
+.qsc-yearDow{
+  margin-top: 6px;
+  display:flex;
+  gap:10px;
+  color: rgba(15,17,21,.62);
+  font-weight: 650;
+}
+.qsc-year{
+  font-size: 18px;
+}
+.qsc-dow{
+  font-size: 18px;
+}
+
+/* Qチップは “線を薄く・中身を少し締める” */
+.qsc-qChip{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(59,130,246,.10);
+  border: 1px solid rgba(59,130,246,.22);
+  font-weight: 760;
+  letter-spacing: -0.01em;
+}
+.qsc-qChipYear{
+  opacity:.70;
+  font-weight: 720;
+}
+.qsc-qHint{
+  display:block;
+  margin-top: 6px;
+  text-align:right;
+  font-size: 12px;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: rgba(15,17,21,.42);
+}
+
+/* ▼ここが本命：下段の“間延びカプセル”をやめて、チップ列に */
+.qsc-metaRow{
+  margin-top: 12px;
+  display:flex;
+  align-items:center;
+  justify-content: flex-start; /* 左寄せ */
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 天気/気温チップ（Appleっぽい薄いガラス） */
+.qsc-metaChip{
+  display:inline-flex;
+  align-items:center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,.10);
+  background: rgba(255,255,255,.72);
+  box-shadow: 0 8px 18px rgba(15,17,21,.06);
+  font-weight: 760;
+  letter-spacing: -0.01em;
+}
+.qsc-metaChip .ic{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(15,17,21,.06);
+}
+.qsc-metaChip .tx{
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* 気温はほんのりブルーで“情報チップ”感 */
+.qsc-metaChip.is-temp{
+  background: rgba(59,130,246,.10);
+  border-color: rgba(59,130,246,.18);
+}
+.qsc-metaChip.is-temp .ic{
+  background: rgba(59,130,246,.18);
+}
+
+/* “店舗を選択して開始” の見出し/説明を上品に */
+.qsc-panel .qsc-title{
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  font-weight: 780;
+}
+.qsc-panel .qsc-sub{
+  font-size: 14px;
+  line-height: 1.6;
+  color: rgba(15,17,21,.62);
+  font-weight: 650;
+}
+/* =========================================================
+   QSC Check - Date/Weather Card + Hero Typography
+   追記CSS（既存を崩さず上品に）
+   ========================================================= */
+
+.qsc-dateCard {
+  margin: 12px 14px 0;
+  padding: 14px 14px 12px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--shadow2);
+  backdrop-filter: blur(10px);
+}
+
+.qsc-dateCardTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.qsc-dateBlock {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.qsc-qBlock {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+  text-align: right;
+  min-width: 120px;
+}
+
+.qsc-dateLine {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  white-space: nowrap;
+}
+
+.qsc-dateKey {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  min-width: 34px;
+}
+
+.qsc-dateVal {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--fg);
+}
+
+.qsc-dateValStrong {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.qsc-qPill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(33, 94, 255, 0.18);
+  background: rgba(33, 94, 255, 0.08);
+  font-weight: 900;
+  letter-spacing: 0.06em;
+}
+
+.qsc-qHint {
+  margin-top: 2px;
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  color: rgba(15, 17, 21, 0.45);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.qsc-dateCardBottom {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.qsc-infoPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 10px 24px rgba(15, 17, 21, 0.06);
+}
+
+.qsc-infoIc {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 17, 21, 0.06);
+}
+
+.qsc-infoKey {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 0.08em;
+  font-weight: 800;
+}
+
+.qsc-infoVal {
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.qsc-weatherHint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: rgba(15, 17, 21, 0.45);
+  margin-left: auto;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px dashed rgba(15, 17, 21, 0.16);
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* ✅ 「店舗を選択して開始」周りのダサさ改善 */
+.qsc-checkHeroTitle {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.qsc-checkHeroSub {
+  font-size: 13px;
+  color: rgba(15, 17, 21, 0.62);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* モバイル微調整 */
+@media (max-width: 420px) {
+  .qsc-dateValStrong {
+    font-size: 24px;
+  }
+  .qsc-qBlock {
+    min-width: 108px;
+  }
+  .qsc-infoVal {
+    font-size: 15px;
+  }
+}
+/* =========================================================
+   QSC Check - iOS/Widget-ish Glass Cards (WIDTH FIXED)
+   ※ 他の qsc-panel と横幅を完全一致させる版
+   ========================================================= */
+
+/* 他カードと同じ「横幅の箱」に乗せる */
+.qsc-widgetWrap {
+  width: 100%;
+  display: grid;
+  gap: 10px;
+  margin-top: 12px; /* 上だけ余白 */
+}
+
+/* ウィジェット本体 */
+.qsc-widget {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.78),
+    rgba(255, 255, 255, 0.62)
+  );
+  box-shadow:
+    0 22px 60px rgba(15, 17, 21, 0.10),
+    0 10px 22px rgba(15, 17, 21, 0.06);
+  backdrop-filter: blur(14px);
+}
+
+/* 中身の余白は panel と同じ感覚に */
+.qsc-widgetRow {
+  position: relative;
+  z-index: 2;
+  padding: 14px 16px; /* ← 他のカードの padding に合わせる */
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* subtle glow */
+.qsc-widgetGlow,
+.qsc-widgetGlow2 {
+  position: absolute;
+  inset: -40px;
+  z-index: 1;
+  filter: blur(30px);
+  opacity: 0.85;
+  pointer-events: none;
+  background:
+    radial-gradient(500px 220px at 20% 20%, rgba(33, 94, 255, 0.18), transparent 60%),
+    radial-gradient(420px 220px at 85% 30%, rgba(120, 200, 255, 0.14), transparent 62%),
+    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
+}
+
+.qsc-widgetGlow2 {
+  background:
+    radial-gradient(520px 240px at 18% 15%, rgba(33, 94, 255, 0.14), transparent 62%),
+    radial-gradient(420px 220px at 90% 30%, rgba(255, 180, 80, 0.12), transparent 60%),
+    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
+}
+
+/* =========================
+   Date widget
+   ========================= */
+.qsc-dateMain {
+  min-width: 0;
+}
+
+.qsc-dateBig {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 950;
+  letter-spacing: 0.01em;
+  font-size: 30px;
+  line-height: 1.05;
+}
+
+.qsc-dateBig svg {
+  opacity: 0.9;
+}
+
+.qsc-dateSub {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(15, 17, 21, 0.62);
+  letter-spacing: 0.02em;
+}
+
+.qsc-dateSubDot {
+  opacity: 0.5;
+}
+
+/* =========================
+   Quarter block
+   ========================= */
+.qsc-qMain {
+  text-align: right;
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+  flex: 0 0 auto;
+}
+
+.qsc-qPill2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(33, 94, 255, 0.18);
+  background: rgba(33, 94, 255, 0.08);
+  box-shadow: 0 10px 22px rgba(15, 17, 21, 0.06);
+}
+
+.qsc-qPill2Q {
+  font-weight: 950;
+  letter-spacing: 0.06em;
+}
+
+.qsc-qPill2Y {
+  font-weight: 900;
+  color: rgba(15, 17, 21, 0.62);
+}
+
+.qsc-qLabel {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(15, 17, 21, 0.45);
+  font-weight: 900;
+}
+
+/* =========================
+   Weather widget
+   ========================= */
+.qsc-weatherMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.qsc-weatherIc {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 17, 21, 0.06);
+  box-shadow: 0 10px 20px rgba(15, 17, 21, 0.06);
+}
+
+.qsc-weatherText {
+  min-width: 0;
+}
+
+.qsc-weatherLabel {
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qsc-weatherHint {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(15, 17, 21, 0.52);
+}
+
+/* =========================
+   Temp pill
+   ========================= */
+.qsc-tempPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06);
+}
+
+.qsc-tempVal {
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+}
+
+/* =========================
+   Mobile tuning
+   ========================= */
+@media (max-width: 420px) {
+  .qsc-widgetRow {
+    padding: 13px 14px; /* panel と同じ */
+  }
+  .qsc-dateBig {
+    font-size: 28px;
+  }
+  .qsc-qPill2 {
+    padding: 8px 11px;
+  }
+}
+/* =========================================================
+   QSC Widget - Weather theme / TOD tone / Parallax
+   （既存の qsc-widget 系CSSの “下に追記” でOK）
+   ========================================================= */
+
+/* 微パララックス（ウィジェットwrapだけ動く） */
+.qsc-widgetParallax {
+  --qsc-parallaxY: 0px;
+  --qsc-parallaxA: 1;
+  transform: translate3d(0, var(--qsc-parallaxY), 0);
+  opacity: var(--qsc-parallaxA);
+  will-change: transform, opacity;
+}
+
+/* ウィジェットの雰囲気を “朝昼夜” で変える */
+.qsc-widget.tod-morning {
+  border-color: rgba(15, 17, 21, 0.10);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.84),
+    rgba(255, 255, 255, 0.64)
+  );
+}
+.qsc-widget.tod-day {
+  border-color: rgba(15, 17, 21, 0.10);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.78),
+    rgba(255, 255, 255, 0.60)
+  );
+}
+.qsc-widget.tod-night {
+  border-color: rgba(15, 17, 21, 0.14);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.72),
+    rgba(255, 255, 255, 0.54)
+  );
+}
+
+/* Dateの文字トーンも少し変える（夜は締める） */
+.qsc-widget.tod-night .qsc-dateSub,
+.qsc-widget.tod-night .qsc-weatherHint {
+  color: rgba(15, 17, 21, 0.56);
+}
+.qsc-widget.tod-morning .qsc-dateSub,
+.qsc-widget.tod-morning .qsc-weatherHint {
+  color: rgba(15, 17, 21, 0.60);
+}
+
+/* 天気で “グロー色” を切り替え（スマホウィジェット感の核） */
+.qsc-widget.wx-sunny .qsc-widgetGlow,
+.qsc-widget.wx-sunny .qsc-widgetGlow2 {
+  background:
+    radial-gradient(520px 260px at 22% 18%, rgba(255, 170, 60, 0.18), transparent 62%),
+    radial-gradient(460px 240px at 88% 28%, rgba(255, 220, 120, 0.16), transparent 62%),
+    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
+}
+
+.qsc-widget.wx-cloudy .qsc-widgetGlow,
+.qsc-widget.wx-cloudy .qsc-widgetGlow2 {
+  background:
+    radial-gradient(520px 260px at 22% 18%, rgba(120, 170, 255, 0.16), transparent 62%),
+    radial-gradient(460px 240px at 88% 28%, rgba(180, 200, 230, 0.14), transparent 62%),
+    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
+}
+
+.qsc-widget.wx-rain .qsc-widgetGlow,
+.qsc-widget.wx-rain .qsc-widgetGlow2 {
+  background:
+    radial-gradient(520px 260px at 22% 18%, rgba(60, 140, 255, 0.18), transparent 62%),
+    radial-gradient(460px 240px at 88% 28%, rgba(80, 190, 255, 0.14), transparent 62%),
+    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
+}
+
+.qsc-widget.wx-snow .qsc-widgetGlow,
+.qsc-widget.wx-snow .qsc-widgetGlow2 {
+  background:
+    radial-gradient(520px 260px at 22% 18%, rgba(200, 240, 255, 0.18), transparent 62%),
+    radial-gradient(460px 240px at 88% 28%, rgba(170, 210, 255, 0.14), transparent 62%),
+    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
+}
+
+.qsc-widget.wx-fog .qsc-widgetGlow,
+.qsc-widget.wx-fog .qsc-widgetGlow2 {
+  background:
+    radial-gradient(520px 260px at 22% 18%, rgba(160, 170, 190, 0.16), transparent 62%),
+    radial-gradient(460px 240px at 88% 28%, rgba(210, 210, 210, 0.12), transparent 62%),
+    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
+}
+
+/* タイトル/説明の “ダサい” を矯正（他カードのトーンに合わせる） */
+.qsc-titleCheck {
+  font-weight: 950;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+}
+
+.qsc-subCheck {
+  font-weight: 800;
+  color: rgba(15, 17, 21, 0.58);
+  letter-spacing: 0.01em;
+}
+/* =========================================================
+   QSC Check RUN - iOS/Widget-ish Glass Cards (FULL)
+   - 他カード幅に合わせる（qsc-panel内で100%）
+   - 天気ごとにグロー色切替（晴れ=暖色 / 雨=寒色）
+   - 朝昼夜でトーン変化
+   - スクロールでウィジェット微パララックス（JS側でtransform）
+   ========================================================= */
+
+.qsc-checkRunPage .qsc-panel {
+  /* 既存qsc-panel前提：幅統一 */
+}
+
+/* ウィジェット：panel内でフル幅 */
+.qsc-widget.qsc-widget--full {
+  width: 100%;
+}
+
+/* 開発用ボタン（後で消してOK） */
+.qsc-widgetDev {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  z-index: 3;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.08);
+  cursor: pointer;
+}
+.qsc-widgetDev:active {
+  transform: translateY(1px);
+}
+
+/* =========================================================
+   Widget base (あなたのCSSをベースに維持)
+   ========================================================= */
+
+.qsc-widget {
+  position: relative;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.78),
+    rgba(255, 255, 255, 0.62)
+  );
+  box-shadow:
+    0 22px 60px rgba(15, 17, 21, 0.10),
+    0 10px 22px rgba(15, 17, 21, 0.06);
+  backdrop-filter: blur(14px);
+  will-change: transform;
+}
+
+.qsc-widgetRow {
+  position: relative;
+  z-index: 2;
+  padding: 14px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* subtle glow base */
+.qsc-widgetGlow,
+.qsc-widgetGlow2 {
+  position: absolute;
+  inset: -40px;
+  z-index: 1;
+  filter: blur(30px);
+  opacity: 0.92;
+  pointer-events: none;
+}
+
+/* =========================================================
+   天気別グロー（晴れ=暖色 / 雨=寒色）
+   - data-weather で切替
+   ========================================================= */
+
+/* default */
+.qsc-widgetGlow {
+  background:
+    radial-gradient(520px 240px at 18% 15%, rgba(33, 94, 255, 0.14), transparent 62%),
+    radial-gradient(420px 220px at 90% 30%, rgba(120, 200, 255, 0.12), transparent 60%),
+    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
+}
+.qsc-widgetGlow2 {
+  background:
+    radial-gradient(520px 240px at 18% 15%, rgba(33, 94, 255, 0.10), transparent 62%),
+    radial-gradient(420px 220px at 90% 30%, rgba(255, 180, 80, 0.10), transparent 60%),
+    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.38), transparent 60%);
+}
+
+/* SUNNY = 暖色強め */
+.qsc-widget[data-weather="sunny"] .qsc-widgetGlow {
+  background:
+    radial-gradient(520px 260px at 20% 18%, rgba(255, 170, 70, 0.22), transparent 62%),
+    radial-gradient(460px 240px at 88% 30%, rgba(255, 220, 140, 0.18), transparent 60%),
+    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.45), transparent 60%);
+}
+.qsc-widget[data-weather="sunny"] .qsc-widgetGlow2 {
+  background:
+    radial-gradient(520px 260px at 18% 15%, rgba(255, 140, 40, 0.16), transparent 62%),
+    radial-gradient(460px 240px at 92% 26%, rgba(255, 200, 120, 0.12), transparent 60%),
+    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.40), transparent 60%);
+}
+
+/* RAIN = 寒色強め */
+.qsc-widget[data-weather="rain"] .qsc-widgetGlow {
+  background:
+    radial-gradient(520px 260px at 18% 16%, rgba(40, 120, 255, 0.22), transparent 62%),
+    radial-gradient(460px 240px at 90% 30%, rgba(120, 200, 255, 0.18), transparent 60%),
+    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.40), transparent 60%);
+}
+.qsc-widget[data-weather="rain"] .qsc-widgetGlow2 {
+  background:
+    radial-gradient(520px 260px at 18% 16%, rgba(20, 80, 190, 0.14), transparent 62%),
+    radial-gradient(460px 240px at 92% 28%, rgba(120, 200, 255, 0.12), transparent 60%),
+    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.34), transparent 60%);
+}
+
+/* CLOUDY = 中間 */
+.qsc-widget[data-weather="cloudy"] .qsc-widgetGlow {
+  background:
+    radial-gradient(520px 260px at 18% 16%, rgba(80, 120, 220, 0.16), transparent 62%),
+    radial-gradient(460px 240px at 90% 30%, rgba(170, 190, 220, 0.16), transparent 60%),
+    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.42), transparent 60%);
+}
+
+/* SNOW = 透明感寄り */
+.qsc-widget[data-weather="snow"] .qsc-widgetGlow {
+  background:
+    radial-gradient(520px 260px at 18% 16%, rgba(160, 220, 255, 0.20), transparent 62%),
+    radial-gradient(460px 240px at 90% 30%, rgba(230, 245, 255, 0.20), transparent 60%),
+    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.46), transparent 60%);
+}
+
+/* WIND = 寒色寄り */
+.qsc-widget[data-weather="wind"] .qsc-widgetGlow {
+  background:
+    radial-gradient(520px 260px at 18% 16%, rgba(70, 160, 220, 0.18), transparent 62%),
+    radial-gradient(460px 240px at 90% 30%, rgba(160, 220, 255, 0.14), transparent 60%),
+    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.42), transparent 60%);
+}
+
+/* =========================================================
+   朝昼夜トーン（data-daypart）
+   - 文字/背景を微調整して “時間帯の空気” を出す
+   ========================================================= */
+
+.qsc-widget[data-daypart="morning"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.66));
+}
+.qsc-widget[data-daypart="day"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.62));
+}
+.qsc-widget[data-daypart="night"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(245, 248, 255, 0.58));
+}
+.qsc-widget[data-daypart="night"] .qsc-dateSub,
+.qsc-widget[data-daypart="night"] .qsc-qPill2Y,
+.qsc-widget[data-daypart="night"] .qsc-weatherHint {
+  color: rgba(15, 17, 21, 0.56);
+}
+
+/* =========================================================
+   Date widget
+   ========================================================= */
+
+.qsc-dateMain {
+  min-width: 0;
+}
+
+.qsc-dateBig {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 950;
+  letter-spacing: 0.01em;
+  font-size: 30px;
+  line-height: 1.05;
+}
+
+.qsc-dateBig svg {
+  opacity: 0.9;
+}
+
+.qsc-dateSub {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 800;
+  color: rgba(15, 17, 21, 0.62);
+  letter-spacing: 0.02em;
+}
+
+.qsc-dateSubDot {
+  opacity: 0.5;
+}
+
+.qsc-dateSubStrong {
+  font-weight: 900;
+}
+
+.qsc-dateSubTime {
+  font-variant-numeric: tabular-nums;
+}
+
+/* =========================================================
+   Quarter block
+   ========================================================= */
+
+.qsc-qMain {
+  text-align: right;
+  display: grid;
+  gap: 10px;
+  justify-items: end;
+  flex: 0 0 auto;
+}
+
+.qsc-qPill2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(33, 94, 255, 0.18);
+  background: rgba(33, 94, 255, 0.08);
+  box-shadow: 0 10px 22px rgba(15, 17, 21, 0.06);
+}
+
+.qsc-qPill2Q {
+  font-weight: 950;
+  letter-spacing: 0.06em;
+}
+
+.qsc-qPill2Y {
+  font-weight: 900;
+  color: rgba(15, 17, 21, 0.62);
+}
+
+.qsc-qLabel {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(15, 17, 21, 0.45);
+  font-weight: 900;
+}
+
+/* =========================================================
+   Weather widget
+   ========================================================= */
+
+.qsc-weatherMain {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.qsc-weatherIc {
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 17, 21, 0.06);
+  box-shadow: 0 10px 20px rgba(15, 17, 21, 0.06);
+}
+
+.qsc-weatherText {
+  min-width: 0;
+  text-align: left;
+}
+
+.qsc-weatherLabel {
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qsc-weatherHint {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: rgba(15, 17, 21, 0.52);
+}
+
+/* Temp pill */
+.qsc-tempPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06);
+}
+
+.qsc-tempVal {
+  font-size: 16px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+}
+
+/* Mobile tuning */
+@media (max-width: 420px) {
+  .qsc-widgetRow {
+    padding: 13px 12px;
+  }
+  .qsc-dateBig {
+    font-size: 28px;
+  }
+  .qsc-qPill2 {
+    padding: 8px 11px;
+  }
+}
+
+/* =========================================================
+   RUN Page Layout / Cards / Buttons
+   ========================================================= */
+
+.qsc-runTop {
+  margin-top: 12px;
+}
+
+.qsc-runTopRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.qsc-runMetaRight {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.qsc-runMiniPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.82);
+  font-weight: 900;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06);
+}
+
+.qsc-runTitleRow {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+}
+
+.qsc-runTitle {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 950;
+  letter-spacing: 0.01em;
+}
+
+.qsc-runProgressText {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 17, 21, 0.62);
+  letter-spacing: 0.02em;
+  margin-bottom: 6px;
+}
+
+.qsc-runBar {
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(15, 17, 21, 0.08);
+  overflow: hidden;
+}
+
+.qsc-runBarFill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(33, 94, 255, 0.62);
+  box-shadow: 0 14px 30px rgba(33, 94, 255, 0.20);
+}
+
+.qsc-runStoreCard {
+  border-radius: 18px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 55px rgba(15, 17, 21, 0.08);
+  padding: 12px 12px;
+}
+
+.qsc-runStoreTop {
+  display: grid;
+  gap: 10px;
+}
+
+.qsc-runStoreName {
+  font-size: 18px;
+  font-weight: 950;
+  letter-spacing: 0.01em;
+}
+
+.qsc-runStorePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.qsc-runPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(15, 17, 21, 0.04);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+.qsc-runStoreHint {
+  margin-top: 10px;
+  color: rgba(15, 17, 21, 0.62);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.qsc-runSectionHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.qsc-runSectionTitle {
+  font-size: 15px;
+  font-weight: 950;
+  letter-spacing: 0.02em;
+}
+
+.qsc-runSectionCount {
+  font-size: 12px;
+  font-weight: 900;
+  color: rgba(15, 17, 21, 0.62);
+}
+
+.qsc-runItems {
+  display: grid;
+  gap: 12px;
+}
+
+.qsc-runItem {
+  border-radius: 16px;
+  border: 1px solid rgba(15, 17, 21, 0.08);
+  background: rgba(255, 255, 255, 0.80);
+  padding: 12px 12px;
+  box-shadow: 0 14px 30px rgba(15, 17, 21, 0.05);
+}
+
+.qsc-runItemLabel {
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0.01em;
+}
+
+.qsc-runTri {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.qsc-runTriBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06);
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.qsc-runTriBtn:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.qsc-runTriBtn.is-on {
+  border-color: rgba(33, 94, 255, 0.30);
+  background: rgba(33, 94, 255, 0.10);
+  box-shadow: 0 16px 36px rgba(33, 94, 255, 0.14);
+}
+
+.qsc-runTriBtn.is-ng.is-on {
+  border-color: rgba(230, 80, 80, 0.28);
+  background: rgba(230, 80, 80, 0.10);
+  box-shadow: 0 16px 36px rgba(230, 80, 80, 0.12);
+}
+
+.qsc-runTriBtn.is-hold.is-on {
+  border-color: rgba(255, 170, 70, 0.28);
+  background: rgba(255, 170, 70, 0.10);
+  box-shadow: 0 16px 36px rgba(255, 170, 70, 0.12);
+}
+
+/* Fixed bottom */
+.qsc-runBottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  padding: 10px 14px 12px;
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 10px;
+  background: linear-gradient(
+    180deg,
+    rgba(246, 248, 251, 0.0),
+    rgba(246, 248, 251, 0.92) 28%,
+    rgba(246, 248, 251, 0.98)
+  );
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(15, 17, 21, 0.08);
+}
+
+.qsc-runAction {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.90);
+  box-shadow: 0 18px 55px rgba(15, 17, 21, 0.08);
+  font-weight: 950;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+}
+
+.qsc-runAction.is-primary {
+  border-color: rgba(33, 94, 255, 0.22);
+  background: rgba(33, 94, 255, 0.12);
+  box-shadow: 0 20px 60px rgba(33, 94, 255, 0.16);
+}
+
+.qsc-runAction.is-ghost {
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.qsc-runAction.is-busy {
+  opacity: 0.72;
+  cursor: progress;
+}
+
+@media (max-width: 420px) {
+  .qsc-runBottom {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+/* =========================================================
+   RUN: spacing + typography finalize
+   ========================================================= */
+
+/* RUNページのpanel間のリズムを統一 */
+.qsc-checkRunPage .qsc-panel {
+  margin-top: 12px;
+}
+
+/* タイトル周りの余白と字面をApple寄りに締める */
+.qsc-checkRunPage .qsc-panel-link {
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+/* セクションカードの見出しを“勝ち”にする */
+.qsc-runSectionTitle {
+  font-size: 16px;
+  letter-spacing: 0.01em;
+}
+
+/* 3択ボタン：押し心地をもう一段上げる */
+.qsc-runTriBtn {
+  -webkit-tap-highlight-color: transparent;
+}
+.qsc-runTriBtn:focus-visible {
+  outline: 3px solid rgba(33, 94, 255, 0.28);
+  outline-offset: 2px;
+}
+
+/* 固定ボトム：端末セーフエリア対応（iPhone） */
+.qsc-runBottom {
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+/* ウィジェット：他カードと同じ“角の丸みの体感”に寄せる */
+.qsc-widget {
+  border-radius: 20px; /* 22→20にしてpanel/cardと統一感 */
+}
+/* /check時に disabled の時だけ少し控えめに */
+.qsc-fab:disabled .qsc-fab-label {
+  opacity: 0.75;
+  letter-spacing: 0.02em;
+}
+/* ✅ 店舗カード：選択時の見た目 */
+.qsc-storeCard.is-selected{
+  border-color: rgba(33, 94, 255, 0.35);
+  background: rgba(33, 94, 255, 0.08);
+  box-shadow:
+    0 18px 45px rgba(15, 17, 21, 0.10),
+    0 10px 22px rgba(33, 94, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.qsc-storeCard.is-selected .qsc-storeTitle{
+  font-weight: 950;
+}
+
+.qsc-storeCard.is-selected .qsc-statusPill{
+  border-color: rgba(33, 94, 255, 0.25);
+  background: rgba(33, 94, 255, 0.10);
+}
+/* FAB が消える事故防止（z-index / pointer） */
+.qsc-fab {
+  z-index: 50;
+}
+
+/* bottomNavが fixed の場合、FABが背面に回るのを防ぐ */
+.qsc-bottomNav,
+nav[aria-label="App Bottom Navigation"] {
+  position: relative;
+  z-index: 40;
+}
+
+/* =========================
+   Store card: status色は「ピルだけ」にする
+   ========================= */
+.qsc-storeCard {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border: 1px solid rgba(15, 17, 21, 0.10) !important;
+}
+
+/* status-* でカード全体に色が付いてる場合は殺す */
+.qsc-storeCard.status-new,
+.qsc-storeCard.status-draft,
+.qsc-storeCard.status-done {
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 18px 45px rgba(15, 17, 21, 0.08) !important;
+}
+
+/* ✅ 選択中だけ「ちゃんと青い」 */
+.qsc-storeCard.is-selected {
+  border-color: rgba(33, 94, 255, 0.30) !important;
+  background: rgba(33, 94, 255, 0.08) !important;
+  box-shadow:
+    0 22px 60px rgba(33, 94, 255, 0.16),
+    0 12px 26px rgba(15, 17, 21, 0.08) !important;
+}
+
+/* 完了カードは押せない＆色を落とす（任意） */
+.qsc-storeCard:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+/* =========================================================
+   FIX: FAB double circle (button default styles)
+   ========================================================= */
+button.qsc-fab {
+  /* buttonデフォルトを完全に殺す */
+  appearance: none;
+  -webkit-appearance: none;
+
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+
+  outline: none;
+  box-shadow: none;
+
+  /* レイアウト安定 */
+  display: inline-block;
+  border-radius: 999px;
+}
+
+/* disabledでも外側ボタンに背景/枠が出ないように */
+button.qsc-fab:disabled {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+/* フォーカスリングは “内側” に寄せたいならこれ（任意） */
+button.qsc-fab:focus-visible {
+  outline: none;
+}
+button.qsc-fab:focus-visible .qsc-fab-inner {
+  box-shadow: 0 0 0 5px var(--focusRing), 0 18px 45px rgba(15,17,21,0.35);
 }
