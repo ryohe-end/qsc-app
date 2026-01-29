@@ -1,12 +1,16 @@
 // src/lib/api/news.ts
+
+export type ViewScope = "all" | "direct" | "fc" | string;
+
 export type NewsItem = {
   newsId: string;
   title: string;
+  tag?: string | null; // ✅ 追加（page.tsx で item.tag を使っているため）
   body?: string | null;
   updatedAt?: string | null;
   startDate?: string | null;
   endDate?: string | null;
-  viewScope?: "all" | "direct" | "fc" | string; // 使ってなければ無視でOK
+  viewScope?: ViewScope;
 };
 
 /** =========================
@@ -65,6 +69,16 @@ function normalize(raw: unknown): NewsItem {
       ? obj.name
       : "";
 
+  // ✅ tag: item.tag を UI が参照するため、存在すれば拾う
+  const tag =
+    typeof obj.tag === "string"
+      ? obj.tag
+      : typeof obj.category === "string"
+      ? obj.category
+      : typeof obj.label === "string"
+      ? obj.label
+      : null;
+
   const body =
     typeof obj.body === "string"
       ? obj.body
@@ -103,6 +117,7 @@ function normalize(raw: unknown): NewsItem {
   return {
     newsId,
     title,
+    tag,
     body,
     updatedAt,
     startDate,
@@ -118,20 +133,18 @@ function normalize(raw: unknown): NewsItem {
 export async function fetchNews(): Promise<NewsItem[]> {
   const res = await fetch(apiUrl("/api/news"), {
     method: "GET",
-    // Next App Router: SSRでキャッシュしたくない場合
     cache: "no-store",
     headers: { "Content-Type": "application/json" },
   });
 
   if (!res.ok) {
-    // ここは運用に合わせて握りつぶしてOK
     throw new Error(`fetchNews failed: ${res.status} ${res.statusText}`);
   }
 
   const data: unknown = await res.json().catch(() => []);
   const arr = toArray(data);
 
-  // ✅ strict 対応：x を NewsItem として扱う
+  // ✅ strict 対応：filter の引数に型注釈を付けて any を潰す
   return arr
     .map(normalize)
     .filter((x: NewsItem) => !!(x.newsId && x.title));
