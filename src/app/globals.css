@@ -3622,3 +3622,155 @@ button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"]:not([class*=
   font-size: 12.5px !important;       /* ここで少し締める */
   line-height: 1 !important;
 }
+/* =========================================
+   FIX3: 4択（OK/保留/NG/該当なし）
+   - 背景は全部白
+   - アイコンだけ色
+   - 「該当なし」の “なし” 切れ防止
+   ========================================= */
+
+/* 4択ボタン本体（__qscChoice） */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
+  background: rgba(255,255,255,0.95) !important; /* ← 全部白 */
+  border: 1px solid rgba(15,17,21,0.14) !important;
+  box-shadow: 0 10px 24px rgba(15,17,21,0.06) !important;
+
+  height: 78px !important;            /* ← 72→78 で “なし” 切れを止める */
+  padding: 11px 10px 13px !important; /* ← 下に余白を足す（重要） */
+
+  overflow: visible !important;       /* 文字の欠け防止 */
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ドット（qscChoiceDot）は色を変えない：必要なら後で調整 */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] 
+  > span[class*="__qscChoiceDot"]{
+  opacity: 0.35 !important;
+}
+
+/* ラベル（OK/保留/NG/該当なし）：2行で見せる＆下切れ防止 */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
+  > span:not([class*="__qscChoiceDot"]){
+  white-space: normal !important;
+  line-height: 1.22 !important;       /* ← 下切れしにくい値 */
+  text-align: center !important;
+
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;   /* 2行 */
+  overflow: hidden !important;
+  padding-bottom: 1px !important;     /* ← iOSの微妙なクリップ保険 */
+}
+
+/* アイコン共通（サイズ＆位置安定） */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] svg.lucide{
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto !important;
+  display: block !important;
+}
+
+/* --- アイコンだけ色分け（lucideのクラス名で判定） --- */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
+  svg.lucide-circle-check{ color: #2f8ce6 !important; } /* OK: 青 */
+
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
+  svg.lucide-circle-pause{ color: #ff9f0a !important; } /* 保留: オレンジ */
+
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
+  svg.lucide-circle-x{ color: #ff3b30 !important; }     /* NG: 赤 */
+
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
+  svg.lucide-circle-minus{ color: rgba(15,17,21,0.55) !important; } /* 該当なし: グレー */
+
+/* 押下中（aria-pressed=true）は「枠だけ」少し強く（背景は白のまま） */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]{
+  border-color: rgba(25,130,255,0.28) !important;
+  box-shadow: 0 14px 30px rgba(15,17,21,0.08) !important;
+}
+
+/* active時の沈み */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]:active{
+  transform: translateY(1px) scale(0.99);
+}
+/* 選択中：白背景のまま「内側グロー」 */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]{
+  box-shadow:
+    0 14px 30px rgba(15,17,21,0.08),
+    0 0 0 4px rgba(25,130,255,0.10) inset !important;
+}
+
+/* 「該当なし」行だけの保険（2行目の切れを完全停止） */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
+  svg.lucide-circle-minus
+  + span{
+  padding-bottom: 2px !important;
+}
+/* =========================================
+   4択：色だけで分かる「選択中」UI（最終形）
+   ========================================= */
+
+/* 共通（未選択） */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
+  background: #fff !important;
+  border: 1px solid rgba(15,17,21,0.16) !important;
+  box-shadow: 0 6px 16px rgba(15,17,21,0.06) !important;
+  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
+}
+
+/* 余計な装飾は完全OFF */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]::before{
+  content: none !important;
+}
+
+/* -------------------------
+   選択中（aria-pressed）
+   ------------------------- */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]{
+  box-shadow: 0 10px 24px rgba(15,17,21,0.12) !important;
+}
+
+/* =========================
+   状態別：色だけで表現
+   ========================= */
+
+/* OK */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]
+  svg.lucide-circle-check{
+  color: #2f8ce6 !important;
+}
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]:has(svg.lucide-circle-check){
+  background: rgba(47,140,230,0.10) !important;
+  border-color: rgba(47,140,230,0.35) !important;
+}
+
+/* 保留 */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]
+  svg.lucide-circle-pause{
+  color: #ff9f0a !important;
+}
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]:has(svg.lucide-circle-pause){
+  background: rgba(255,159,10,0.12) !important;
+  border-color: rgba(255,159,10,0.40) !important;
+}
+
+/* NG */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]
+  svg.lucide-circle-x{
+  color: #ff3b30 !important;
+}
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]:has(svg.lucide-circle-x){
+  background: rgba(255,59,48,0.12) !important;
+  border-color: rgba(255,59,48,0.45) !important;
+}
+
+/* 該当なし */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]
+  svg.lucide-circle-minus{
+  color: rgba(15,17,21,0.65) !important;
+}
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]:has(svg.lucide-circle-minus){
+  background: rgba(15,17,21,0.06) !important;
+  border-color: rgba(15,17,21,0.30) !important;
+}
