@@ -296,21 +296,10 @@
 }
 
 /* ✅ 現在エリア（薄い線＋薄い塗り） */
-.areaCurrent{
-  border-color: rgba(35,110,255,0.26);
-  background: rgba(35,110,255,0.10);
-  box-shadow: none;
-}
-
-/* ✅ NG/HOLD 警告（優先度: NG > HOLD） */
-.areaWarnNg{
-  border-color: rgba(255,59,48,0.24);
-  background: rgba(255,59,48,0.08);
-}
-
-.areaWarnHold{
-  border-color: rgba(255,149,0,0.24);
-  background: rgba(255,149,0,0.08);
+.areaCurrent .qscItemCard,
+.areaWarnNg .qscItemCard,
+.areaWarnHold .qscItemCard{
+  background: #ffffff !important;
 }
 
 /* 右側のまとまり */
@@ -451,10 +440,9 @@
 }
 
 /* ✅ カードにもセクション色を極薄で反映 */
-.qscItemTint{
-  background:
-    linear-gradient(0deg, var(--secTint, rgba(35,110,255,0.06)), var(--secTint, rgba(35,110,255,0.06))),
-    rgba(255,255,255,0.96);
+.qscItemCard{
+  background: #ffffff !important;
+  border: 1px solid rgba(15,17,21,0.10);
 }
 
 .itemError{
