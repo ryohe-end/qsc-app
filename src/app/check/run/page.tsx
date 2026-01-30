@@ -3,7 +3,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -223,6 +223,8 @@ export default function CheckRunPage() {
 
   const [areaOpen, setAreaOpen] = useState(false);
 
+  const mainRef = useRef<HTMLElement | null>(null);
+
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
   const itemRefs = useRef<Record<string, HTMLElement | null>>({});
   const noteRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
@@ -253,6 +255,9 @@ export default function CheckRunPage() {
   });
 
   const [forceShowErrors, setForceShowErrors] = useState(false);
+
+  // ✅ 現在表示中のエリア（①）
+  const [activeSecId, setActiveSecId] = useState<string>("");
 
   const missingRequiredNotes = useMemo(() => {
     const misses: { secId: string; itemId: string }[] = [];
@@ -298,7 +303,21 @@ export default function CheckRunPage() {
 
   const hasWarn = progress.ng > 0 || progress.hold > 0;
 
-  /* ========================= ✅ BottomBar: 折りたたみ + スワイプ ========================= */
+  // ✅ Drawer表示用のセクション集計（②）
+  const sectionStats = useMemo(() => {
+    const map: Record<string, { done: number; total: number; ng: number; hold: number; unset: number }> = {};
+    for (const s of sections) {
+      const total = s.items.length;
+      const done = s.items.filter((i) => i.state !== "unset").length;
+      const ng = s.items.filter((i) => i.state === "ng").length;
+      const hold = s.items.filter((i) => i.state === "hold").length;
+      const unset = s.items.filter((i) => i.state === "unset").length;
+      map[s.id] = { done, total, ng, hold, unset };
+    }
+    return map;
+  }, [sections]);
+
+  /* ========================= ✅ BottomDock: 折りたたみ + スワイプ ========================= */
   const [bottomCollapsed, setBottomCollapsed] = useState<boolean>(() => {
     try {
       return localStorage.getItem("qsc_run_bottom_collapsed") === "1";
@@ -348,19 +367,31 @@ export default function CheckRunPage() {
     }
   };
 
-  // ======= navigation helpers =======
+  // ======= navigation helpers (✅ mainスクロール前提に修正：④の要) =======
+  const scrollMainToY = (y: number) => {
+    const main = mainRef.current;
+    if (!main) return;
+    main.scrollTo({ top: Math.max(0, y), behavior: "smooth" });
+  };
+
+  const getMainRelativeTop = (el: HTMLElement) => {
+    const main = mainRef.current;
+    if (!main) return 0;
+    const mainRect = main.getBoundingClientRect();
+    const r = el.getBoundingClientRect();
+    return (r.top - mainRect.top) + main.scrollTop;
+  };
+
   const scrollToItem = (secId: string, itemId: string) => {
     const k = itemKey(secId, itemId);
     const el = itemRefs.current[k];
-    if (!el) {
-      const secEl = sectionRefs.current[secId];
-      if (!secEl) return;
-      const top = secEl.getBoundingClientRect().top + window.scrollY - 84;
-      window.scrollTo({ top, behavior: "smooth" });
-      return;
-    }
-    const top = el.getBoundingClientRect().top + window.scrollY - 84;
-    window.scrollTo({ top, behavior: "smooth" });
+    const secEl = sectionRefs.current[secId];
+    const targetEl = el || secEl;
+    if (!targetEl) return;
+
+    const topPad = 12; // main内の余白として少しだけ
+    const y = getMainRelativeTop(targetEl) - topPad;
+    scrollMainToY(y);
   };
 
   const findFirstUnset = () => {
@@ -375,7 +406,12 @@ export default function CheckRunPage() {
   const goFirstUnset = () => {
     const first = findFirstUnset();
     if (!first) return;
+
+    // ✅ 折りたたみ状態でも「飛べる」ように（④）
     scrollToItem(first.secId, first.itemId);
+
+    // 軽くガイドも当てる
+    pulseGuide(first.secId, first.itemId);
   };
 
   // ======= state mutators =======
@@ -425,6 +461,7 @@ export default function CheckRunPage() {
       )
     );
   };
+
   // ======= photo editor bridge =======
   const openPhotoEditor = (dataUrl: string) => {
     return new Promise<string | null>((resolve) => {
@@ -521,11 +558,8 @@ export default function CheckRunPage() {
       const el = noteRefs.current[k];
       if (!el) return;
 
-      const rect = el.getBoundingClientRect();
-      const y = rect.top + window.scrollY;
-      const topPad = 84;
-      const target = Math.max(0, y - topPad - 6);
-      window.scrollTo({ top: target, behavior: "smooth" });
+      const y = getMainRelativeTop(el) - 12;
+      scrollMainToY(y);
 
       pulseGuide(secId, itemId);
 
@@ -543,11 +577,8 @@ export default function CheckRunPage() {
       const el = holdRefs.current[k];
       if (!el) return;
 
-      const rect = el.getBoundingClientRect();
-      const y = rect.top + window.scrollY;
-      const topPad = 84;
-      const target = Math.max(0, y - topPad - 6);
-      window.scrollTo({ top: target, behavior: "smooth" });
+      const y = getMainRelativeTop(el) - 12;
+      scrollMainToY(y);
 
       pulseGuide(secId, itemId);
 
@@ -741,6 +772,44 @@ export default function CheckRunPage() {
   };
 
   /* =========================
+     ✅ 現在エリアのハイライト（①）
+     - mainスクロール領域に対してIntersectionObserver
+     ========================= */
+  useEffect(() => {
+    const main = mainRef.current;
+    if (!main) return;
+
+    const els = sections.map((s) => sectionRefs.current[s.id]).filter(Boolean) as HTMLElement[];
+    if (els.length === 0) return;
+
+    // 初期値：先頭
+    if (!activeSecId) setActiveSecId(sections[0]?.id || "");
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        // 交差率が一番高いセクションを採用
+        const vis = entries
+          .filter((e) => e.isIntersecting)
+          .sort((a, b) => (b.intersectionRatio ?? 0) - (a.intersectionRatio ?? 0));
+
+        const top = vis[0];
+        const id = (top?.target as HTMLElement | undefined)?.dataset?.area;
+        if (id) setActiveSecId(id);
+      },
+      {
+        root: main,
+        threshold: [0.25, 0.35, 0.45, 0.55, 0.65],
+        rootMargin: "-10% 0px -70% 0px", // 上側を優先（見出しが入ったら即切替）
+      }
+    );
+
+    for (const el of els) obs.observe(el);
+
+    return () => obs.disconnect();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sections.length]);
+
+  /* =========================
      ✅ ESC / キー操作
      ========================= */
   useEffect(() => {
@@ -808,10 +877,6 @@ export default function CheckRunPage() {
     return baseStyle;
   };
 
-  const bottomDockCollapsedH = 72;
-  const bottomDockExpandedH = 192; // 省スペースでもボタン3つが切れにくい最低ライン
-  const bottomDockH = bottomCollapsed ? bottomDockCollapsedH : bottomDockExpandedH;
-
   return (
     <div className={styles.qscCheckRunPage}>
       <style>{`
@@ -824,40 +889,29 @@ export default function CheckRunPage() {
         }
 
         .qscBottomDock{
-  position: fixed;
-  left: 12px;
-  right: 12px;
+          position: fixed;
+          left: 12px;
+          right: 12px;
 
-  /* ✅ もっと上に出す（ここが本命） */
-  bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+          /* ✅ もっと上に出す */
+          bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
 
-  z-index: 9000;
-  pointer-events: auto;
-}
-        .qscBottomCard{
-  /* ✅ 展開時はautoにして切れを根絶 */
-  height: auto;
-  max-height: calc(100dvh - 140px - env(safe-area-inset-bottom, 0px));
-  border-radius: 22px;
-  overflow: hidden;
-  background: rgba(255,255,255,0.82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: 0 24px 60px rgba(15,17,21,0.18), 0 8px 18px rgba(15,17,21,0.10);
-  border: 1px solid rgba(15,17,21,0.08);
-}
+          z-index: ${Z.bottomDock};
+          pointer-events: auto;
+        }
 
-/* ✅ 折りたたみ時だけ固定高 */
-.qscBottomCard.isCollapsed{
-  height: 72px;
-}
+        /* ✅ 切れ対策：固定高をやめる（必要な分だけ伸びる） */
+        .qscBottomCard {
+          height: auto;
+          border-radius: 22px;
+          overflow: hidden;
+          background: rgba(255,255,255,0.82);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          box-shadow: 0 24px 60px rgba(15,17,21,0.18), 0 8px 18px rgba(15,17,21,0.10);
+          border: 1px solid rgba(15,17,21,0.08);
+        }
 
-/* ✅ 展開時：中身が増えたらDock内だけスクロール */
-.qscBottomBody{
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  padding: 0 14px 14px;
-}
         .qscGrab {
           display: flex;
           align-items: center;
@@ -934,22 +988,6 @@ export default function CheckRunPage() {
           inset: 0;
           z-index: ${Z.photoModal};
         }
-          /* Drawerのエリア項目をコンパクトに */
-button[data-area-item="1"]{
-  padding: 8px 10px !important;
-  border-radius: 14px !important;
-}
-
-button[data-area-item="1"] span{
-  font-size: 13px !important;
-  line-height: 1.2 !important;
-}
-
-@media (max-width: 420px){
-  button[data-area-item="1"]{
-    padding: 7px 9px !important;
-  }
-}
       `}</style>
 
       {/* ===== Top Bar ===== */}
@@ -1029,23 +1067,45 @@ button[data-area-item="1"] span{
 
               <div className={styles.qscDrawerBody}>
                 {sections.map((s) => {
-                  const done = s.items.filter((i) => i.state !== "unset").length;
+                  const st = sectionStats[s.id] ?? { done: 0, total: s.items.length, ng: 0, hold: 0, unset: 0 };
+                  const isActive = activeSecId === s.id;
+                  const warnNg = st.ng > 0;
+                  const warnHold = st.hold > 0;
+
                   return (
                     <button
                       key={s.id}
                       type="button"
-                      className={styles.qscAreaItem}
-                      data-area-item="1"
+                      className={[
+                        styles.qscAreaItem,
+                        isActive ? styles.areaActive : "",
+                        warnNg ? styles.areaWarnNg : "",
+                        !warnNg && warnHold ? styles.areaWarnHold : "",
+                      ].join(" ")}
+                      aria-current={isActive ? "true" : undefined}
                       onClick={() => {
                         const el = sectionRefs.current[s.id];
                         if (!el) return;
                         setAreaOpen(false);
-                        requestAnimationFrame(() => el.scrollIntoView({ behavior: "smooth", block: "start" }));
+                        requestAnimationFrame(() => {
+                          // ✅ main内スクロールで確実に移動
+                          const y = getMainRelativeTop(el) - 12;
+                          scrollMainToY(y);
+                        });
                       }}
                     >
                       <span className={styles.qscAreaItemTitle}>{s.title}</span>
-                      <span className={styles.qscAreaItemCount}>
-                        {done}/{s.items.length}
+
+                      <span className={styles.qscAreaItemBadges}>
+                        {warnHold ? (
+                          <span className={`${styles.qscAreaBadge} ${styles.badgeHold}`}>保留 {st.hold}</span>
+                        ) : null}
+                        {warnNg ? (
+                          <span className={`${styles.qscAreaBadge} ${styles.badgeNg}`}>NG {st.ng}</span>
+                        ) : null}
+                        <span className={styles.qscAreaItemCount}>
+                          {st.done}/{st.total}
+                        </span>
                       </span>
                     </button>
                   );
@@ -1169,10 +1229,16 @@ button[data-area-item="1"] span{
       ) : null}
 
       {/* ===== Main ===== */}
-      <main className={styles.qscMain}>
+      <main
+        ref={(el) => {
+          mainRef.current = el;
+        }}
+        className={styles.qscMain}
+      >
         {sections.map((sec) => (
           <section
             key={sec.id}
+            data-area={sec.id}
             ref={(el) => {
               sectionRefs.current[sec.id] = el;
             }}
@@ -1203,11 +1269,7 @@ button[data-area-item="1"] span{
                     <div className={styles.qscItemTop}>
                       <div className={`${styles.qscItemLabel} qscCompactLabel`}>{it.label}</div>
 
-                      <div
-                        className={`${styles.qscChoices} qscCompactChoices`}
-                        aria-label="チェック選択"
-                        style={{ flexWrap: "nowrap" }}
-                      >
+                      <div className={`${styles.qscChoices} qscCompactChoices`} aria-label="チェック選択">
                         <button
                           type="button"
                           className={`${styles.qscChoice} ${styles.choiceOk} ${it.state === "ok" ? styles.choiceOn : ""}`}
@@ -1290,31 +1352,29 @@ button[data-area-item="1"] span{
 
                       {/* ✅ サムネ（レビュー導線） */}
                       {(it.photos?.length ?? 0) > 0 ? (
-                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10, position: "relative", zIndex: 1 }}>
+                        <div className={styles.qscPhotoGrid} style={{ marginTop: 10 }}>
                           {(it.photos ?? []).map((p, idx) => (
-                            <button
-                              key={p.id}
-                              type="button"
-                              onClick={() => openPhotoModalAt(sec.id, it.id, idx)}
-                              style={{
-                                width: 72,
-                                height: 72,
-                                borderRadius: 14,
-                                border: "1px solid rgba(15,17,21,0.10)",
-                                overflow: "hidden",
-                                padding: 0,
-                                background: "rgba(255,255,255,0.65)",
-                                cursor: "pointer",
-                              }}
-                              aria-label={`写真を開く ${idx + 1}`}
-                            >
-                              {/* eslint-disable-next-line @next/next/no-img-element */}
-                              <img
-                                src={p.dataUrl}
-                                alt={`写真 ${idx + 1}`}
-                                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                              />
-                            </button>
+                            <div key={p.id} className={styles.qscPhotoThumb}>
+                              <button
+                                type="button"
+                                className={styles.qscPhotoOpen}
+                                onClick={() => openPhotoModalAt(sec.id, it.id, idx)}
+                                aria-label={`写真を開く ${idx + 1}`}
+                              >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
+                                <img src={p.dataUrl} alt={`写真 ${idx + 1}`} />
+                              </button>
+
+                              <button
+                                type="button"
+                                className={styles.qscPhotoDel}
+                                onClick={() => removePhotoFromItem(sec.id, it.id, p.id)}
+                                aria-label="この写真を削除"
+                                title="削除"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           ))}
                         </div>
                       ) : null}
@@ -1360,12 +1420,12 @@ button[data-area-item="1"] span{
           </section>
         ))}
 
-        {/* ✅ BottomDockぶんの余白：safe-areaも含めて確保（隠れ防止） */}
-        <div aria-hidden="true" style={{ height: 260 }} />
+        {/* ✅ BottomDockぶんの余白：可変Dockに強い固定余白 */}
+        <div aria-hidden="true" style={{ height: 280 }} />
       </main>
 
       {/* ===== Bottom Dock ===== */}
-      <div className="qscBottomDock" style={{ ["--qscBottomH" as any]: `${bottomDockH}px` }}>
+      <div className="qscBottomDock">
         <div className="qscBottomCard" role="region" aria-label="進捗と操作">
           <div className="qscGrab" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
             <div className="qscGrabBar" />
@@ -1440,6 +1500,7 @@ button[data-area-item="1"] span{
                 </div>
               </div>
 
+              {/* ✅ 未チェックボタン（④）：押すと未チェックへ移動 */}
               {progress.unset > 0 ? (
                 <button
                   type="button"
@@ -1481,13 +1542,13 @@ button[data-area-item="1"] span{
                 </div>
 
                 {/* ✅ ボタン3つ */}
-                <div style={{ marginTop: 12, display: "flex", gap: 10 }}>
+                <div style={{ marginTop: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
                   <button
                     type="button"
                     className={`${styles.qscAction} ${styles.actionGhost}`}
                     onClick={saveDraft}
                     disabled={saving}
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, minWidth: 180 }}
                   >
                     <Save size={18} />
                     <span style={{ whiteSpace: "nowrap" }}>{saving ? "保存中…" : "途中保存"}</span>
@@ -1498,7 +1559,7 @@ button[data-area-item="1"] span{
                     className={`${styles.qscAction} ${styles.actionGhost}`}
                     onClick={discardDraft}
                     disabled={saving || submitBusy}
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, minWidth: 180 }}
                     title="途中データを破棄"
                   >
                     <Trash2 size={18} />
@@ -1510,7 +1571,7 @@ button[data-area-item="1"] span{
                     className={`${styles.qscAction} ${styles.actionPrimary}`}
                     onClick={submit}
                     disabled={submitBusy}
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, minWidth: 180 }}
                   >
                     <Send size={18} />
                     <span style={{ whiteSpace: "nowrap" }}>{submitBusy ? "送信中…" : "完了"}</span>

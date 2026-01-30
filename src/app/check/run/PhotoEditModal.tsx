@@ -58,15 +58,13 @@ export default function PhotoEditModal({ open, dataUrl, onClose, onSave }: Props
     if (!open) return;
 
     const stop = (e: Event) => {
-      // @ts-ignore
-      if (typeof (e as any).preventDefault === "function") (e as any).preventDefault();
-      // @ts-ignore
-      if (typeof (e as any).stopPropagation === "function") (e as any).stopPropagation();
+      const anyE = e as any;
+      if (anyE && anyE.cancelable && typeof anyE.preventDefault === "function") anyE.preventDefault();
+      if (typeof anyE.stopPropagation === "function") anyE.stopPropagation();
     };
 
     const opts: AddEventListenerOptions = { passive: false };
 
-    // 画面端スワイプ / スクロール連鎖を抑制
     document.addEventListener("touchmove", stop, opts);
     document.addEventListener("gesturestart", stop as any, opts);
     document.addEventListener("gesturechange", stop as any, opts);
@@ -402,7 +400,6 @@ export default function PhotoEditModal({ open, dataUrl, onClose, onSave }: Props
         ctx.arc(a.x, a.y, r, 0, Math.PI * 2);
         ctx.stroke();
       } else {
-        // export arrow (same style as display)
         const dx = b.x - a.x;
         const dy = b.y - a.y;
         const len = Math.hypot(dx, dy);
@@ -470,11 +467,7 @@ export default function PhotoEditModal({ open, dataUrl, onClose, onSave }: Props
       onPointerDown={(e) => e.stopPropagation()}
       onClick={(e) => e.stopPropagation()}
     >
-      <div
-        style={S.sheet}
-        onPointerDown={(e) => e.stopPropagation()}
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div style={S.sheet} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => e.stopPropagation()}>
         {/* top */}
         <div style={S.top}>
           <button type="button" onClick={onClose} style={S.iconBtn} aria-label="閉じる">
@@ -519,13 +512,7 @@ export default function PhotoEditModal({ open, dataUrl, onClose, onSave }: Props
         <div style={S.controls}>
           <div style={S.swatches}>
             {swatches.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                style={swatchBtn(c, color)}
-                aria-label={`color ${c}`}
-              />
+              <button key={c} type="button" onClick={() => setColor(c)} style={swatchBtn(c, color)} aria-label={`color ${c}`} />
             ))}
             <label style={S.colorPick}>
               <input
@@ -587,7 +574,6 @@ const S: Record<string, React.CSSProperties> = {
     alignItems: "stretch",
     justifyContent: "center",
     padding: 0,
-    // ✅ iOSの戻るジェスチャ/スクロール連鎖抑制
     overscrollBehavior: "contain",
     touchAction: "none",
   },
@@ -600,7 +586,6 @@ const S: Record<string, React.CSSProperties> = {
     overflow: "hidden",
     display: "flex",
     flexDirection: "column",
-    // ✅ safe-area
     paddingTop: "env(safe-area-inset-top, 0px)",
     paddingBottom: "env(safe-area-inset-bottom, 0px)",
   },

@@ -4,6 +4,7 @@
    ✅ スクロールは main のみ（縦だけ）
    ✅ 左右スクロール・横スワイプを抑止
    ✅ TopBar / Drawer / Section / Item / Note / Photos まで全部ここ
+   ✅ エリア配色 / Drawerハイライト&警告 / Choice薄色反映
    ========================================================= */
 
 /* =========================
@@ -252,6 +253,7 @@
   gap: 8px;
 }
 
+/* ✅ エリア項目：コンパクト化 */
 .qscAreaItem{
   width: 100%;
   display: flex;
@@ -259,8 +261,8 @@
   justify-content: space-between;
   gap: 10px;
 
-  padding: 10px 12px;
-  border-radius: 16px;
+  padding: 8px 12px;         /* ✅ 小さめ */
+  border-radius: 14px;       /* ✅ 小さめ */
 
   border: 1px solid rgba(15,17,21,0.10);
   background: rgba(255,255,255,0.86);
@@ -269,8 +271,25 @@
   text-align: left;
 }
 
+/* ✅ 現在エリアのハイライト（①） */
+.areaActive{
+  border-color: rgba(35,110,255,0.28);
+  box-shadow: 0 14px 36px rgba(35,110,255,0.12);
+}
+
+/* ✅ 警告（②）：NG / HOLD があるエリア */
+.areaWarnNg{
+  border-color: rgba(255, 59, 48, 0.28);
+  background: rgba(255, 59, 48, 0.06);
+}
+.areaWarnHold{
+  border-color: rgba(255, 149, 0, 0.28);
+  background: rgba(255, 149, 0, 0.06);
+}
+
 .qscAreaItemTitle{
   font-weight: 950;
+  font-size: 13px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -279,12 +298,40 @@
 
 .qscAreaItemCount{
   font-weight: 950;
-  font-size: 12px;
-  padding: 6px 10px;
+  font-size: 11px;
+  padding: 4px 8px;
 
   border-radius: 999px;
   border: 1px solid rgba(15,17,21,0.10);
   background: rgba(15,17,21,0.04);
+}
+
+.qscAreaItemBadges{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+.qscAreaBadge{
+  font-weight: 950;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.70);
+  white-space: nowrap;
+}
+
+.badgeNg{
+  border-color: rgba(255,59,48,0.22);
+  background: rgba(255,59,48,0.10);
+  color: rgba(255,59,48,0.95);
+}
+.badgeHold{
+  border-color: rgba(255,149,0,0.22);
+  background: rgba(255,149,0,0.10);
+  color: rgba(255,149,0,0.95);
 }
 
 /* =========================
@@ -320,6 +367,28 @@
   border: 1px solid rgba(15,17,21,0.10);
   background: rgba(15,17,21,0.04);
 }
+
+/* ✅ セクション（エリア）ごとの色（③の土台：--areaAccentRGB を配る） */
+.qscPanel.qscSection[data-area="sec_entrance"]{
+  --areaAccentRGB: 35,110,255;
+  background: linear-gradient(180deg, rgba(35,110,255,0.10), rgba(255,255,255,0.92));
+  border-color: rgba(35,110,255,0.20);
+}
+.qscPanel.qscSection[data-area="sec_floor"]{
+  --areaAccentRGB: 52,199,89;
+  background: linear-gradient(180deg, rgba(52,199,89,0.12), rgba(255,255,255,0.92));
+  border-color: rgba(52,199,89,0.22);
+}
+.qscPanel.qscSection[data-area="sec_toilet"]{
+  --areaAccentRGB: 175,82,222;
+  background: linear-gradient(180deg, rgba(175,82,222,0.12), rgba(255,255,255,0.92));
+  border-color: rgba(175,82,222,0.22);
+}
+
+/* タイトルも少し寄せる（強すぎない） */
+.qscPanel.qscSection[data-area="sec_entrance"] .qscSectionTitle{ color: rgba(35,110,255,0.95); }
+.qscPanel.qscSection[data-area="sec_floor"] .qscSectionTitle{ color: rgba(52,199,89,0.95); }
+.qscPanel.qscSection[data-area="sec_toilet"] .qscSectionTitle{ color: rgba(175,82,222,0.95); }
 
 .qscItems{
   display: grid;
@@ -368,7 +437,9 @@
   border-radius: 16px;
 
   border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.90);
+
+  /* ✅ エリア色を薄く反映（③） */
+  background: rgba(var(--areaAccentRGB, 15,17,21), 0.05);
 
   cursor: pointer;
   font-weight: 950;
@@ -391,10 +462,11 @@
 .choiceNg{}
 .choiceNa{}
 
+/* ✅ ON時も、青固定ではなく “エリア色寄り” に */
 .choiceOn{
-  background: rgba(35, 110, 255, 0.12);
-  border-color: rgba(35, 110, 255, 0.22);
-  box-shadow: 0 10px 26px rgba(35, 110, 255, 0.12);
+  background: rgba(var(--areaAccentRGB, 35,110,255), 0.14);
+  border-color: rgba(var(--areaAccentRGB, 35,110,255), 0.24);
+  box-shadow: 0 10px 26px rgba(var(--areaAccentRGB, 35,110,255), 0.14);
 }
 
 .qscItemBottom{
@@ -607,59 +679,7 @@
   .qscPlaceText{
     max-width: 52vw;
   }
-}
-@media (max-width: 420px){
   .qscAreaItem{
-    padding: 8px 10px;
+    padding: 7px 10px;
   }
-
-  .qscAreaItemTitle{
-    font-size: 13px;
-  }
-
-  .qscAreaItemCount{
-    font-size: 11px;
-    padding: 4px 8px;
-  }
-}
-/* =========================
-   Section color themes
-   ========================= */
-
-/* 入口・導線（ブルー） */
-.qscSection[data-area="sec_entrance"]{
-  background: linear-gradient(
-    180deg,
-    rgba(35,110,255,0.06),
-    rgba(255,255,255,0.92)
-  );
-}
-
-/* フロア（グリーン） */
-.qscSection[data-area="sec_floor"]{
-  background: linear-gradient(
-    180deg,
-    rgba(52,199,89,0.08),
-    rgba(255,255,255,0.92)
-  );
-}
-
-/* トイレ・更衣室（パープル） */
-.qscSection[data-area="sec_toilet"]{
-  background: linear-gradient(
-    180deg,
-    rgba(175,82,222,0.08),
-    rgba(255,255,255,0.92)
-  );
-}
-.qscSection[data-area="sec_entrance"] .qscSectionTitle{
-  color: rgba(35,110,255,0.95);
-}
-
-.qscSection[data-area="sec_floor"] .qscSectionTitle{
-  color: rgba(52,199,89,0.95);
-}
-
-.qscSection[data-area="sec_toilet"] .qscSectionTitle{
-  color: rgba(175,82,222,0.95);
 }
