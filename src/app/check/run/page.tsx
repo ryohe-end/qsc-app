@@ -607,10 +607,9 @@ export default function CheckRunPage() {
   };
 
   const onChoose = (secId: string, itemId: string, state: CheckState) => {
-    setItemState(secId, itemId, state);
-    if (state === "ng") focusNote(secId, itemId);
-    if (state === "hold") focusHold(secId, itemId);
-  };
+  setItemState(secId, itemId, state);
+  // ✅ “うるさい” 自動スクロール/フォーカスをやめる
+};
 
   // ======= photo modal open helpers =======
   const closePhotoModal = () => setPhotoModal((m) => ({ ...m, open: false }));

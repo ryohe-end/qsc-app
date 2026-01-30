@@ -3774,3 +3774,263 @@ button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="
   background: rgba(15,17,21,0.06) !important;
   border-color: rgba(15,17,21,0.30) !important;
 }
+/* =========================================================
+   FIX: 横スクロールを根絶（ページ全体 + チップ列）
+   ========================================================= */
+
+/* 画面外にはみ出す要素があっても横スクロールさせない */
+html, body {
+  overflow-x: hidden !important;
+}
+
+.qsc-frame,
+.qsc-frame-shell,
+.qsc-frame-scroll,
+.qsc-checkPage {
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+/* iOSで“横にグイッ”の慣性が出るのも抑える */
+.qsc-frame-scroll {
+  overscroll-behavior-x: none;
+}
+
+/* チップ列：横スクロール → 折り返し（wrap）へ */
+.qsc-chipScroll2 {
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  scroll-snap-type: none !important;
+
+  flex-wrap: wrap;            /* ✅ 横流れをやめる */
+  padding-bottom: 0 !important;
+  row-gap: 10px;
+}
+.qsc-chipScroll2::-webkit-scrollbar {
+  display: none !important;
+}
+/* =========================================================
+   FIX: CompanyPicker ボトムシートを“デカすぎ”にしない
+   ========================================================= */
+
+.qsc-sheet {
+  width: min(520px, calc(100% - 20px)) !important; /* 720→520 */
+  max-height: min(72svh, 640px) !important;        /* 82vh→締める */
+  bottom: 8px !important;
+}
+
+/* 中の余白も少し締めて“情報密度”を上げる */
+.qsc-sheetHead {
+  padding: 10px 12px !important;
+}
+.qsc-sheetSearch {
+  padding: 0 12px 10px 12px !important;
+}
+
+/* 小さい端末は“ほぼフル幅”だけど高さは守る */
+@media (max-width: 420px) {
+  .qsc-sheet {
+    width: calc(100% - 16px) !important;
+    max-height: 68svh !important;
+    bottom: 6px !important;
+    border-radius: 20px !important;
+  }
+}
+/* =========================================================
+   FIX: チップ（業態/ブランド/状態）トンマナ統一
+   - アイコン大きすぎ → 固定
+   - 文字が縦になる → 折り制御
+   ========================================================= */
+
+.qsc-chip2 {
+  height: 40px;                 /* ✅ 高さ固定で揃える */
+  padding: 0 12px;              /* 上下paddingをやめる */
+  gap: 8px;
+  border-radius: 999px;
+  letter-spacing: 0.01em;
+}
+
+/* アイコン枠を固定（デカく見える事故を止める） */
+.qsc-chip2-ic {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+}
+
+/* lucideを確実に小さめ固定 */
+.qsc-chip2-ic svg {
+  width: 16px !important;
+  height: 16px !important;
+  display: block;
+}
+
+/* ラベル：1行固定＆“1文字改行”を封じる */
+.qsc-chip2-tx {
+  font-size: 12px;
+  font-weight: 950;
+  line-height: 1;
+
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  writing-mode: horizontal-tb !important;
+  text-orientation: mixed !important;
+
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ✅ チェック丸もサイズ固定で統一 */
+.qsc-chip2-ok {
+  width: 18px;
+  height: 18px;
+}
+.qsc-chip2-ok svg {
+  width: 14px !important;
+  height: 14px !important;
+}
+/* =========================================================
+   FIX: 状態フィルタの揃いを強制（任意）
+   ========================================================= */
+
+/* 状態チップだけ少し“同じ幅感”に */
+.qsc-panel[aria-label="店舗の絞り込み"] .qsc-chip2 {
+  min-width: 104px;      /* 3つが揃って見える */
+  justify-content: center;
+}
+/* =========================================
+   Apple-ish Bottom Sheet for Company Select
+   ========================================= */
+
+/* overlay はそのまま。Backdropを少し上品に */
+.qsc-sheetBackdrop{
+  background: rgba(15,17,21,0.42);
+  backdrop-filter: blur(2px);
+}
+
+/* シート本体：ガラス + 薄い境界線 */
+.qsc-sheet{
+  bottom: 10px;
+  border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.22);
+  background: rgba(255,255,255,0.86);
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 30px 90px rgba(15,17,21,0.34),
+    0 10px 24px rgba(15,17,21,0.12);
+}
+
+/* ハンドル：よりiOSっぽく */
+.qsc-sheetHandle{
+  width: 40px;
+  height: 4px;
+  margin: 10px auto 8px;
+  background: rgba(15,17,21,0.16);
+}
+
+/* ヘッダー：タイトルを少し大きく、余白もiOS風 */
+.qsc-sheetHead{
+  padding: 10px 14px 8px;
+}
+.qsc-sheetTitle{
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+/* 閉じる：丸く、薄い枠、押し心地 */
+.qsc-sheetClose{
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.72);
+  box-shadow: 0 10px 20px rgba(15,17,21,0.06);
+}
+.qsc-sheetClose:active{ transform: translateY(1px) scale(0.99); }
+
+/* 検索：iOSのSearch bar風（左アイコン＋pill） */
+.qsc-sheetSearch{
+  padding: 0 14px 12px;
+  grid-template-columns: 42px 1fr 42px;
+}
+.qsc-sheetSearchIcon{
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.72);
+}
+.qsc-sheetSearchInput{
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(15,17,21,0.04);
+  padding: 0 16px;
+  font-weight: 850;
+}
+.qsc-sheetSearchInput:focus{
+  background: rgba(33,94,255,0.08);
+  border-color: rgba(33,94,255,0.20);
+  box-shadow: 0 0 0 5px rgba(33,94,255,0.12);
+}
+.qsc-sheetSearchClear{
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.72);
+}
+
+/* リスト：セル。セパレータは薄く */
+.qsc-sheetList{
+  border-top: 1px solid rgba(15,17,21,0.08);
+  background: rgba(255,255,255,0.55);
+}
+
+/* セル：左余白、右にチェック、ハイライトは薄い青 */
+.qsc-sheetOpt{
+  padding: 14px 14px;
+  border-top: 1px solid rgba(15,17,21,0.06);
+  background: transparent;
+  transition: background 140ms ease, transform 120ms ease;
+}
+.qsc-sheetOpt:hover{
+  background: rgba(15,17,21,0.03);
+}
+.qsc-sheetOpt:active{
+  transform: scale(0.995);
+  background: rgba(33,94,255,0.06);
+}
+
+/* 選択状態：iOSの選択行っぽく */
+.qsc-sheetOpt.is-active{
+  background: rgba(33,94,255,0.10);
+}
+
+/* 左のドットは“アクセント”として小さめに */
+.qsc-sheetOptDot{
+  width: 8px;
+  height: 8px;
+  background: rgba(15,17,21,0.18);
+}
+.qsc-sheetOpt.is-active .qsc-sheetOptDot{
+  background: rgba(33,94,255,0.70);
+}
+
+/* テキスト：セルっぽく読みやすく */
+.qsc-sheetOptText{
+  font-weight: 900;
+  letter-spacing: -0.01em;
+}
+
+/* チェック：青、少し太めに */
+.qsc-sheetOptCheck{
+  color: rgba(33,94,255,0.90);
+}
+
+/* 空状態 */
+.qsc-sheetEmpty{
+  padding: 14px;
+  background: transparent;
+  color: rgba(15,17,21,0.55);
+}
+@supports (-webkit-touch-callout: none) {
+  input, textarea, select {
+    font-size: 16px !important;
+  }
+}

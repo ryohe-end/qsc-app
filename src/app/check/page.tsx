@@ -255,6 +255,16 @@ function CompanyPicker({
 }) {
   const [open, setOpen] = useState(false);
   const [q, setQ] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    // iOS Safari 対策：1tick遅らせる
+    const t = setTimeout(() => {
+      inputRef.current?.focus();
+    }, 0);
+    return () => clearTimeout(t);
+  }, [open]);
 
   const filtered = useMemo(() => {
     const k = q.trim().toLowerCase();
@@ -312,6 +322,7 @@ function CompanyPicker({
                 <Search size={16} />
               </div>
               <input
+                ref={inputRef}
                 className="qsc-sheetSearchInput"
                 placeholder="検索"
                 value={q}
