@@ -1,12 +1,111 @@
 /* =========================================================
    CheckRunPage.bottom.module.css (QSC Run - BOTTOM / FULL)
-   - Bottom Bar only（ボタン共通）
+   - Bottom Dock（固定カード）
+   - かぶり防止 / pointer-events制御
+   - スマホ枠ハマり対策（横はみ出し防止）
    ========================================================= */
 
 :root{
   --bottomH: 96px;
 }
 
+/* ✅ BottomDock（固定） */
+.qscBottomDock{
+  position: fixed;
+  left: 12px;
+  right: 12px;
+
+  /* ✅ 少し上に出す（SafariのUI被りを回避） */
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 18px);
+
+  z-index: 9000;
+  pointer-events: auto;
+
+  max-width: calc(100% - 24px);
+}
+
+.qscBottomCard{
+  height: var(--qscBottomH, 192px);
+  border-radius: 22px;
+  overflow: hidden;
+
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  box-shadow: 0 24px 60px rgba(15,17,21,0.18), 0 8px 18px rgba(15,17,21,0.10);
+  border: 1px solid rgba(15,17,21,0.08);
+
+  transition: height 260ms ease;
+}
+
+.qscGrab{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0 6px;
+  touch-action: pan-y;
+}
+
+.qscGrabBar{
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(15,17,21,0.18);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+.qscCollapseBtn{
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.72);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 26px rgba(15,17,21,0.08);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+/* ✅ indicator */
+.qscIndicatorWrap{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 12px;
+  border-radius: 18px;
+  border:1px solid rgba(15,17,21,0.08);
+  background: rgba(255,255,255,0.70);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 12px 28px rgba(15,17,21,0.08);
+  min-width: 0;
+}
+
+.qscSegBar{
+  position: relative;
+  height: 10px;
+  width: 100%;
+  min-width: 140px;
+  border-radius: 999px;
+  overflow:hidden;
+  background: rgba(15,17,21,0.08);
+  border: 1px solid rgba(15,17,21,0.08);
+  display:flex;
+}
+
+.qscSeg{ height: 100%; }
+.qscSegOk{ background: rgba(52,199,89,0.85); }
+.qscSegHold{ background: rgba(255,149,0,0.90); }
+.qscSegNg{ background: rgba(255,59,48,0.88); }
+.qscSegNa{ background: rgba(142,142,147,0.65); }
+.qscSegUnset{ background: rgba(15,17,21,0.10); }
+
+/* ✅ badges / actions */
 .qscBadge{
   font-size: 12px;
   font-weight: 950;
@@ -64,7 +163,15 @@
 
 /* responsive */
 @media (max-width: 720px){
-  .qscAction{
-    width: 100%;
+  .qscBottomDock{
+    left: 10px;
+    right: 10px;
+    max-width: calc(100% - 20px);
+  }
+}
+
+@media (max-width: 420px){
+  .qscBottomDock{
+    bottom: calc(env(safe-area-inset-bottom, 0px) + 12px);
   }
 }

@@ -4,7 +4,7 @@
    ✅ スクロールは main のみ（縦だけ）
    ✅ 左右スクロール・横スワイプを抑止
    ✅ TopBar / Drawer / Section / Item / Note / Photos まで全部ここ
-   ✅ エリア配色 / Drawerハイライト&警告 / Choice薄色反映
+   ✅ エリア色の薄い反映（Choice / Card）
    ========================================================= */
 
 /* =========================
@@ -184,7 +184,10 @@
 }
 
 /* =========================
-   Drawer (Area)
+   Drawer (Area)  ✅ REPLACE FULL
+   - “黒いやつ”寄せ（コンパクトなリスト行）
+   - 現在エリア: 薄いハイライト
+   - NG/HOLD: 薄い警告色（デカ見えの原因=影/強塗りを避ける）
    ========================= */
 
 .qscDrawerOverlay{
@@ -209,14 +212,15 @@
   width: min(420px, 92vw);
   height: 100dvh;
 
-  background: rgba(255,255,255,0.92);
-  border-left: 1px solid rgba(15,17,21,0.10);
-  box-shadow: -20px 0 70px rgba(0,0,0,0.20);
+  /* ✅ シート感（カード感を弱める） */
+  background: rgba(255,255,255,0.98);
+  border-left: 1px solid rgba(15,17,21,0.08);
+  box-shadow: -12px 0 40px rgba(0,0,0,0.18);
 
-  padding: 12px;
+  padding: 10px;                 /* ✅ 全体余白を詰める */
   display: grid;
   grid-template-rows: auto 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .qscDrawerHead{
@@ -249,11 +253,13 @@
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
 
-  display: grid;
+  /* ✅ gridだと「カード並び感」が強く見えやすいので、縦リストに寄せる */
+  display: flex;
+  flex-direction: column;
   gap: 8px;
 }
 
-/* ✅ エリア項目：コンパクト化 */
+/* ✅ エリアボタン：カード → “行” にする（黒いやつ寄せ） */
 .qscAreaItem{
   width: 100%;
   display: flex;
@@ -261,78 +267,114 @@
   justify-content: space-between;
   gap: 10px;
 
-  padding: 8px 12px;         /* ✅ 小さめ */
-  border-radius: 14px;       /* ✅ 小さめ */
+  padding: 10px 12px;
+  min-height: 46px;              /* ✅ ここが“黒いやつ”の高さ */
+  border-radius: 14px;
 
   border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.86);
+  background: rgba(255,255,255,0.78);
+  box-shadow: none;              /* ✅ デカ見えの原因を消す */
 
   cursor: pointer;
   text-align: left;
+  min-width: 0;
+
+  transition: transform 0.08s ease, background 0.18s ease, border-color 0.18s ease;
 }
 
-/* ✅ 現在エリアのハイライト（①） */
-.areaActive{
-  border-color: rgba(35,110,255,0.28);
-  box-shadow: 0 14px 36px rgba(35,110,255,0.12);
-}
-
-/* ✅ 警告（②）：NG / HOLD があるエリア */
-.areaWarnNg{
-  border-color: rgba(255, 59, 48, 0.28);
-  background: rgba(255, 59, 48, 0.06);
-}
-.areaWarnHold{
-  border-color: rgba(255, 149, 0, 0.28);
-  background: rgba(255, 149, 0, 0.06);
-}
+.qscAreaItem:active{ transform: scale(0.99); }
 
 .qscAreaItemTitle{
   font-weight: 950;
-  font-size: 13px;
+  font-size: 14px;
+  line-height: 1.15;
+
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   min-width: 0;
 }
 
+/* ✅ 現在エリア（薄い線＋薄い塗り） */
+.areaCurrent{
+  border-color: rgba(35,110,255,0.26);
+  background: rgba(35,110,255,0.10);
+  box-shadow: none;
+}
+
+/* ✅ NG/HOLD 警告（優先度: NG > HOLD） */
+.areaWarnNg{
+  border-color: rgba(255,59,48,0.24);
+  background: rgba(255,59,48,0.08);
+}
+
+.areaWarnHold{
+  border-color: rgba(255,149,0,0.24);
+  background: rgba(255,149,0,0.08);
+}
+
+/* 右側のまとまり */
+.qscAreaBadges{
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  flex: 0 0 auto;
+}
+
+/* 進捗ピル */
 .qscAreaItemCount{
   font-weight: 950;
-  font-size: 11px;
-  padding: 4px 8px;
+  font-size: 11.5px;
+  padding: 5px 9px;
 
   border-radius: 999px;
   border: 1px solid rgba(15,17,21,0.10);
   background: rgba(15,17,21,0.04);
 }
 
-.qscAreaItemBadges{
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-}
-
+/* NG/HOLD バッジ（控えめ） */
 .qscAreaBadge{
   font-weight: 950;
-  font-size: 11px;
-  padding: 4px 8px;
+  font-size: 10.5px;
+  padding: 4px 7px;
+
   border-radius: 999px;
   border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.70);
+  background: rgba(255,255,255,0.75);
   white-space: nowrap;
 }
 
-.badgeNg{
-  border-color: rgba(255,59,48,0.22);
+.areaBadgeNg{
+  border-color: rgba(255,59,48,0.20);
   background: rgba(255,59,48,0.10);
-  color: rgba(255,59,48,0.95);
+  color: rgba(255,59,48,0.92);
 }
-.badgeHold{
-  border-color: rgba(255,149,0,0.22);
+
+.areaBadgeHold{
+  border-color: rgba(255,149,0,0.20);
   background: rgba(255,149,0,0.10);
   color: rgba(255,149,0,0.95);
 }
+
+/* ✅ スマホ：さらに詰める */
+@media (max-width: 420px){
+  .qscDrawer{
+    width: min(360px, 92vw);
+    padding: 10px;
+  }
+
+  .qscAreaItem{
+    padding: 9px 10px;
+    min-height: 44px;
+    border-radius: 12px;
+  }
+
+  .qscAreaItemTitle{
+    font-size: 13.5px;
+  }
+}
+
+
 
 /* =========================
    Sections / Items
@@ -341,6 +383,34 @@
 .qscSection{
   padding: 12px;
   margin-bottom: 12px;
+}
+
+/* ✅ セクション色の薄い帯（CSS変数で色を注入） */
+.qscSectionTint{
+  position: relative;
+  overflow: hidden;
+}
+.qscSectionTint::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--secTint, rgba(35,110,255,0.08));
+  opacity: 0.55;
+  pointer-events: none;
+}
+.qscSectionTint::after{
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 4px;
+  width: 100%;
+  background: var(--secAccent, rgba(35,110,255,0.55));
+  pointer-events: none;
+}
+.qscSectionTint > *{
+  position: relative;
+  z-index: 1;
 }
 
 .qscSectionHead{
@@ -368,28 +438,6 @@
   background: rgba(15,17,21,0.04);
 }
 
-/* ✅ セクション（エリア）ごとの色（③の土台：--areaAccentRGB を配る） */
-.qscPanel.qscSection[data-area="sec_entrance"]{
-  --areaAccentRGB: 35,110,255;
-  background: linear-gradient(180deg, rgba(35,110,255,0.10), rgba(255,255,255,0.92));
-  border-color: rgba(35,110,255,0.20);
-}
-.qscPanel.qscSection[data-area="sec_floor"]{
-  --areaAccentRGB: 52,199,89;
-  background: linear-gradient(180deg, rgba(52,199,89,0.12), rgba(255,255,255,0.92));
-  border-color: rgba(52,199,89,0.22);
-}
-.qscPanel.qscSection[data-area="sec_toilet"]{
-  --areaAccentRGB: 175,82,222;
-  background: linear-gradient(180deg, rgba(175,82,222,0.12), rgba(255,255,255,0.92));
-  border-color: rgba(175,82,222,0.22);
-}
-
-/* タイトルも少し寄せる（強すぎない） */
-.qscPanel.qscSection[data-area="sec_entrance"] .qscSectionTitle{ color: rgba(35,110,255,0.95); }
-.qscPanel.qscSection[data-area="sec_floor"] .qscSectionTitle{ color: rgba(52,199,89,0.95); }
-.qscPanel.qscSection[data-area="sec_toilet"] .qscSectionTitle{ color: rgba(175,82,222,0.95); }
-
 .qscItems{
   display: grid;
   gap: 10px;
@@ -400,6 +448,13 @@
   border: 1px solid rgba(15,17,21,0.10);
   background: rgba(255,255,255,0.96);
   overflow: hidden;
+}
+
+/* ✅ カードにもセクション色を極薄で反映 */
+.qscItemTint{
+  background:
+    linear-gradient(0deg, var(--secTint, rgba(35,110,255,0.06)), var(--secTint, rgba(35,110,255,0.06))),
+    rgba(255,255,255,0.96);
 }
 
 .itemError{
@@ -438,8 +493,10 @@
 
   border: 1px solid rgba(15,17,21,0.10);
 
-  /* ✅ エリア色を薄く反映（③） */
-  background: rgba(var(--areaAccentRGB, 15,17,21), 0.05);
+  /* ✅ セクション色を極薄で常時反映 */
+  background:
+    linear-gradient(0deg, var(--secTint, rgba(35,110,255,0.06)), var(--secTint, rgba(35,110,255,0.06))),
+    rgba(255,255,255,0.90);
 
   cursor: pointer;
   font-weight: 950;
@@ -462,11 +519,12 @@
 .choiceNg{}
 .choiceNa{}
 
-/* ✅ ON時も、青固定ではなく “エリア色寄り” に */
 .choiceOn{
-  background: rgba(var(--areaAccentRGB, 35,110,255), 0.14);
-  border-color: rgba(var(--areaAccentRGB, 35,110,255), 0.24);
-  box-shadow: 0 10px 26px rgba(var(--areaAccentRGB, 35,110,255), 0.14);
+  background:
+    linear-gradient(0deg, var(--secTint, rgba(35,110,255,0.10)), var(--secTint, rgba(35,110,255,0.10))),
+    rgba(35, 110, 255, 0.12);
+  border-color: rgba(35, 110, 255, 0.22);
+  box-shadow: 0 10px 26px rgba(35, 110, 255, 0.12);
 }
 
 .qscItemBottom{
@@ -679,7 +737,11 @@
   .qscPlaceText{
     max-width: 52vw;
   }
-  .qscAreaItem{
-    padding: 7px 10px;
-  }
+
+  /* ✅ エリアメニューの“でかさ”対策 */
+  .qscAreaItem{ padding: 9px 10px; border-radius: 16px; }
+  .qscAreaItemTitle{ font-size: 13px; }
+  .qscAreaItemCount{ font-size: 11px; padding: 5px 8px; }
+  .qscAreaBadge{ font-size: 10.5px; padding: 4px 7px; }
 }
+
