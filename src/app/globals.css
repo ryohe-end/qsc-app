@@ -62,6 +62,13 @@ html {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
+
+  /* ✅ iOS/スマホで勝手に文字が拡大して「画面がデカい」事故を止める */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+
+  /* ✅ 余計な横スクロール・ズーム暴発を抑える（保険） */
+  touch-action: manipulation;
 }
 
 body {
@@ -69,6 +76,10 @@ body {
   color: var(--fg);
   font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Noto Sans JP", "Apple Color Emoji", "Segoe UI Emoji";
+
+  /* ✅ iOSの自動フォント拡大を確実に止める（htmlだけだと足りない端末がある） */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 
   background:
     radial-gradient(900px 520px at 20% 0%, rgba(47,140,230,.09), transparent 65%),
@@ -79,6 +90,7 @@ body {
 
 a { color: inherit; }
 input, button, select, textarea { font: inherit; }
+
 
 /* =========================
    Header (fixed)
@@ -2986,4 +2998,627 @@ button.qsc-fab:focus-visible {
 }
 button.qsc-fab:focus-visible .qsc-fab-inner {
   box-shadow: 0 0 0 5px var(--focusRing), 0 18px 45px rgba(15,17,21,0.35);
+}
+/* =========================
+   Modal / Overlay “画面に収める”固定
+   ========================= */
+.qscModalOverlay,
+.qscPhotoModalOverlay,
+.qscDrawerOverlay {
+  max-width: 100vw;
+  max-height: 100svh;
+}
+
+.qscModal,
+.qscPhotoModal,
+.qscDrawer {
+  max-width: 100vw;
+  max-height: 100svh;
+}
+
+/* モーダル中のスクロールが効かず “画面がデカい” っぽくなるのを防ぐ */
+.qscModalBody,
+.qscPhotoModalBody {
+  min-height: 0;
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+}
+/* =========================
+   AppChrome: /check/run 用（枠は使うがHeader/Tabは無い）
+   ========================= */
+.qsc-frame.qsc-frame--run{
+  padding-top: 0; /* ✅ 共通ヘッダーが無いので詰める */
+  padding-bottom: 16px; /* ✅ 下タブが無いので最低限だけ */
+}
+
+.qsc-frame-shell.qsc-frame-shell--run{
+  /* runページは bottom sheet とかあるので “枠高さ” を少し余裕に */
+  height: calc(100svh - 16px);
+}
+
+.qsc-frame-scroll.qsc-frame-scroll--run{
+  /* runページ側の fixed bottom card を邪魔しない余白（必要なら） */
+  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+}
+/* 4択ピルの親が flex のとき：wrapさせずに等分に寄せる */
+.qsc-runItem :where(.triRow, .triGroup, .choiceRow, .choices){
+  display: grid !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  min-width: 0;
+}
+
+/* ボタン共通（既存classが何でも効くように） */
+.qsc-runItem :where(button){
+  min-width: 0;
+}
+
+/* ピルっぽいボタンだけ狙いたいなら（丸い/枠線系） */
+.qsc-runItem :where(button){
+  overflow: hidden;
+}
+.qsc-runItem :where(button) :where(span){
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* =========================================
+   FIX: 4択ボタン（OK/保留/NG/該当なし）
+   - スマホで文字が潰れる問題を根本解決
+   - 2×2レイアウトにして可読性確保
+   ========================================= */
+
+/* まずボタン自体は “中身が潰れない” 基本形に固定 */
+.qsc-runTriBtn{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  height: 44px;
+  padding: 0 12px;
+  border-radius: 999px;
+
+  font-size: 14px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0.01em;
+
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* アイコンは縮まない */
+.qsc-runTriBtn svg{
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  display: block;
+}
+
+/* ラベルは潰れたら…省略（でも基本2×2で潰れない） */
+.qsc-runTriBtn span{
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* === ここが本命：スマホは 2×2 にする === */
+@media (max-width: 520px){
+  .qsc-runTri{
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .qsc-runTriBtn{
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* さらに小さい端末だけ少し締める */
+@media (max-width: 380px){
+  .qsc-runTriBtn{
+    height: 42px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+}
+/* =========================
+   STOP BLEED: RUN 4択ボタン崩壊だけ止める
+   （globals.css の一番最後に追記）
+   ========================= */
+
+/* 危険：全ボタンを巻き込むやつを無効化（存在する場合の保険） */
+@supports selector(:has(*)) {
+  button:has(> svg.lucide){
+    display: revert !important;
+    align-items: revert !important;
+    justify-content: revert !important;
+    gap: revert !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    line-height: normal !important;
+  }
+}
+
+/* RUNの4択だけを確実に整える */
+.qsc-runTri{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:8px;
+}
+
+.qsc-runTriBtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  min-width:0;
+  white-space:nowrap;
+  line-height:1;
+}
+
+.qsc-runTriBtn svg{
+  flex:0 0 auto;
+  width:16px;
+  height:16px;
+  display:block;
+}
+
+.qsc-runTriBtn span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+@media (max-width:520px){
+  .qsc-runTri{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+  .qsc-runTriBtn{ width:100%; }
+}
+
+/* =========================
+   FIX: RUN 4択だけに限定（フッター等は巻き込まない）
+   globals.css の末尾に追記
+   ========================= */
+
+/* ❶ もし以前の “全button:has” が残ってるなら、無効化（保険） */
+@supports selector(:has(*)) {
+  button:has(> svg.lucide){
+    display: revert !important;
+    align-items: revert !important;
+    justify-content: revert !important;
+    gap: revert !important;
+    overflow: visible !important;
+    white-space: normal !important;
+    line-height: normal !important;
+  }
+}
+
+/* ❷ 4択ゾーンの中だけ、アイコン付きボタンを整形 */
+@supports selector(:has(*)) {
+  .qsc-runTri button:has(> svg.lucide){
+    display:inline-flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    gap:8px !important;
+
+    min-width:0;
+    overflow:hidden;
+    white-space:nowrap;
+    line-height:1;
+  }
+
+  .qsc-runTri button:has(> svg.lucide) > svg.lucide{
+    flex:0 0 auto;
+    width:16px;
+    height:16px;
+    display:block;
+  }
+
+  .qsc-runTri button:has(> svg.lucide) > span{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+}
+
+/* ❸ 4択レイアウトは .qsc-runTri の中だけ */
+.qsc-runTri{
+  display:grid;
+  grid-template-columns:repeat(4, minmax(0, 1fr));
+  gap:8px;
+}
+
+/* ❹ 4択ボタンの見た目も .qsc-runTri の中だけに限定 */
+.qsc-runTri .qsc-runTriBtn{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+
+  min-width:0;
+  white-space:nowrap;
+  line-height:1;
+}
+
+.qsc-runTri .qsc-runTriBtn svg{
+  flex:0 0 auto;
+  width:16px;
+  height:16px;
+  display:block;
+}
+
+.qsc-runTri .qsc-runTriBtn span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+
+@media (max-width:520px){
+  .qsc-runTri{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
+  .qsc-runTri .qsc-runTriBtn{ width:100%; }
+}
+
+@supports selector(:has(*)) {
+  /* ✅ RUNの4択だけ */
+  .qsc-runTri button:has(> svg.lucide){
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+
+    min-width:0;
+    overflow:hidden;
+    white-space:nowrap;
+    line-height:1;
+  }
+  .qsc-runTri button:has(> svg.lucide) > svg.lucide{
+    flex:0 0 auto;
+    width:16px;
+    height:16px;
+    display:block;
+  }
+  .qsc-runTri button:has(> svg.lucide) > span{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+}
+/* =========================================
+   FIX: 4択（OK/保留/NG/該当なし）
+   - “縦積み”で重心を揃えて崩れないようにする
+   - フッター(.qsc-runBottom)は影響させない
+   ========================================= */
+
+/* 4択のコンテナ */
+.qsc-runItem .qsc-runTri{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+/* 4択ボタン：アイコン上、文字下で統一 */
+.qsc-runItem .qsc-runTriBtn{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  height: 64px;            /* ✅ 縦積み用の高さを確保 */
+  padding: 10px 8px;
+  border-radius: 18px;
+
+  gap: 6px;
+  line-height: 1;
+  letter-spacing: 0;       /* ✅ ここがズレの原因になりやすいので0 */
+  -webkit-tap-highlight-color: transparent;
+
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* アイコン：サイズ固定 & 縮まない */
+.qsc-runItem .qsc-runTriBtn > svg{
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+/* ラベル：2行OK。センターで “該当なし” でも破綻しない */
+.qsc-runItem .qsc-runTriBtn > span{
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.15;
+
+  white-space: normal;     /* ✅ 2行許可 */
+  text-align: center;
+  text-wrap: balance;      /* 対応ブラウザでは良い感じに折る */
+}
+
+/* 小さい端末は少し締める */
+@media (max-width: 380px){
+  .qsc-runItem .qsc-runTriBtn{
+    height: 60px;
+    padding: 9px 7px;
+    border-radius: 16px;
+  }
+  .qsc-runItem .qsc-runTriBtn > span{
+    font-size: 12.5px;
+  }
+}
+
+/* ✅ ここ重要：フッターのボタンは “横並び” を強制して守る */
+.qsc-runBottom .qsc-runAction,
+.qsc-runBottom button[class*="qscAction"],
+.qsc-runBottom button[class*="actionPrimary"],
+.qsc-runBottom button[class*="actionGhost"]{
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+
+  height: 52px;
+  padding: 0 16px;
+  border-radius: 18px;
+
+  line-height: 1 !important;
+}
+
+.qsc-runBottom .qsc-runAction > span,
+.qsc-runBottom button[class*="qscAction"] > span{
+  white-space: nowrap !important;
+  text-align: center;
+}
+
+.qsc-runBottom .qsc-runAction > svg,
+.qsc-runBottom button[class*="qscAction"] > svg{
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  display: block;
+}
+/* =========================================
+   HARD FIX: グローバル button:has(>svg.lucide) を局所化
+   - 4択だけ縦積み
+   - フッターは横並びを強制
+   ========================================= */
+
+/* --- 0) まず「全ボタン」に効いてしまうやつを“無効化”する上書き --- */
+/* :has が効く環境ではこれが最優先で刺さるので、必要な場所で打ち消す */
+.qsc-runBottom button,
+.qsc-runBottom a,
+.qsc-runBottom .qsc-runAction,
+.qsc-runBottom [class*="qscAction"]{
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  overflow: visible !important;
+  white-space: normal !important;
+  line-height: 1 !important;
+}
+
+/* フッター内のsvg/テキストを安定 */
+.qsc-runBottom button > svg,
+.qsc-runBottom a > svg,
+.qsc-runBottom .qsc-runAction > svg{
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto !important;
+  display: block !important;
+}
+.qsc-runBottom button > span,
+.qsc-runBottom a > span,
+.qsc-runBottom .qsc-runAction > span{
+  white-space: nowrap !important;
+  min-width: 0 !important;
+}
+
+/* --- 1) 4択（OK/保留/NG/該当なし）だけを “縦積み固定” --- */
+/* .qsc-runTriBtn を使ってない場合もあるので、triコンテナ配下のボタンを直指定 */
+.qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button{
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  height: 64px !important;
+  padding: 10px 8px !important;
+  gap: 6px !important;
+
+  min-width: 0 !important;
+  overflow: hidden !important;
+  line-height: 1 !important;
+  border-radius: 18px !important;
+}
+
+/* 4択：アイコン */
+.qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button > svg{
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto !important;
+  display: block !important;
+}
+
+/* 4択：ラベル（2行OKで崩れない） */
+.qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button > span{
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+  white-space: normal !important; /* ← “該当なし” を2行にできる */
+  overflow: hidden !important;
+}
+
+/* 小さい端末だけ少し締める */
+@media (max-width: 380px){
+  .qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button{
+    height: 60px !important;
+    padding: 9px 7px !important;
+    border-radius: 16px !important;
+  }
+  .qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button > span{
+    font-size: 12.5px !important;
+  }
+}
+/* =========================================
+   FIX: CheckRunPage の「4択」と「フッター」を完全分離
+   - CSS Modules のハッシュ変動に強い（class* で拾う）
+   - 4択: 縦積み（アイコン上・文字下）
+   - フッター: 横並び（アイコン左・文字右）
+   ========================================= */
+
+/* -------------------------
+   1) フッターボタン（__qscAction）
+   ------------------------- */
+button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"]{
+  display: inline-flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+
+  height: 54px !important;
+  padding: 0 16px !important;
+
+  white-space: nowrap !important;
+  line-height: 1 !important;
+
+  overflow: hidden !important; /* 見切れ防止 */
+  min-width: 0 !important;
+}
+
+button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"] > svg.lucide{
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto !important;
+  display: block !important;
+}
+
+button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"] > span{
+  white-space: nowrap !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* -------------------------
+   2) 4択ボタン（__qscChoice）
+   ------------------------- */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+
+  height: 64px !important;
+  padding: 10px 8px !important;
+
+  line-height: 1 !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+}
+
+/* 4択の「左の点」 */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] > span[class*="__qscChoiceDot"]{
+  display: none !important; /* 点が不要なら消す（必要ならこの行だけ消してOK） */
+}
+
+/* 4択のアイコン */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] > svg.lucide{
+  width: 18px !important;
+  height: 18px !important;
+  flex: 0 0 auto !important;
+  display: block !important;
+}
+
+/* 4択のラベル（該当なしなどは2行OK） */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] > span:not([class*="__qscChoiceDot"]){
+  font-size: 13px !important;
+  font-weight: 900 !important;
+  line-height: 1.15 !important;
+  text-align: center !important;
+
+  white-space: normal !important;  /* ← ここが肝：2行にできる */
+  overflow: hidden !important;
+}
+
+/* 超小型だけ少し締める */
+@media (max-width: 380px){
+  button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
+    height: 60px !important;
+    padding: 9px 7px !important;
+    gap: 5px !important;
+  }
+  button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] > span:not([class*="__qscChoiceDot"]){
+    font-size: 12.5px !important;
+  }
+}
+/* =========================================
+   FIX2: 文字欠け対策（4択 / フッター）
+   ========================================= */
+
+/* -------------------------
+   A) 4択（__qscChoice）: 「該当なし」を2行で確実に見せる
+   ------------------------- */
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
+  height: 72px !important;           /* ← 少しだけ高さを足す */
+  padding: 10px 8px !important;
+  overflow: visible !important;       /* ← ここが重要：文字の欠けを止める */
+}
+
+button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
+  > span:not([class*="__qscChoiceDot"]){
+  max-width: 100% !important;
+  white-space: normal !important;     /* ← 2行OK */
+  line-height: 1.15 !important;
+  text-align: center !important;
+
+  /* 2行で止める（はみ出しは防ぐが、途中欠けはしない） */
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  overflow: hidden !important;
+}
+
+/* -------------------------
+   B) フッター（__qscAction）:
+      Primary(完了)だけ「横並び」
+      それ以外は「縦積み」で省略を根絶
+   ------------------------- */
+
+/* まず共通：切り詰めを無効化 */
+button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"] > span{
+  text-overflow: clip !important;
+}
+
+/* Primary（完了）は横並びのまま */
+button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"][class*="__actionPrimary"]{
+  flex-direction: row !important;
+  height: 54px !important;
+}
+
+/* Primary以外（途中保存/破棄）は縦積みで幅不足を回避 */
+button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"]:not([class*="__actionPrimary"]){
+  flex-direction: column !important;
+  height: 62px !important;
+  gap: 6px !important;
+  padding: 10px 10px !important;
+}
+
+button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"]:not([class*="__actionPrimary"]) > span{
+  white-space: nowrap !important;     /* 縦積みなのでnowrapでも入る */
+  font-size: 12.5px !important;       /* ここで少し締める */
+  line-height: 1 !important;
 }
