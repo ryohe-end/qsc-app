@@ -587,13 +587,9 @@
   cursor: pointer;
   font-weight: 950;
   user-select: none;
-}
 
-.qscPhotoAdd input{
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
 }
 
 /* textarea */
@@ -743,4 +739,17 @@
   .qscAreaItemTitle{ font-size: 13px; }
   .qscAreaItemCount{ font-size: 11px; padding: 5px 8px; }
   .qscAreaBadge{ font-size: 10.5px; padding: 4px 7px; }
+}
+/* ✅ iOS Safari: フォーカス時ズーム防止（16px以上にする） */
+.qscNote,
+.qscHoldNote{
+  font-size: 16px;
+}
+
+/* 見た目を少し小さくしたいなら line-height と paddingで調整 */
+.qscNote{
+  line-height: 1.45;
+}
+.qscHoldNote{
+  line-height: 1.45;
 }

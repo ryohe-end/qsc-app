@@ -249,6 +249,8 @@ export default function CheckRunPage() {
     photos: [],
     index: 0,
   });
+  const pickGalleryRef = useRef<HTMLInputElement | null>(null);
+  const pickCameraRef = useRef<HTMLInputElement | null>(null);
 
   type EditPhotoState = {
     open: boolean;
@@ -265,6 +267,8 @@ export default function CheckRunPage() {
   });
 
   const [forceShowErrors, setForceShowErrors] = useState(false);
+  const [pendingPhotoTarget, setPendingPhotoTarget] = useState<{ secId: string; itemId: string } | null>(null);
+
 
   /* =========================
      ✅ エリア内の NG/HOLD 集計（②）
@@ -609,6 +613,31 @@ export default function CheckRunPage() {
   const onChoose = (secId: string, itemId: string, state: CheckState) => {
   setItemState(secId, itemId, state);
   // ✅ “うるさい” 自動スクロール/フォーカスをやめる
+};
+const openAddPhotoSheet = (secId: string, itemId: string) => {
+  setSheet({
+    open: true,
+    title: "写真を追加",
+    message: "どちらから追加しますか？",
+    primaryText: "カメラロール",
+    secondaryText: "写真を撮る",
+    cancelText: "キャンセル",
+    onPrimary: () => {
+      setSheet({ open: false });
+      // ✅ ロール起動
+      requestAnimationFrame(() => pickGalleryRef.current?.click());
+    },
+    onSecondary: () => {
+      setSheet({ open: false });
+      // ✅ カメラ起動
+      requestAnimationFrame(() => pickCameraRef.current?.click());
+    },
+    onCancel: () => setSheet({ open: false }),
+  });
+
+  // ✅ どのアイテムに追加するかを「一時的に保持」しておく
+  // hidden input の onChange で使う
+  setPendingPhotoTarget({ secId, itemId });
 };
 
   // ======= photo modal open helpers =======
@@ -1303,21 +1332,15 @@ export default function CheckRunPage() {
                           </div>
 
                           <div className={styles.qscPhotoHead}>
-                            <label className={styles.qscPhotoAdd} aria-label="写真を追加">
-                              <ImagePlus size={16} />
-                              <span style={{ whiteSpace: "nowrap" }}>写真追加</span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                multiple
-                                capture="environment"
-                                onChange={async (e) => {
-                                  const picked = e.currentTarget.files ? Array.from(e.currentTarget.files) : [];
-                                  e.currentTarget.value = "";
-                                  await addPhotosToItem(sec.id, it.id, picked);
-                                }}
-                              />
-                            </label>
+                            <button
+                             type="button"
+                             className={styles.qscPhotoAdd}
+                             aria-label="写真を追加"
+                             onClick={() => openAddPhotoSheet(sec.id, it.id)}
+                             >
+                            <ImagePlus size={16} />
+                            <span style={{ whiteSpace: "nowrap" }}>写真追加</span>
+                            </button>
                           </div>
                         </div>
 
@@ -1583,6 +1606,39 @@ export default function CheckRunPage() {
       <div style={{ position: "fixed", inset: 0, zIndex: Z.editModal, pointerEvents: editPhoto.open ? "auto" : "none" }}>
         <PhotoEditModal open={editPhoto.open} dataUrl={editPhoto.dataUrl} onClose={editPhoto.onClose} onSave={editPhoto.onSave} />
       </div>
+      {/* ✅ hidden file inputs（iPhone風：ロール/カメラ切替） */}
+<input
+  ref={pickGalleryRef}
+  type="file"
+  accept="image/*"
+  multiple
+  style={{ display: "none" }}
+  onChange={async (e) => {
+    const target = pendingPhotoTarget;
+    const picked = e.currentTarget.files ? Array.from(e.currentTarget.files) : [];
+    e.currentTarget.value = "";
+    if (!target || picked.length === 0) return;
+    await addPhotosToItem(target.secId, target.itemId, picked);
+    setPendingPhotoTarget(null);
+  }}
+/>
+
+<input
+  ref={pickCameraRef}
+  type="file"
+  accept="image/*"
+  capture="environment"
+  style={{ display: "none" }}
+  onChange={async (e) => {
+    const target = pendingPhotoTarget;
+    const picked = e.currentTarget.files ? Array.from(e.currentTarget.files) : [];
+    e.currentTarget.value = "";
+    if (!target || picked.length === 0) return;
+    await addPhotosToItem(target.secId, target.itemId, picked);
+    setPendingPhotoTarget(null);
+  }}
+/>
     </div>
+    
   );
 }
