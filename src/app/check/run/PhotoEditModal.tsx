@@ -54,10 +54,27 @@ export default function PhotoEditModal({ open, dataUrl, onClose, onSave }: Props
 
   // ✅ iOS Safariの「戻るスワイプ」や背面タップ貫通を抑える
   // ✅ passive event error回避：preventDefaultするリスナーは {passive:false} で付ける
+  // ✅ ただし range/color など “操作したいUI” は例外にして touchmove を殺さない
   useEffect(() => {
     if (!open) return;
 
+    const isAllowedControl = (t: EventTarget | null) => {
+      const el = t as HTMLElement | null;
+      if (!el) return false;
+
+      // ✅ スライダーは触ってOK（ドラッグ復活）
+      if (el.closest('input[type="range"]')) return true;
+
+      // ✅ カラーピッカーも必要ならOK
+      if (el.closest('input[type="color"]')) return true;
+
+      // 他にも許可したい要素があればここに足す
+      return false;
+    };
+
     const stop = (e: Event) => {
+      if (isAllowedControl(e.target)) return;
+
       const anyE = e as any;
       if (anyE && anyE.cancelable && typeof anyE.preventDefault === "function") anyE.preventDefault();
       if (typeof anyE.stopPropagation === "function") anyE.stopPropagation();
@@ -512,7 +529,13 @@ export default function PhotoEditModal({ open, dataUrl, onClose, onSave }: Props
         <div style={S.controls}>
           <div style={S.swatches}>
             {swatches.map((c) => (
-              <button key={c} type="button" onClick={() => setColor(c)} style={swatchBtn(c, color)} aria-label={`color ${c}`} />
+              <button
+                key={c}
+                type="button"
+                onClick={() => setColor(c)}
+                style={swatchBtn(c, color)}
+                aria-label={`color ${c}`}
+              />
             ))}
             <label style={S.colorPick}>
               <input
@@ -664,7 +687,8 @@ const S: Record<string, React.CSSProperties> = {
     alignItems: "center",
     paddingTop: 6,
   },
-  slider: { width: "100%", accentColor: "#ffffff" },
+  // ✅ スライダーは横ドラッグを許可（touchAction:none の環境でも安定しやすい）
+  slider: { width: "100%", accentColor: "#ffffff", touchAction: "pan-x", WebkitTapHighlightColor: "transparent" },
   widthLabel: { color: "rgba(255,255,255,.70)", fontWeight: 800, fontSize: 12, paddingLeft: 2 },
   stage: {
     position: "relative",

@@ -930,7 +930,7 @@ export default function CheckRunPage() {
       `}</style>
 
       {/* ===== Top Bar ===== */}
-      <header className={`${styles.qscTopbar} ${styles.qscPanel}`}>
+      <header className={styles.qscTopbar}>
         <div className={styles.qscTopbarRow3}>
           <Link className={styles.qscBack} href="/check" aria-label="チェック一覧に戻る">
             <ChevronLeft size={16} />

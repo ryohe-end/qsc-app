@@ -8,15 +8,20 @@
    ========================================================= */
 
 /* =========================
-   Root page layout
+   Root page layout（✅固定アプリシェル化）
    ========================= */
 
 .qscCheckRunPage{
+  position: fixed;
+  inset: 0;
+
   height: 100dvh;
+  width: 100%;
   overflow: hidden;
 
-  display: grid;
-  grid-template-rows: var(--run-topbar-h, 84px) 1fr;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 
   background: var(--bg, #f6f8fb);
   color: var(--fg, #0f1115);
@@ -41,6 +46,7 @@
   min-width: 0;
 }
 
+/* ✅ qscPanel は “カード用” に残す（ヘッダーには付けない） */
 .qscPanel{
   border-radius: 22px;
   border: 1px solid rgba(15, 17, 21, 0.10);
@@ -49,21 +55,26 @@
 }
 
 /* =========================
-   Top bar
+   Top bar（✅カード外：独立バー）
    ========================= */
 
 .qscTopbar{
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
   z-index: 40;
 
+  /* 高さは維持（既存のJSが offset -84 を使ってるので） */
   height: var(--run-topbar-h, 84px);
   padding: 10px 12px;
 
   display: grid;
   gap: 8px;
 
-  overflow: hidden; /* ✅ sticky周りの横はみ出し対策 */
+  /* ✅ “バー”として見せる */
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(15, 17, 21, 0.08);
+
+  overflow: hidden; /* ✅ 横はみ出し対策 */
 }
 
 .qscTopbarRow3{
@@ -158,10 +169,13 @@
 }
 
 /* =========================
-   Main scroll area（ここだけスクロール）
+   Main scroll area（✅ここだけスクロール）
    ========================= */
 
 .qscMain{
+  flex: 1 1 auto;
+  min-height: 0;
+
   overflow-y: auto;
   overflow-x: hidden; /* ✅ 横スクロール禁止 */
   -webkit-overflow-scrolling: touch;
@@ -362,8 +376,6 @@
     font-size: 13.5px;
   }
 }
-
-
 
 /* =========================
    Sections / Items
@@ -732,4 +744,3 @@
   .qscAreaItemCount{ font-size: 11px; padding: 5px 8px; }
   .qscAreaBadge{ font-size: 10.5px; padding: 4px 7px; }
 }
-
