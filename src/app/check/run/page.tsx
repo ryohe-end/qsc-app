@@ -26,35 +26,44 @@ import {
   AlertTriangle,
   ChevronRight,
   ChevronLeft as ChevronLeftIcon,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
-/**
- * ✅ 3ファイルCSS版（そのままでOK）
- */
 import base from "./CheckRunPage.base.module.css";
 import modal from "./CheckRunPage.modal.module.css";
 import bottom from "./CheckRunPage.bottom.module.css";
+
 import PhotoEditModal from "./PhotoEditModal";
 
 const styles = { ...base, ...modal, ...bottom };
 
 /* =========================
-   Types
+   ✅ Z-INDEX LAYERING
+   BottomDock が強いので、オーバーレイ類を必ず上へ。
    ========================= */
+const Z = {
+  bottomDock: 9000,
+  overlay: 11000, // Drawer
+  sheet: 11100, // Confirm sheet
+  photoModal: 11200, // Photo viewer
+  editModal: 20000, // PhotoEditModal (最上位)
+} as const;
 
+/* ========================= Types ========================= */
 type CheckState = "ok" | "hold" | "ng" | "na" | "unset";
 
 type Photo = {
   id: string;
-  dataUrl: string; // base64
+  dataUrl: string;
 };
 
 type CheckItem = {
   id: string;
   label: string;
   state: CheckState;
-  note?: string; // ✅ NGのみ必須（保留はコメント欄を出さない）
-  holdNote?: string; // ✅ 保留理由（テキスト1つ）
+  note?: string; // NGのみ必須
+  holdNote?: string; // 保留理由（テキスト1つ）
   photos?: Photo[];
 };
 
@@ -94,10 +103,7 @@ const DEFAULT_SECTIONS: Section[] = [
   },
 ];
 
-/* =========================
-   Helpers
-   ========================= */
-
+/* ========================= Helpers ========================= */
 function uid(prefix = "p") {
   return `${prefix}_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`;
 }
@@ -127,36 +133,25 @@ type PhotoModalState = {
   index: number;
 };
 
-/**
- * ✅ iOS風 ActionSheet（2アクション + キャンセル）
- */
 type ActionSheetState =
   | { open: false }
   | {
       open: true;
       title?: string;
       message?: string;
-
-      primaryText?: string; // 強いアクション（例：保存する、配信して完了）
-      onPrimary?: () => void;
+      primaryText?: string;
+      onPrimary?: () => void | Promise<void>;
       destructivePrimary?: boolean;
-
-      secondaryText?: string; // 2つ目アクション（例：配信せず完了）
-      onSecondary?: () => void;
-
+      secondaryText?: string;
+      onSecondary?: () => void | Promise<void>;
       cancelText?: string;
       onCancel?: () => void;
     };
-
-/* =========================
-   Page
-   ========================= */
 
 export default function CheckRunPage() {
   const router = useRouter();
   const sp = useSearchParams();
 
-  // from /check selection
   const companyId = sp.get("companyId") || "";
   const bizId = sp.get("bizId") || "";
   const brandId = sp.get("brandId") || "";
@@ -167,13 +162,11 @@ export default function CheckRunPage() {
     return `Store ${storeId}`;
   }, [storeId]);
 
-  // draft key
   const DRAFT_KEY = useMemo(() => {
     const key = [companyId, bizId, brandId, storeId].filter(Boolean).join("_");
     return `qsc_check_draft_${key || "unknown"}`;
   }, [companyId, bizId, brandId, storeId]);
 
-  // sections state (load draft)
   const [sections, setSections] = useState<Section[]>(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
@@ -196,7 +189,7 @@ export default function CheckRunPage() {
     }
   });
 
-  // DRAFT_KEY が変わったら該当draftを再ロード
+  // DRAFT_KEY が変わったらロードし直す
   useEffect(() => {
     try {
       const raw = localStorage.getItem(DRAFT_KEY);
@@ -228,26 +221,15 @@ export default function CheckRunPage() {
   const [saving, setSaving] = useState(false);
   const [submitBusy, setSubmitBusy] = useState(false);
 
-  // drawer (area menu)
   const [areaOpen, setAreaOpen] = useState(false);
 
-  // refs for scroll jump
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
-  const itemRefs = useRef<Record<string, HTMLElement | null>>({}); // ✅ 未チェックジャンプ用
-
-  // コメント欄 ref（NG押下でスクロール＆フォーカス）
+  const itemRefs = useRef<Record<string, HTMLElement | null>>({});
   const noteRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
-
-  // ✅ 保留理由 textarea ref（保留押下でスクロール＆フォーカス）
   const holdRefs = useRef<Record<string, HTMLTextAreaElement | null>>({});
 
-  // コメント欄 “ガイド発光”
   const [guideKey, setGuideKey] = useState<string | null>(null);
-
-  // iOS風アクションシート
   const [sheet, setSheet] = useState<ActionSheetState>({ open: false });
-
-  // modal (photo preview)
   const [photoModal, setPhotoModal] = useState<PhotoModalState>({
     open: false,
     secId: "",
@@ -256,7 +238,6 @@ export default function CheckRunPage() {
     index: 0,
   });
 
-  // ✅ PhotoEditModal state（キャンセルでも resolve するため onClose を持つ）
   type EditPhotoState = {
     open: boolean;
     dataUrl: string;
@@ -271,7 +252,6 @@ export default function CheckRunPage() {
     onClose: () => {},
   });
 
-  // validation: ✅ NG comment required
   const [forceShowErrors, setForceShowErrors] = useState(false);
 
   const missingRequiredNotes = useMemo(() => {
@@ -289,32 +269,90 @@ export default function CheckRunPage() {
 
   const hasMissingRequiredNotes = missingRequiredNotes.length > 0;
 
-  // progress
+  /* =========================
+     ✅ progress: 指標 + “おしゃれインジケータ”用（割合）
+     ========================= */
   const progress = useMemo(() => {
     const all = sections.flatMap((s) => s.items);
     const total = all.length || 1;
-    const done = all.filter((i) => i.state !== "unset").length;
 
+    const done = all.filter((i) => i.state !== "unset").length;
     const ok = all.filter((i) => i.state === "ok").length;
     const hold = all.filter((i) => i.state === "hold").length;
     const ng = all.filter((i) => i.state === "ng").length;
     const na = all.filter((i) => i.state === "na").length;
-
     const unset = all.filter((i) => i.state === "unset").length;
 
     const pct = Math.round((done / total) * 100);
-    return { done, total, pct, ok, hold, ng, na, unset };
+
+    const ratio = {
+      ok: ok / total,
+      hold: hold / total,
+      ng: ng / total,
+      na: na / total,
+      unset: unset / total,
+    };
+
+    return { done, total, pct, ok, hold, ng, na, unset, ratio };
   }, [sections]);
 
   const hasWarn = progress.ng > 0 || progress.hold > 0;
 
-  // ======= navigation helpers =======
+  /* ========================= ✅ BottomBar: 折りたたみ + スワイプ ========================= */
+  const [bottomCollapsed, setBottomCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem("qsc_run_bottom_collapsed") === "1";
+    } catch {
+      return false;
+    }
+  });
 
+  useEffect(() => {
+    try {
+      localStorage.setItem("qsc_run_bottom_collapsed", bottomCollapsed ? "1" : "0");
+    } catch {}
+  }, [bottomCollapsed]);
+
+  const swipeStartY = useRef<number | null>(null);
+  const swipeStartX = useRef<number | null>(null);
+  const swipeAt = useRef<number>(0);
+
+  const onSwipeStart = (e: React.TouchEvent) => {
+    if (e.touches.length !== 1) return;
+    swipeAt.current = Date.now();
+    swipeStartY.current = e.touches[0].clientY;
+    swipeStartX.current = e.touches[0].clientX;
+  };
+
+  const onSwipeEnd = (e: React.TouchEvent) => {
+    const sy = swipeStartY.current;
+    const sx = swipeStartX.current;
+    swipeStartY.current = null;
+    swipeStartX.current = null;
+    if (sy == null || sx == null) return;
+
+    const t = Date.now() - swipeAt.current;
+    const end = e.changedTouches[0];
+    const dy = end.clientY - sy;
+    const dx = end.clientX - sx;
+
+    if (Math.abs(dx) > Math.abs(dy)) return;
+    if (Math.abs(dy) < 24) return;
+
+    if (dy < 0) setBottomCollapsed(false);
+    if (dy > 0) setBottomCollapsed(true);
+
+    if (t < 180 && Math.abs(dy) > 18) {
+      if (dy < 0) setBottomCollapsed(false);
+      if (dy > 0) setBottomCollapsed(true);
+    }
+  };
+
+  // ======= navigation helpers =======
   const scrollToItem = (secId: string, itemId: string) => {
     const k = itemKey(secId, itemId);
     const el = itemRefs.current[k];
     if (!el) {
-      // fallback: section
       const secEl = sectionRefs.current[secId];
       if (!secEl) return;
       const top = secEl.getBoundingClientRect().top + window.scrollY - 84;
@@ -341,7 +379,6 @@ export default function CheckRunPage() {
   };
 
   // ======= state mutators =======
-
   const setItemState = (secId: string, itemId: string, next: CheckState) => {
     setSections((prev) =>
       prev.map((s) =>
@@ -353,7 +390,6 @@ export default function CheckRunPage() {
                 if (it.id !== itemId) return it;
                 const toggled = it.state === next ? "unset" : next;
 
-                // ✅ 保留にした瞬間：コメントは表示しない（データも空に寄せる）
                 if (toggled === "hold") {
                   return { ...it, state: "hold", note: "" };
                 }
@@ -369,7 +405,10 @@ export default function CheckRunPage() {
       prev.map((s) =>
         s.id !== secId
           ? s
-          : { ...s, items: s.items.map((it) => (it.id !== itemId ? it : { ...it, note })) }
+          : {
+              ...s,
+              items: s.items.map((it) => (it.id !== itemId ? it : { ...it, note })),
+            }
       )
     );
   };
@@ -379,12 +418,14 @@ export default function CheckRunPage() {
       prev.map((s) =>
         s.id !== secId
           ? s
-          : { ...s, items: s.items.map((it) => (it.id !== itemId ? it : { ...it, holdNote })) }
+          : {
+              ...s,
+              items: s.items.map((it) => (it.id !== itemId ? it : { ...it, holdNote })),
+            }
       )
     );
   };
-
-  // ✅ 編集モーダルを開いて、保存なら dataUrl / キャンセルなら null
+  // ======= photo editor bridge =======
   const openPhotoEditor = (dataUrl: string) => {
     return new Promise<string | null>((resolve) => {
       setEditPhoto({
@@ -402,6 +443,7 @@ export default function CheckRunPage() {
     });
   };
 
+  // ✅ 写真追加：編集できなくても original を必ず採用（＝サムネが絶対出る）
   const addPhotosToItem = async (secId: string, itemId: string, files: File[]) => {
     if (!files || files.length === 0) return;
 
@@ -411,12 +453,13 @@ export default function CheckRunPage() {
     for (const f of arr) {
       try {
         const original = await readFileAsDataUrl(f);
+
         const edited = await openPhotoEditor(original);
-        if (!edited) continue;
-        added.push({ id: uid("ph"), dataUrl: edited });
+        const finalDataUrl = edited ?? original; // ✅ fallback
+
+        added.push({ id: uid("ph"), dataUrl: finalDataUrl });
       } catch (err) {
         console.error("[addPhotosToItem] failed file:", f?.name, err);
-        continue;
       }
     }
 
@@ -455,14 +498,15 @@ export default function CheckRunPage() {
     setPhotoModal((m) => {
       if (!m.open) return m;
       if (m.secId !== secId || m.itemId !== itemId) return m;
+
       const nextPhotos = (m.photos ?? []).filter((p) => p.id !== photoId);
       if (nextPhotos.length === 0) return { ...m, open: false, photos: [], index: 0 };
+
       const nextIndex = Math.min(m.index, nextPhotos.length - 1);
       return { ...m, photos: nextPhotos, index: nextIndex };
     });
   };
 
-  // ガイド発光
   const pulseGuide = (secId: string, itemId: string) => {
     const k = itemKey(secId, itemId);
     setGuideKey(k);
@@ -471,17 +515,14 @@ export default function CheckRunPage() {
     }, 900);
   };
 
-  // NG押下時：コメント欄へスクロール＋フォーカス（＋ガイド発光）
   const focusNote = (secId: string, itemId: string) => {
     const k = itemKey(secId, itemId);
-
     requestAnimationFrame(() => {
       const el = noteRefs.current[k];
       if (!el) return;
 
       const rect = el.getBoundingClientRect();
       const y = rect.top + window.scrollY;
-
       const topPad = 84;
       const target = Math.max(0, y - topPad - 6);
       window.scrollTo({ top: target, behavior: "smooth" });
@@ -496,17 +537,14 @@ export default function CheckRunPage() {
     });
   };
 
-  // 保留押下時：保留理由へスクロール＋フォーカス
   const focusHold = (secId: string, itemId: string) => {
     const k = itemKey(secId, itemId);
-
     requestAnimationFrame(() => {
       const el = holdRefs.current[k];
       if (!el) return;
 
       const rect = el.getBoundingClientRect();
       const y = rect.top + window.scrollY;
-
       const topPad = 84;
       const target = Math.max(0, y - topPad - 6);
       window.scrollTo({ top: target, behavior: "smooth" });
@@ -527,13 +565,23 @@ export default function CheckRunPage() {
     if (state === "hold") focusHold(secId, itemId);
   };
 
-  // ======= modal control (photo preview) =======
-
-  const openPhotoModal = (secId: string, itemId: string, photos: Photo[], index: number) => {
-    setPhotoModal({ open: true, secId, itemId, photos, index });
-  };
-
+  // ======= photo modal open helpers =======
   const closePhotoModal = () => setPhotoModal((m) => ({ ...m, open: false }));
+
+  const openPhotoModalAt = (secId: string, itemId: string, index: number) => {
+    const s = sections.find((x) => x.id === secId);
+    const it = s?.items.find((x) => x.id === itemId);
+    const photos = it?.photos ?? [];
+    if (photos.length === 0) return;
+
+    setPhotoModal({
+      open: true,
+      secId,
+      itemId,
+      photos,
+      index: Math.max(0, Math.min(index, photos.length - 1)),
+    });
+  };
 
   const modalNext = () => {
     setPhotoModal((m) => {
@@ -549,8 +597,6 @@ export default function CheckRunPage() {
       return { ...m, index: Math.max(0, m.index - 1) };
     });
   };
-
-  const closeSheet = () => setSheet({ open: false });
 
   const modalDeleteCurrent = () => {
     if (!photoModal.open) return;
@@ -572,8 +618,9 @@ export default function CheckRunPage() {
     });
   };
 
-  // ======= draft / submit / discard =======
-
+  /* =========================
+     ✅ Footer buttons (3つ): 途中保存 / 破棄 / 完了
+     ========================= */
   const saveDraft = async () => {
     if (saving) return;
 
@@ -625,35 +672,21 @@ export default function CheckRunPage() {
     setTimeout(() => focusNote(first.secId, first.itemId), 240);
   };
 
-  // ✅ 将来：ここでメール送信APIを叩く（いまはダミー）
-  async function sendCompletionMailStub(payload: {
-    companyId: string;
-    bizId: string;
-    brandId: string;
-    storeId: string;
-    sections: Section[];
-  }) {
-    // 例）将来：
-    // await fetch("/api/notify/check-completed", { method: "POST", body: JSON.stringify(payload) });
-    await new Promise((r) => setTimeout(r, 250));
+  async function sendCompletionMailStub() {
+    await new Promise((r) => setTimeout(r, 200));
   }
 
   const submitCore = async (sendMail: boolean) => {
     setForceShowErrors(true);
-
     if (hasMissingRequiredNotes) {
       scrollToFirstMissingRequired();
       return;
     }
-
     setSubmitBusy(true);
     try {
-      if (sendMail) {
-        await sendCompletionMailStub({ companyId, bizId, brandId, storeId, sections });
-      }
-
+      if (sendMail) await sendCompletionMailStub();
       localStorage.setItem(`${DRAFT_KEY}_submittedAt`, new Date().toISOString());
-      await new Promise((r) => setTimeout(r, 420));
+      await new Promise((r) => setTimeout(r, 280));
       router.push("/check");
     } finally {
       setSubmitBusy(false);
@@ -680,10 +713,9 @@ export default function CheckRunPage() {
     });
   };
 
-  const submit = async () => {
+  const submit = () => {
     if (submitBusy) return;
 
-    // ✅ 未チェックがあるなら：先にそこへ飛べる（&確認）
     if (progress.unset > 0) {
       setSheet({
         open: true,
@@ -705,26 +737,12 @@ export default function CheckRunPage() {
       return;
     }
 
-    // ✅ 未チェックなし：メール配信の確認へ
     openCompleteMailSheet();
   };
 
-  // ======= area drawer =======
-
-  const jumpTo = (secId: string) => {
-    const el = sectionRefs.current[secId];
-    if (!el) return;
-
-    setAreaOpen(false);
-
-    requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        el.scrollIntoView({ behavior: "smooth", block: "start" });
-      });
-    });
-  };
-
-  // keyboard
+  /* =========================
+     ✅ ESC / キー操作
+     ========================= */
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -743,10 +761,11 @@ export default function CheckRunPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [photoModal.open, sheet.open, editPhoto.open]);
 
-  // keep photo preview modal photos in sync
+  /* =========================
+     ✅ photoModal open中に sections 更新で photos 同期
+     ========================= */
   useEffect(() => {
     if (!photoModal.open) return;
-
     const s = sections.find((x) => x.id === photoModal.secId);
     const it = s?.items.find((x) => x.id === photoModal.itemId);
     const photos = it?.photos ?? [];
@@ -754,14 +773,13 @@ export default function CheckRunPage() {
       closePhotoModal();
       return;
     }
-    setPhotoModal((m) => {
-      if (!m.open) return m;
-      return { ...m, photos, index: Math.min(m.index, photos.length - 1) };
-    });
+    setPhotoModal((m) => ({ ...m, photos, index: Math.min(m.index, photos.length - 1) }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sections]);
 
-  // scroll lock（modal/sheet/drawer/edit）
+  /* =========================
+     ✅ overlayが出てる時は背面スクロール停止
+     ========================= */
   useEffect(() => {
     if (!photoModal.open && !sheet.open && !areaOpen && !editPhoto.open) return;
     const prev = document.documentElement.style.overflow;
@@ -770,53 +788,6 @@ export default function CheckRunPage() {
       document.documentElement.style.overflow = prev;
     };
   }, [photoModal.open, sheet.open, areaOpen, editPhoto.open]);
-
-  // ======= “おしゃれ” indicator =======
-
-  const pillStyle: React.CSSProperties = {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    padding: "7px 10px",
-    borderRadius: 999,
-    border: "1px solid rgba(15,17,21,0.10)",
-    background: "rgba(255,255,255,0.72)",
-    backdropFilter: "blur(10px)",
-    WebkitBackdropFilter: "blur(10px)",
-    boxShadow: "0 10px 26px rgba(15,17,21,0.08)",
-    whiteSpace: "nowrap",
-  };
-
-  const meterWrap: React.CSSProperties = {
-    height: 10,
-    borderRadius: 999,
-    background: "rgba(15,17,21,0.10)",
-    overflow: "hidden",
-    position: "relative",
-  };
-
-  const meterFill: React.CSSProperties = {
-    height: "100%",
-    width: `${progress.pct}%`,
-    borderRadius: 999,
-    background: hasWarn
-      ? "linear-gradient(90deg, rgba(255,149,0,0.95), rgba(255,59,48,0.95))"
-      : "linear-gradient(90deg, rgba(0,122,255,0.95), rgba(52,199,89,0.95))",
-    boxShadow: "0 6px 18px rgba(15,17,21,0.14)",
-    position: "relative",
-    transition: "width 260ms ease",
-  };
-
-  const meterShine: React.CSSProperties = {
-    content: '""',
-    position: "absolute",
-    inset: 0,
-    background:
-      "linear-gradient(120deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.45) 40%, rgba(255,255,255,0) 70%)",
-    transform: "translateX(-60%)",
-    animation: "qscShine 2.4s ease-in-out infinite",
-    opacity: progress.pct >= 10 ? 0.55 : 0,
-  };
 
   const badgeStyle = (kind: "ok" | "hold" | "ng" | "na") => {
     const baseStyle: React.CSSProperties = { whiteSpace: "nowrap" };
@@ -837,22 +808,156 @@ export default function CheckRunPage() {
     return baseStyle;
   };
 
+  const bottomDockCollapsedH = 72;
+  const bottomDockExpandedH = 192; // 省スペースでもボタン3つが切れにくい最低ライン
+  const bottomDockH = bottomCollapsed ? bottomDockCollapsedH : bottomDockExpandedH;
+
   return (
     <div className={styles.qscCheckRunPage}>
-      {/* ✅ keyframes（CSSファイル触らずにインジケーターだけ上品に） */}
       <style>{`
-        @keyframes qscShine {
-          0%   { transform: translateX(-70%); }
-          50%  { transform: translateX(70%); }
-          100% { transform: translateX(70%); }
+        @media (max-width: 420px) {
+          .qscCompactCard { padding: 12px !important; border-radius: 16px !important; }
+          .qscCompactLabel { font-size: 14px !important; line-height: 1.25 !important; }
+          .qscCompactChoices button { padding: 8px 8px !important; gap: 6px !important; font-size: 12px !important; }
+          .qscCompactChoices svg { width: 15px !important; height: 15px !important; }
+          .qscCompactNote, .qscCompactHold { padding: 10px 10px !important; font-size: 13px !important; }
         }
+
+        .qscBottomDock{
+  position: fixed;
+  left: 12px;
+  right: 12px;
+
+  /* ✅ もっと上に出す（ここが本命） */
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+
+  z-index: 9000;
+  pointer-events: auto;
+}
+        .qscBottomCard{
+  /* ✅ 展開時はautoにして切れを根絶 */
+  height: auto;
+  max-height: calc(100dvh - 140px - env(safe-area-inset-bottom, 0px));
+  border-radius: 22px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 24px 60px rgba(15,17,21,0.18), 0 8px 18px rgba(15,17,21,0.10);
+  border: 1px solid rgba(15,17,21,0.08);
+}
+
+/* ✅ 折りたたみ時だけ固定高 */
+.qscBottomCard.isCollapsed{
+  height: 72px;
+}
+
+/* ✅ 展開時：中身が増えたらDock内だけスクロール */
+.qscBottomBody{
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 0 14px 14px;
+}
+        .qscGrab {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 10px 0 6px;
+          touch-action: pan-y;
+        }
+        .qscGrabBar {
+          width: 44px;
+          height: 5px;
+          border-radius: 999px;
+          background: rgba(15,17,21,0.18);
+          box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+        }
+        .qscCollapseBtn {
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          padding: 7px 10px;
+          border-radius: 999px;
+          border: 1px solid rgba(15,17,21,0.10);
+          background: rgba(255,255,255,0.72);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          box-shadow: 0 10px 26px rgba(15,17,21,0.08);
+          cursor: pointer;
+          user-select: none;
+          white-space: nowrap;
+        }
+
+        /* ✅ indicator */
+        .qscIndicatorWrap{
+          display:flex;
+          align-items:center;
+          gap:10px;
+          padding:10px 12px;
+          border-radius: 18px;
+          border:1px solid rgba(15,17,21,0.08);
+          background: rgba(255,255,255,0.70);
+          backdrop-filter: blur(10px);
+          -webkit-backdrop-filter: blur(10px);
+          box-shadow: 0 12px 28px rgba(15,17,21,0.08);
+        }
+        .qscSegBar{
+          position: relative;
+          height: 10px;
+          width: 100%;
+          min-width: 140px;
+          border-radius: 999px;
+          overflow:hidden;
+          background: rgba(15,17,21,0.08);
+          border: 1px solid rgba(15,17,21,0.08);
+          display:flex;
+        }
+        .qscSeg{ height: 100%; }
+        .qscSeg.ok{ background: rgba(52,199,89,0.85); }
+        .qscSeg.hold{ background: rgba(255,149,0,0.90); }
+        .qscSeg.ng{ background: rgba(255,59,48,0.88); }
+        .qscSeg.na{ background: rgba(142,142,147,0.65); }
+        .qscSeg.unset{ background: rgba(15,17,21,0.10); }
+
+        .qscOverlayLayer{
+          position: fixed;
+          inset: 0;
+          z-index: ${Z.overlay};
+        }
+        .qscSheetLayer{
+          position: fixed;
+          inset: 0;
+          z-index: ${Z.sheet};
+        }
+        .qscPhotoLayer{
+          position: fixed;
+          inset: 0;
+          z-index: ${Z.photoModal};
+        }
+          /* Drawerのエリア項目をコンパクトに */
+button[data-area-item="1"]{
+  padding: 8px 10px !important;
+  border-radius: 14px !important;
+}
+
+button[data-area-item="1"] span{
+  font-size: 13px !important;
+  line-height: 1.2 !important;
+}
+
+@media (max-width: 420px){
+  button[data-area-item="1"]{
+    padding: 7px 9px !important;
+  }
+}
       `}</style>
 
-      {/* ===== Top Bar（戻る + 場所 + エリア）===== */}
+      {/* ===== Top Bar ===== */}
       <header className={`${styles.qscTopbar} ${styles.qscPanel}`}>
         <div className={styles.qscTopbarRow3}>
           <Link className={styles.qscBack} href="/check" aria-label="チェック一覧に戻る">
-            <ChevronLeft size={16} /> 戻る
+            <ChevronLeft size={16} />
+            戻る
           </Link>
 
           <div className={styles.qscPlace} aria-label="場所">
@@ -875,8 +980,7 @@ export default function CheckRunPage() {
           <div className={styles.qscTitleWrap}>
             <h1 className={styles.qscTitle}>チェック</h1>
             <span className={styles.qscStorePill}>
-              <Store size={14} />
-              {storeLabel}
+              <Store size={14} /> {storeLabel}
             </span>
           </div>
 
@@ -902,175 +1006,164 @@ export default function CheckRunPage() {
 
       {/* ===== Area Drawer ===== */}
       {areaOpen ? (
-        <div className={styles.qscDrawerOverlay} role="dialog" aria-modal="true">
-          <button
-            type="button"
-            className={styles.qscDrawerOverlayClose}
-            aria-label="背景クリックで閉じる"
-            onClick={() => setAreaOpen(false)}
-          />
-          <div className={styles.qscDrawer}>
-            <div className={styles.qscDrawerHead}>
-              <div className={styles.qscDrawerTitle}>エリア</div>
-              <button
-                type="button"
-                className={styles.qscDrawerClose}
-                onClick={() => setAreaOpen(false)}
-                aria-label="閉じる"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className={styles.qscDrawerBody}>
-              {sections.map((s) => {
-                const done = s.items.filter((i) => i.state !== "unset").length;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className={styles.qscAreaItem}
-                    onClick={() => jumpTo(s.id)}
-                  >
-                    <span className={styles.qscAreaItemTitle}>{s.title}</span>
-                    <span className={styles.qscAreaItemCount}>
-                      {done}/{s.items.length}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* ===== Photo Preview Modal ===== */}
-      {photoModal.open ? (
-        <div className={styles.qscPhotoModal} role="dialog" aria-modal="true" aria-label="写真拡大">
-          <div className={styles.qscPhotoModalBackdrop} onClick={closePhotoModal} />
-          <div className={styles.qscPhotoModalCard}>
-            <div className={styles.qscPhotoModalTop}>
-              <div className={styles.qscPhotoModalTitle}>写真</div>
-              <div className={styles.qscPhotoModalRight}>
-                <span className={styles.qscPhotoModalCount}>
-                  {photoModal.index + 1}/{photoModal.photos.length}
-                </span>
-
+        <div className="qscOverlayLayer" role="dialog" aria-modal="true" aria-label="エリアメニュー">
+          <div className={styles.qscDrawerOverlay}>
+            <button
+              type="button"
+              className={styles.qscDrawerOverlayClose}
+              aria-label="背景クリックで閉じる"
+              onClick={() => setAreaOpen(false)}
+            />
+            <div className={styles.qscDrawer}>
+              <div className={styles.qscDrawerHead}>
+                <div className={styles.qscDrawerTitle}>エリア</div>
                 <button
                   type="button"
-                  className={styles.qscPhotoModalIcon}
-                  onClick={modalDeleteCurrent}
-                  aria-label="この写真を削除"
-                  title="削除"
-                >
-                  <Trash2 size={18} />
-                </button>
-
-                <button
-                  type="button"
-                  className={styles.qscPhotoModalClose}
-                  onClick={closePhotoModal}
+                  className={styles.qscDrawerClose}
+                  onClick={() => setAreaOpen(false)}
                   aria-label="閉じる"
                 >
                   <X size={18} />
                 </button>
               </div>
-            </div>
 
-            <div className={styles.qscPhotoModalMain}>
-              <button
-                type="button"
-                className={`${styles.qscPhotoNav} ${styles.navLeft}`}
-                onClick={modalPrev}
-                disabled={photoModal.index <= 0}
-                aria-label="前へ"
-              >
-                <ChevronLeftIcon size={22} />
-              </button>
-
-              <div className={styles.qscPhotoStage}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  className={styles.qscPhotoBig}
-                  src={photoModal.photos[photoModal.index]?.dataUrl}
-                  alt="拡大写真"
-                />
+              <div className={styles.qscDrawerBody}>
+                {sections.map((s) => {
+                  const done = s.items.filter((i) => i.state !== "unset").length;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className={styles.qscAreaItem}
+                      data-area-item="1"
+                      onClick={() => {
+                        const el = sectionRefs.current[s.id];
+                        if (!el) return;
+                        setAreaOpen(false);
+                        requestAnimationFrame(() => el.scrollIntoView({ behavior: "smooth", block: "start" }));
+                      }}
+                    >
+                      <span className={styles.qscAreaItemTitle}>{s.title}</span>
+                      <span className={styles.qscAreaItemCount}>
+                        {done}/{s.items.length}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
-
-              <button
-                type="button"
-                className={`${styles.qscPhotoNav} ${styles.navRight}`}
-                onClick={modalNext}
-                disabled={photoModal.index >= photoModal.photos.length - 1}
-                aria-label="次へ"
-              >
-                <ChevronRight size={22} />
-              </button>
             </div>
-
-            {photoModal.photos.length > 1 ? (
-              <div className={styles.qscPhotoStrip} aria-label="サムネイル">
-                {photoModal.photos.map((p, idx) => (
-                  <button
-                    key={p.id}
-                    type="button"
-                    className={`${styles.qscPhotoStripBtn} ${
-                      idx === photoModal.index ? styles.stripOn : ""
-                    }`}
-                    onClick={() => setPhotoModal((m) => ({ ...m, index: idx }))}
-                    aria-label={`写真 ${idx + 1}`}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={p.dataUrl} alt={`サムネイル ${idx + 1}`} />
-                  </button>
-                ))}
-              </div>
-            ) : null}
-
-            <div className={styles.qscPhotoModalHint}>← / → キーでも切替できます</div>
           </div>
         </div>
       ) : null}
 
-      {/* ===== iOS Action Sheet (2 actions) ===== */}
-      {sheet.open ? (
-        <div className={styles.qscSheet} role="dialog" aria-modal="true" aria-label="操作メニュー">
-          <button
-            className={styles.qscSheetBackdrop}
-            onClick={() => (sheet.onCancel ? sheet.onCancel() : setSheet({ open: false }))}
-            aria-label="閉じる"
-          />
-          <div className={styles.qscSheetWrap}>
-            <div className={styles.qscSheetCard}>
-              {sheet.title ? <div className={styles.qscSheetTitle}>{sheet.title}</div> : null}
-              {sheet.message ? <div className={styles.qscSheetMsg}>{sheet.message}</div> : null}
+      {/* ===== Photo modal ===== */}
+      {photoModal.open ? (
+        <div className="qscPhotoLayer" role="dialog" aria-modal="true" aria-label="写真拡大">
+          <div className={styles.qscPhotoModal}>
+            <div className={styles.qscPhotoModalBackdrop} onClick={closePhotoModal} />
+            <div className={styles.qscPhotoModalCard}>
+              <div className={styles.qscPhotoModalTop}>
+                <div className={styles.qscPhotoModalTitle}>写真</div>
+                <div className={styles.qscPhotoModalRight}>
+                  <span className={styles.qscPhotoModalCount}>
+                    {photoModal.index + 1}/{photoModal.photos.length}
+                  </span>
 
-              {sheet.primaryText ? (
+                  <button
+                    type="button"
+                    className={styles.qscPhotoModalIcon}
+                    onClick={modalDeleteCurrent}
+                    aria-label="この写真を削除"
+                    title="削除"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+
+                  <button
+                    type="button"
+                    className={styles.qscPhotoModalClose}
+                    onClick={closePhotoModal}
+                    aria-label="閉じる"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
+              </div>
+
+              <div className={styles.qscPhotoModalMain}>
                 <button
                   type="button"
-                  className={`${styles.qscSheetBtn} ${
-                    sheet.destructivePrimary ? styles.sheetDestructive : ""
-                  }`}
-                  onClick={() => sheet.onPrimary?.()}
+                  className={`${styles.qscPhotoNav} ${styles.navLeft}`}
+                  onClick={modalPrev}
+                  disabled={photoModal.index <= 0}
+                  aria-label="前へ"
                 >
-                  {sheet.primaryText}
+                  <ChevronLeftIcon size={22} />
                 </button>
-              ) : null}
 
-              {sheet.secondaryText ? (
-                <button type="button" className={styles.qscSheetBtn} onClick={() => sheet.onSecondary?.()}>
-                  {sheet.secondaryText}
+                <div className={styles.qscPhotoStage}>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    className={styles.qscPhotoBig}
+                    src={photoModal.photos[photoModal.index]?.dataUrl}
+                    alt="拡大写真"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  className={`${styles.qscPhotoNav} ${styles.navRight}`}
+                  onClick={modalNext}
+                  disabled={photoModal.index >= photoModal.photos.length - 1}
+                  aria-label="次へ"
+                >
+                  <ChevronRight size={22} />
                 </button>
-              ) : null}
+              </div>
             </div>
+          </div>
+        </div>
+      ) : null}
 
+      {/* ===== Sheet (Confirm Dialog) ===== */}
+      {sheet.open ? (
+        <div className="qscSheetLayer" role="dialog" aria-modal="true" aria-label="操作メニュー">
+          <div className={styles.qscSheet}>
             <button
-              type="button"
-              className={`${styles.qscSheetBtn} ${styles.sheetCancel}`}
+              className={styles.qscSheetBackdrop}
               onClick={() => (sheet.onCancel ? sheet.onCancel() : setSheet({ open: false }))}
-            >
-              {sheet.cancelText ?? "キャンセル"}
-            </button>
+              aria-label="閉じる"
+            />
+            <div className={styles.qscSheetWrap}>
+              <div className={styles.qscSheetCard}>
+                {sheet.title ? <div className={styles.qscSheetTitle}>{sheet.title}</div> : null}
+                {sheet.message ? <div className={styles.qscSheetMsg}>{sheet.message}</div> : null}
+
+                {sheet.primaryText ? (
+                  <button
+                    type="button"
+                    className={`${styles.qscSheetBtn} ${sheet.destructivePrimary ? styles.sheetDestructive : ""}`}
+                    onClick={() => sheet.onPrimary?.()}
+                  >
+                    {sheet.primaryText}
+                  </button>
+                ) : null}
+
+                {sheet.secondaryText ? (
+                  <button type="button" className={styles.qscSheetBtn} onClick={() => sheet.onSecondary?.()}>
+                    {sheet.secondaryText}
+                  </button>
+                ) : null}
+              </div>
+
+              <button
+                type="button"
+                className={`${styles.qscSheetBtn} ${styles.sheetCancel}`}
+                onClick={() => (sheet.onCancel ? sheet.onCancel() : setSheet({ open: false }))}
+              >
+                {sheet.cancelText ?? "キャンセル"}
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
@@ -1105,22 +1198,19 @@ export default function CheckRunPage() {
                     ref={(el) => {
                       itemRefs.current[k] = el;
                     }}
-                    className={`${styles.qscItemCard} ${showMissing ? styles.itemError : ""}`}
+                    className={`${styles.qscItemCard} qscCompactCard ${showMissing ? styles.itemError : ""}`}
                   >
                     <div className={styles.qscItemTop}>
-                      <div className={styles.qscItemLabel}>{it.label}</div>
+                      <div className={`${styles.qscItemLabel} qscCompactLabel`}>{it.label}</div>
 
-                      {/* ✅ 必ず横並び固定（縦落ち防止） */}
                       <div
-                        className={styles.qscChoices}
+                        className={`${styles.qscChoices} qscCompactChoices`}
                         aria-label="チェック選択"
                         style={{ flexWrap: "nowrap" }}
                       >
                         <button
                           type="button"
-                          className={`${styles.qscChoice} ${styles.choiceOk} ${
-                            it.state === "ok" ? styles.choiceOn : ""
-                          }`}
+                          className={`${styles.qscChoice} ${styles.choiceOk} ${it.state === "ok" ? styles.choiceOn : ""}`}
                           onClick={() => onChoose(sec.id, it.id, "ok")}
                           aria-pressed={it.state === "ok"}
                         >
@@ -1131,9 +1221,7 @@ export default function CheckRunPage() {
 
                         <button
                           type="button"
-                          className={`${styles.qscChoice} ${styles.choiceHold} ${
-                            it.state === "hold" ? styles.choiceOn : ""
-                          }`}
+                          className={`${styles.qscChoice} ${styles.choiceHold} ${it.state === "hold" ? styles.choiceOn : ""}`}
                           onClick={() => onChoose(sec.id, it.id, "hold")}
                           aria-pressed={it.state === "hold"}
                         >
@@ -1144,9 +1232,7 @@ export default function CheckRunPage() {
 
                         <button
                           type="button"
-                          className={`${styles.qscChoice} ${styles.choiceNg} ${
-                            it.state === "ng" ? styles.choiceOn : ""
-                          }`}
+                          className={`${styles.qscChoice} ${styles.choiceNg} ${it.state === "ng" ? styles.choiceOn : ""}`}
                           onClick={() => onChoose(sec.id, it.id, "ng")}
                           aria-pressed={it.state === "ng"}
                         >
@@ -1157,9 +1243,7 @@ export default function CheckRunPage() {
 
                         <button
                           type="button"
-                          className={`${styles.qscChoice} ${styles.choiceNa} ${
-                            it.state === "na" ? styles.choiceOn : ""
-                          }`}
+                          className={`${styles.qscChoice} ${styles.choiceNa} ${it.state === "na" ? styles.choiceOn : ""}`}
                           onClick={() => onChoose(sec.id, it.id, "na")}
                           aria-pressed={it.state === "na"}
                         >
@@ -1175,16 +1259,12 @@ export default function CheckRunPage() {
                         <div className={styles.qscNoteTitle}>
                           {it.state === "hold" ? (
                             <>
-                              <PauseCircle size={16} />
-                              保留理由（1つ）
+                              <PauseCircle size={16} /> 保留理由（1つ）
                             </>
                           ) : (
                             <>
-                              <MessageSquareText size={16} />
-                              コメント
-                              {it.state === "ng" ? (
-                                <span className={styles.qscRequired}>必須</span>
-                              ) : null}
+                              <MessageSquareText size={16} /> コメント
+                              {it.state === "ng" ? <span className={styles.qscRequired}>必須</span> : null}
                             </>
                           )}
                         </div>
@@ -1199,9 +1279,7 @@ export default function CheckRunPage() {
                               multiple
                               capture="environment"
                               onChange={async (e) => {
-                                const picked = e.currentTarget.files
-                                  ? Array.from(e.currentTarget.files)
-                                  : [];
+                                const picked = e.currentTarget.files ? Array.from(e.currentTarget.files) : [];
                                 e.currentTarget.value = "";
                                 await addPhotosToItem(sec.id, it.id, picked);
                               }}
@@ -1210,13 +1288,43 @@ export default function CheckRunPage() {
                         </div>
                       </div>
 
-                      {/* ✅ 保留：コメント欄はそもそも表示しない */}
+                      {/* ✅ サムネ（レビュー導線） */}
+                      {(it.photos?.length ?? 0) > 0 ? (
+                        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 10, position: "relative", zIndex: 1 }}>
+                          {(it.photos ?? []).map((p, idx) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              onClick={() => openPhotoModalAt(sec.id, it.id, idx)}
+                              style={{
+                                width: 72,
+                                height: 72,
+                                borderRadius: 14,
+                                border: "1px solid rgba(15,17,21,0.10)",
+                                overflow: "hidden",
+                                padding: 0,
+                                background: "rgba(255,255,255,0.65)",
+                                cursor: "pointer",
+                              }}
+                              aria-label={`写真を開く ${idx + 1}`}
+                            >
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={p.dataUrl}
+                                alt={`写真 ${idx + 1}`}
+                                style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+
                       {it.state === "hold" ? (
                         <textarea
                           ref={(el) => {
                             holdRefs.current[k] = el;
                           }}
-                          className={styles.qscHoldNote}
+                          className={`${styles.qscHoldNote} qscCompactHold`}
                           value={it.holdNote ?? ""}
                           onChange={(e) => setItemHoldNote(sec.id, it.id, e.target.value)}
                           placeholder="例）現地確認が必要 / 担当者不在 / 判断保留 など"
@@ -1228,55 +1336,22 @@ export default function CheckRunPage() {
                             ref={(el) => {
                               noteRefs.current[k] = el;
                             }}
-                            className={`${styles.qscNote} ${showMissing ? styles.noteMissing : ""} ${
+                            className={`${styles.qscNote} qscCompactNote ${showMissing ? styles.noteMissing : ""} ${
                               guideOn ? styles.noteGuide : ""
                             }`}
                             value={it.note ?? ""}
                             onChange={(e) => setItemNote(sec.id, it.id, e.target.value)}
-                            placeholder={
-                              it.state === "ng"
-                                ? "NG理由を入力してください（必須）"
-                                : "気づいたこと、指摘、補足など…"
-                            }
+                            placeholder={it.state === "ng" ? "NG理由を入力してください（必須）" : "気づいたこと、指摘、補足など…"}
                             rows={2}
                             aria-invalid={showMissing}
                           />
-
                           {showMissing ? (
                             <div className={styles.qscErrorLine}>
-                              <AlertTriangle size={16} />
-                              NG の場合はコメント必須です
+                              <AlertTriangle size={16} /> NG の場合はコメント必須です
                             </div>
                           ) : null}
                         </>
                       )}
-
-                      {it.photos && it.photos.length > 0 ? (
-                        <div className={styles.qscPhotoGrid} aria-label="写真プレビュー">
-                          {it.photos.map((p, idx) => (
-                            <div key={p.id} className={styles.qscPhotoThumb}>
-                              <button
-                                type="button"
-                                className={styles.qscPhotoOpen}
-                                onClick={() => openPhotoModal(sec.id, it.id, it.photos ?? [], idx)}
-                                aria-label="写真を拡大"
-                              >
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={p.dataUrl} alt="添付写真" />
-                              </button>
-
-                              <button
-                                type="button"
-                                className={styles.qscPhotoDel}
-                                onClick={() => removePhotoFromItem(sec.id, it.id, p.id)}
-                                aria-label="写真を削除"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
                     </div>
                   </div>
                 );
@@ -1285,198 +1360,194 @@ export default function CheckRunPage() {
           </section>
         ))}
 
-        <div className={styles.qscBottomSpacer} aria-hidden="true" />
-        <div aria-hidden="true" style={{ height: 140 }} />
+        {/* ✅ BottomDockぶんの余白：safe-areaも含めて確保（隠れ防止） */}
+        <div aria-hidden="true" style={{ height: 260 }} />
       </main>
 
-      {/* ===== Bottom Bar（固定）===== */}
-      <div className={styles.qscBottomBar} role="region" aria-label="進捗と操作">
-        <div className={styles.qscBottomInner}>
-          <div className={styles.qscBottomLeft}>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+      {/* ===== Bottom Dock ===== */}
+      <div className="qscBottomDock" style={{ ["--qscBottomH" as any]: `${bottomDockH}px` }}>
+        <div className="qscBottomCard" role="region" aria-label="進捗と操作">
+          <div className="qscGrab" onTouchStart={onSwipeStart} onTouchEnd={onSwipeEnd}>
+            <div className="qscGrabBar" />
+          </div>
+
+          <div style={{ padding: "0 14px 14px" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                className="qscCollapseBtn"
+                onClick={() => setBottomCollapsed((v) => !v)}
+                aria-label={bottomCollapsed ? "インジケータを開く" : "インジケータを畳む"}
+              >
+                {bottomCollapsed ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                <span style={{ fontWeight: 800 }}>{bottomCollapsed ? "表示" : "最小化"}</span>
+              </button>
+
+              <div className="qscIndicatorWrap" style={{ flex: 1, minWidth: 220 }}>
                 <div
+                  title={`進捗 ${progress.pct}%（${progress.done}/${progress.total}）`}
+                  aria-label={`進捗 ${progress.pct}%`}
+                  style={{ width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center" }}
+                >
+                  <div
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 999,
+                      background: `conic-gradient(rgba(52,199,89,0.95) ${progress.pct * 3.6}deg, rgba(15,17,21,0.10) 0deg)`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      boxShadow: "inset 0 1px 0 rgba(255,255,255,0.7)",
+                      border: "1px solid rgba(15,17,21,0.06)",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 26,
+                        height: 26,
+                        borderRadius: 999,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontWeight: 900,
+                        fontSize: 12,
+                        color: "rgba(15,17,21,0.86)",
+                        background: "rgba(255,255,255,0.70)",
+                        border: "1px solid rgba(15,17,21,0.08)",
+                      }}
+                    >
+                      {progress.pct}%
+                    </div>
+                  </div>
+                </div>
+
+                <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, minWidth: 160 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
+                    <div style={{ fontWeight: 900, opacity: 0.9 }}>
+                      {progress.done}/{progress.total}
+                    </div>
+                    <div style={{ fontSize: 12, opacity: 0.75, fontWeight: 800 }}>{hasWarn ? "要確認あり" : "順調"}</div>
+                  </div>
+
+                  <div className="qscSegBar" aria-label="進捗バー">
+                    <div className="qscSeg ok" style={{ width: `${progress.ratio.ok * 100}%` }} />
+                    <div className="qscSeg hold" style={{ width: `${progress.ratio.hold * 100}%` }} />
+                    <div className="qscSeg ng" style={{ width: `${progress.ratio.ng * 100}%` }} />
+                    <div className="qscSeg na" style={{ width: `${progress.ratio.na * 100}%` }} />
+                    <div className="qscSeg unset" style={{ width: `${progress.ratio.unset * 100}%` }} />
+                  </div>
+                </div>
+              </div>
+
+              {progress.unset > 0 ? (
+                <button
+                  type="button"
+                  onClick={goFirstUnset}
                   style={{
                     display: "inline-flex",
                     alignItems: "center",
                     gap: 8,
                     padding: "7px 10px",
                     borderRadius: 999,
-                    border: "1px solid rgba(15,17,21,0.10)",
-                    background: "rgba(255,255,255,0.72)",
-                    backdropFilter: "blur(10px)",
-                    WebkitBackdropFilter: "blur(10px)",
-                    boxShadow: "0 10px 26px rgba(15,17,21,0.08)",
+                    border: "1px solid rgba(255,149,0,0.22)",
+                    background: "rgba(255,149,0,0.10)",
                     whiteSpace: "nowrap",
+                    cursor: "pointer",
                   }}
-                  aria-label="進捗"
                 >
-                  <span style={{ fontWeight: 700 }}>{progress.pct}%</span>
-                  <span style={{ opacity: 0.75 }}>
-                    {progress.done}/{progress.total}
+                  <AlertTriangle size={16} />
+                  <span style={{ fontWeight: 900 }}>未チェック</span>
+                  <span>{progress.unset}件</span>
+                </button>
+              ) : null}
+            </div>
+
+            {!bottomCollapsed ? (
+              <>
+                <div style={{ marginTop: 10, display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <span className={styles.qscBadge} style={badgeStyle("ok")}>
+                    OK {progress.ok}
+                  </span>
+                  <span className={styles.qscBadge} style={badgeStyle("hold")}>
+                    保留 {progress.hold}
+                  </span>
+                  <span className={styles.qscBadge} style={badgeStyle("ng")}>
+                    NG {progress.ng}
+                  </span>
+                  <span className={styles.qscBadge} style={badgeStyle("na")}>
+                    該当なし {progress.na}
                   </span>
                 </div>
 
-                {/* ✅ 未チェックピル：押すと未チェックへジャンプ */}
-                {progress.unset > 0 ? (
+                {/* ✅ ボタン3つ */}
+                <div style={{ marginTop: 12, display: "flex", gap: 10 }}>
                   <button
                     type="button"
-                    onClick={goFirstUnset}
-                    title="未チェックへ移動"
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "7px 10px",
-                      borderRadius: 999,
-                      border: "1px solid rgba(255,149,0,0.22)",
-                      background: "rgba(255,149,0,0.10)",
-                      boxShadow: "0 10px 26px rgba(15,17,21,0.08)",
-                      whiteSpace: "nowrap",
-                      cursor: "pointer",
-                    }}
+                    className={`${styles.qscAction} ${styles.actionGhost}`}
+                    onClick={saveDraft}
+                    disabled={saving}
+                    style={{ flex: 1 }}
                   >
-                    <AlertTriangle size={16} />
-                    <span style={{ fontWeight: 700 }}>未チェック</span>
-                    <span>{progress.unset}件</span>
+                    <Save size={18} />
+                    <span style={{ whiteSpace: "nowrap" }}>{saving ? "保存中…" : "途中保存"}</span>
                   </button>
-                ) : null}
 
-                {hasWarn ? (
-                  <div
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "7px 10px",
-                      borderRadius: 999,
-                      border: "1px solid rgba(255,149,0,0.22)",
-                      background: "rgba(255,149,0,0.08)",
-                      whiteSpace: "nowrap",
-                    }}
+                  <button
+                    type="button"
+                    className={`${styles.qscAction} ${styles.actionGhost}`}
+                    onClick={discardDraft}
+                    disabled={saving || submitBusy}
+                    style={{ flex: 1 }}
+                    title="途中データを破棄"
                   >
-                    <AlertTriangle size={16} />
-                    <span style={{ fontWeight: 700 }}>要確認</span>
-                    <span>保留 {progress.hold}</span>
-                    <span>/</span>
-                    <span>NG {progress.ng}</span>
-                  </div>
-                ) : null}
+                    <Trash2 size={18} />
+                    <span style={{ whiteSpace: "nowrap" }}>破棄</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`${styles.qscAction} ${styles.actionPrimary}`}
+                    onClick={submit}
+                    disabled={submitBusy}
+                    style={{ flex: 1 }}
+                  >
+                    <Send size={18} />
+                    <span style={{ whiteSpace: "nowrap" }}>{submitBusy ? "送信中…" : "完了"}</span>
+                  </button>
+                </div>
 
                 {forceShowErrors && hasMissingRequiredNotes ? (
                   <button
                     type="button"
                     onClick={scrollToFirstMissingRequired}
-                    title="未入力へ移動"
                     style={{
+                      marginTop: 10,
+                      width: "100%",
                       display: "inline-flex",
                       alignItems: "center",
+                      justifyContent: "center",
                       gap: 8,
-                      padding: "7px 10px",
-                      borderRadius: 999,
+                      padding: "10px 12px",
+                      borderRadius: 14,
                       border: "1px solid rgba(255,59,48,0.22)",
                       background: "rgba(255,59,48,0.10)",
-                      whiteSpace: "nowrap",
-                      cursor: "pointer",
+                      fontWeight: 900,
                     }}
                   >
-                    <AlertTriangle size={16} />
-                    <span style={{ fontWeight: 800 }}>必須未入力</span>
-                    <span>{missingRequiredNotes.length}件</span>
+                    <AlertTriangle size={16} /> 必須未入力：{missingRequiredNotes.length}件（移動）
                   </button>
                 ) : null}
-              </div>
-
-              <div
-                style={{
-                  height: 10,
-                  borderRadius: 999,
-                  background: "rgba(15,17,21,0.10)",
-                  overflow: "hidden",
-                  position: "relative",
-                }}
-                aria-label="進捗バー"
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${progress.pct}%`,
-                    borderRadius: 999,
-                    background: hasWarn
-                      ? "linear-gradient(90deg, rgba(255,149,0,0.95), rgba(255,59,48,0.95))"
-                      : "linear-gradient(90deg, rgba(0,122,255,0.95), rgba(52,199,89,0.95))",
-                    boxShadow: "0 6px 18px rgba(15,17,21,0.14)",
-                    position: "relative",
-                    transition: "width 260ms ease",
-                  }}
-                />
-              </div>
-            </div>
-
-            <div className={styles.qscProgressBadges} aria-label="内訳" style={{ marginTop: 10 }}>
-              <span className={styles.qscBadge} style={badgeStyle("ok")}>
-                OK {progress.ok}
-              </span>
-              <span className={styles.qscBadge} style={badgeStyle("hold")}>
-                保留 {progress.hold}
-              </span>
-              <span className={styles.qscBadge} style={badgeStyle("ng")}>
-                NG {progress.ng}
-              </span>
-              <span className={styles.qscBadge} style={badgeStyle("na")}>
-                該当なし {progress.na}
-              </span>
-            </div>
-          </div>
-
-          <div className={styles.qscBottomRight}>
-            <button
-              type="button"
-              className={`${styles.qscAction} ${styles.actionGhost} ${saving ? styles.actionBusy : ""}`}
-              onClick={saveDraft}
-              disabled={saving}
-            >
-              <Save size={18} />
-              <span style={{ whiteSpace: "nowrap" }}>{saving ? "保存中…" : "途中保存"}</span>
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.qscAction} ${styles.actionGhost}`}
-              onClick={discardDraft}
-              title="途中保存データを破棄"
-            >
-              <Trash2 size={18} />
-              <span style={{ whiteSpace: "nowrap" }}>破棄</span>
-            </button>
-
-            <button
-              type="button"
-              className={`${styles.qscAction} ${styles.actionPrimary} ${submitBusy ? styles.actionBusy : ""}`}
-              onClick={submit}
-              disabled={submitBusy}
-              title={
-                hasMissingRequiredNotes
-                  ? "必須コメント未入力があります"
-                  : progress.unset > 0
-                  ? "未チェック項目があります"
-                  : "完了"
-              }
-            >
-              <Send size={18} />
-              <span style={{ whiteSpace: "nowrap" }}>{submitBusy ? "送信中…" : "完了"}</span>
-            </button>
+              </>
+            ) : null}
           </div>
         </div>
       </div>
 
-      {/* ✅ 重要：PhotoEditModal は “JSXの最後” に置く */}
-      <PhotoEditModal
-        open={editPhoto.open}
-        dataUrl={editPhoto.dataUrl}
-        onClose={editPhoto.onClose}
-        onSave={editPhoto.onSave}
-      />
+      {/* ✅ Photo Edit Modal：最上位(zIndex)・背面クリック貫通を防ぐ */}
+      <div style={{ position: "fixed", inset: 0, zIndex: Z.editModal, pointerEvents: editPhoto.open ? "auto" : "none" }}>
+        <PhotoEditModal open={editPhoto.open} dataUrl={editPhoto.dataUrl} onClose={editPhoto.onClose} onSave={editPhoto.onSave} />
+      </div>
     </div>
   );
 }

@@ -259,8 +259,8 @@
   justify-content: space-between;
   gap: 10px;
 
-  padding: 12px 12px;
-  border-radius: 18px;
+  padding: 10px 12px;
+  border-radius: 16px;
 
   border: 1px solid rgba(15,17,21,0.10);
   background: rgba(255,255,255,0.86);
@@ -607,4 +607,59 @@
   .qscPlaceText{
     max-width: 52vw;
   }
+}
+@media (max-width: 420px){
+  .qscAreaItem{
+    padding: 8px 10px;
+  }
+
+  .qscAreaItemTitle{
+    font-size: 13px;
+  }
+
+  .qscAreaItemCount{
+    font-size: 11px;
+    padding: 4px 8px;
+  }
+}
+/* =========================
+   Section color themes
+   ========================= */
+
+/* 入口・導線（ブルー） */
+.qscSection[data-area="sec_entrance"]{
+  background: linear-gradient(
+    180deg,
+    rgba(35,110,255,0.06),
+    rgba(255,255,255,0.92)
+  );
+}
+
+/* フロア（グリーン） */
+.qscSection[data-area="sec_floor"]{
+  background: linear-gradient(
+    180deg,
+    rgba(52,199,89,0.08),
+    rgba(255,255,255,0.92)
+  );
+}
+
+/* トイレ・更衣室（パープル） */
+.qscSection[data-area="sec_toilet"]{
+  background: linear-gradient(
+    180deg,
+    rgba(175,82,222,0.08),
+    rgba(255,255,255,0.92)
+  );
+}
+.qscSection[data-area="sec_entrance"] .qscSectionTitle{
+  color: rgba(35,110,255,0.95);
+}
+
+.qscSection[data-area="sec_floor"] .qscSectionTitle{
+  color: rgba(52,199,89,0.95);
+}
+
+.qscSection[data-area="sec_toilet"] .qscSectionTitle{
+  color: rgba(175,82,222,0.95);
 }
