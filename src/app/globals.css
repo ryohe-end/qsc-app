@@ -1280,7 +1280,23 @@ body:has(.qsc-auth) .qsc-frame {
 }
 
 /* Bottom sheet */
-.qsc-sheetOverlay { position: fixed; inset: 0; z-index: 9999; }
+.qsc-sheetOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+
+  /* ✅ 中央表示 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* iOS safe-area */
+  padding:
+    max(12px, env(safe-area-inset-top))
+    12px
+    max(12px, env(safe-area-inset-bottom))
+    12px;
+}
 
 .qsc-sheetBackdrop {
   position: absolute;
@@ -1290,12 +1306,18 @@ body:has(.qsc-auth) .qsc-frame {
 }
 
 .qsc-sheet {
-  position: absolute;
-  left: 50%;
-  bottom: 10px;
-  transform: translateX(-50%);
-  width: min(720px, calc(100% - 16px));
-  max-height: 82vh;
+  position: relative;     /* absolute をやめる */
+  left: auto;
+  bottom: auto;
+  transform: none;
+
+  width: min(720px, 100%);
+  max-height: calc(
+    100dvh
+    - 24px
+    - env(safe-area-inset-top)
+    - env(safe-area-inset-bottom)
+  );
 
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.18);
@@ -1308,11 +1330,7 @@ body:has(.qsc-auth) .qsc-frame {
 }
 
 .qsc-sheetHandle {
-  width: 44px;
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(15, 17, 21, 0.12);
-  margin: 10px auto 0 auto;
+  display: none;
 }
 
 .qsc-sheetHead {
@@ -4033,4 +4051,194 @@ html, body {
   input, textarea, select {
     font-size: 16px !important;
   }
+}
+
+/* 企業行：左がホイール、右が検索ボタン */
+.qsc-companyRow{
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+/* ネイティブselectを透明で被せる */
+.qsc-nativeSelect{
+  position: relative;
+  width: 100%;
+}
+
+.qsc-nativeSelectUi{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.92);
+}
+
+.qsc-nativeSelectLeft{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.qsc-nativeSelectText{
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qsc-nativeSelectRight{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+/* 透明select（iOSホイールを呼ぶ） */
+.qsc-nativeSelectEl{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+
+  /* ✅ iOSのズーム防止＆操作感 */
+  font-size: 16px;
+}
+
+/* 検索ボタン */
+.qsc-companySearchBtn{
+  height: 46px;
+  padding: 0 12px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.92);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+  color: rgba(15,17,21,.78);
+  white-space: nowrap;
+}
+.qsc-companySearchBtn:active{
+  transform: translateY(1px);
+}
+.qsc-nativeSelect{
+  position: relative;
+  width: 100%;
+}
+
+.qsc-nativeSelectUi{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255,255,255,.92);
+}
+
+.qsc-nativeSelectLeft{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.qsc-nativeSelectText{
+  font-weight: 900;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.qsc-nativeSelectRight{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+/* ✅ ネイティブホイールを呼ぶ透明select */
+.qsc-nativeSelectEl{
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+
+  /* ✅ iOSズーム防止 */
+  font-size: 16px;
+}
+/* ===== BottomDock shell (ヘッダーと同じ考え方) ===== */
+.qscBottomDock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9000; /* Z.bottomDock と合わせる（JS側で上書きしてもOK） */
+
+  /* ✅ iPhoneホームバー対策 */
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
+  padding-left: 8px;
+  padding-right: 8px;
+
+  /* ✅ ヘッダーと同じ “ガラスの土台” */
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 0.92),
+    rgba(255, 255, 255, 0.55)
+  );
+  backdrop-filter: saturate(1.2) blur(12px);
+  -webkit-backdrop-filter: saturate(1.2) blur(12px);
+
+  border-top: 1px solid rgba(15, 17, 21, 0.08);
+}
+
+/* ✅ ヘッダーと同じ：中央寄せコンテナ */
+.qscBottomDockInner {
+  width: min(720px, calc(100% - 0px));
+  margin: 0 auto;
+}
+
+/* ===== Bottom card ===== */
+.qscBottomCard {
+  /* ✅ 高さは既に --qscBottomH を使ってる想定 */
+  height: var(--qscBottomH);
+  border-radius: 18px;
+
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 14px 40px rgba(15, 17, 21, 0.18);
+
+  overflow: hidden;
+}
+
+/* Grab部分がカード上で気持ちよく見えるように */
+.qscGrab {
+  padding-top: 8px;
+  padding-bottom: 6px;
+}
+.qscGrabBar {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  margin: 0 auto;
+  background: rgba(15, 17, 21, 0.18);
 }

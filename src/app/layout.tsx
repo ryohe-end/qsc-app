@@ -1,7 +1,6 @@
 // src/app/layout.tsx
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
-import AppChrome from "@/components/AppChrome";
 
 /* =========================
    Metadata
@@ -12,25 +11,25 @@ export const metadata: Metadata = {
 };
 
 /* =========================
-   Viewport（スマホ拡大対策の本命）
+   Viewport
    ========================= */
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  viewportFit: "cover", // iPhone notch / safe-area 対応
+  viewportFit: "cover",
 };
 
 /* =========================
-   Root Layout
+   Root Layout（最小）
    ========================= */
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="ja">
-      <body>
-        <AppChrome>{children}</AppChrome>
-      </body>
+      <body>{children}</body>
     </html>
   );
 }
