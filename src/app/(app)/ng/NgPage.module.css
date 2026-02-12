@@ -1,0 +1,265 @@
+/* src/app/(app)/ng/NgPage.module.css */
+
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden; /* 親要素での余計なハミ出しを防止 */
+}
+
+/* スクロールエリア：ここがスムーズに動くように設定 */
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 16px 16px 140px; /* 下部の一括送信ボタンと重ならないよう余白を多めに確保 */
+  display: grid;
+  gap: 16px;
+}
+
+.header {
+  padding: 4px 0 8px;
+}
+
+.title {
+  font-size: 24px;
+  font-weight: 950;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.sub {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(15, 17, 21, 0.62);
+  margin-top: 6px;
+}
+
+/* 指摘事項カード */
+.card {
+  border-radius: 22px;
+  border: 1px solid rgba(15, 17, 21, 0.08);
+  background: #fff;
+  padding: 18px;
+  box-shadow: 0 10px 30px rgba(15, 17, 21, 0.04);
+  display: grid;
+  gap: 14px;
+}
+
+.cardHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.category {
+  font-size: 10px;
+  font-weight: 900;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: rgba(47, 140, 230, 0.1);
+  color: #2f8ce6;
+  text-transform: uppercase;
+}
+
+.deadline {
+  font-size: 11px;
+  font-weight: 800;
+  color: #ff3b30;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.questionText {
+  font-size: 15px;
+  font-weight: 950;
+  line-height: 1.4;
+  color: #0f1115;
+}
+
+.inspectorNote {
+  font-size: 13px;
+  font-weight: 700;
+  color: rgba(15, 17, 21, 0.7);
+  background: rgba(15, 17, 21, 0.03);
+  padding: 10px 12px;
+  border-radius: 12px;
+  border-left: 3px solid rgba(15, 17, 21, 0.1);
+}
+
+/* 写真比較レイアウト */
+.photoCompare {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.photoBox {
+  display: grid;
+  gap: 6px;
+}
+
+.photoLabel {
+  font-size: 10px;
+  font-weight: 950;
+  color: rgba(15, 17, 21, 0.4);
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.imgWrapper {
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
+  overflow: hidden;
+  background: rgba(15, 17, 21, 0.05);
+  border: 1px solid rgba(15, 17, 21, 0.05);
+  position: relative;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* アップロードボタン */
+.uploadBtn {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #f8fafc;
+  border: 2px dashed rgba(47, 140, 230, 0.2);
+  color: #2f8ce6;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.uploadBtn:active {
+  background: rgba(47, 140, 230, 0.05);
+  transform: scale(0.97);
+}
+
+/* コメント入力欄 */
+.commentArea {
+  width: 100%;
+  border-radius: 14px;
+  border: 1px solid rgba(15, 17, 21, 0.1);
+  background: #fcfcfd;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  outline: none;
+  resize: none;
+  transition: border-color 0.2s;
+}
+
+.commentArea:focus {
+  border-color: #2f8ce6;
+  background: #fff;
+}
+
+/* ボタンアクション */
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+/* カード内の個別報告ボタン */
+.submitSingleBtn {
+  flex: 1;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(47, 140, 230, 0.2);
+  background: rgba(47, 140, 230, 0.05);
+  color: #2f8ce6;
+  font-weight: 900;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.submitSingleBtn:active:not(:disabled) {
+  transform: scale(0.98);
+  background: rgba(47, 140, 230, 0.1);
+}
+
+.submitSingleBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  filter: grayscale(1);
+}
+
+/* 下部固定の一括報告バー */
+.bottomBar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 16px 16px calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(15, 17, 21, 0.08);
+  z-index: 100;
+}
+
+.submitAllBtn {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  height: 54px;
+  border-radius: 18px;
+  border: none;
+  background: #2f8ce6;
+  color: #fff;
+  font-weight: 950;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  box-shadow: 0 12px 24px rgba(47, 140, 230, 0.3);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.submitAllBtn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.submitAllBtn:disabled {
+  background: #cbd5e1;
+  box-shadow: none;
+  opacity: 0.6;
+}
+
+/* 送信中バッジ */
+.batchCount {
+  background: #fff;
+  color: #2f8ce6;
+  font-size: 11px;
+  font-weight: 950;
+  padding: 2px 6px;
+  border-radius: 6px;
+  margin-left: 4px;
+}
+
+/* 空状態 */
+.empty {
+  text-align: center;
+  padding: 100px 20px;
+  color: rgba(15, 17, 21, 0.4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}

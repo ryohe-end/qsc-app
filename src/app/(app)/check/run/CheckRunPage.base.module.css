@@ -1,52 +1,30 @@
 /* =========================================================
-   CheckRunPage.base.module.css (QSC Run - BASE / FULL)
-   ✅ 画面は固定（100dvh）
-   ✅ スクロールは main のみ（縦だけ）
-   ✅ 左右スクロール・横スワイプを抑止
-   ✅ TopBar / Drawer / Section / Item / Note / Photos まで全部ここ
-   ✅ エリア色の薄い反映（Choice / Card）
+   CheckRunPage.base.module.css
+   - 4択ボタンのスタイルを強化（縦積み・文字切れ防止）
+   - エリアごとの薄い色付け
    ========================================================= */
 
-/* =========================
-   Root page layout（✅固定アプリシェル化）
-   ========================= */
-
+/* Root layout */
 .qscCheckRunPage{
   position: fixed;
   inset: 0;
-
   height: 100dvh;
   width: 100%;
   overflow: hidden;
-
   display: flex;
   flex-direction: column;
-  min-height: 0;
-
   background: var(--bg, #f6f8fb);
   color: var(--fg, #0f1115);
-
-  max-width: 100%;
-  touch-action: pan-y; /* ✅ できるだけ縦のみ */
+  touch-action: pan-y;
 }
 
-.qscCheckRunPage,
-.qscCheckRunPage *{
-  -webkit-tap-highlight-color: transparent;
+.qscCheckRunPage * {
   box-sizing: border-box;
-}
-
-/* 横はみ出しの温床を潰す */
-.qscCheckRunPage *{
+  -webkit-tap-highlight-color: transparent;
   max-width: 100%;
 }
 
-/* 親の flex/grid で子が横に溢れないように */
-.qscCheckRunPage :where(.qscMain, .qscSection, .qscItemCard, .qscBottomInner, .qscBottomLeft){
-  min-width: 0;
-}
-
-/* ✅ qscPanel は “カード用” に残す（ヘッダーには付けない） */
+/* Panel base */
 .qscPanel{
   border-radius: 22px;
   border: 1px solid rgba(15, 17, 21, 0.10);
@@ -54,27 +32,17 @@
   box-shadow: 0 18px 55px rgba(15, 17, 21, 0.10);
 }
 
-/* =========================
-   Top bar（✅カード外：独立バー）
-   ========================= */
-
+/* Topbar */
 .qscTopbar{
   flex: 0 0 auto;
   z-index: 40;
-
-  /* 高さは維持（既存のJSが offset -84 を使ってるので） */
-  height: var(--run-topbar-h, 84px);
+  height: 84px;
   padding: 10px 12px;
-
   display: grid;
   gap: 8px;
-
-  /* ✅ “バー”として見せる */
   background: rgba(255,255,255,0.88);
   backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(15, 17, 21, 0.08);
-
-  overflow: hidden; /* ✅ 横はみ出し対策 */
 }
 
 .qscTopbarRow3{
@@ -85,69 +53,33 @@
 }
 
 .qscBack{
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 10px 12px;
-  border-radius: 16px;
-
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 12px; border-radius: 16px;
   border: 1px solid rgba(15, 17, 21, 0.10);
   background: rgba(255, 255, 255, 0.78);
-
-  text-decoration: none;
-  color: var(--fg, #0f1115);
-  font-weight: 950;
-
-  cursor: pointer;
-  transition: transform 0.08s ease, background 0.18s ease, border-color 0.18s ease;
+  text-decoration: none; color: var(--fg); font-weight: 950;
 }
-
 .qscBack:active{ transform: scale(0.99); }
 
 .qscPlace{
   justify-self: center;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-
-  padding: 12px 14px;
-  border-radius: 999px;
-
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 12px 14px; border-radius: 999px;
   border: 1px solid rgba(15, 17, 21, 0.10);
   background: rgba(255, 255, 255, 0.78);
-
   font-weight: 950;
-
-  max-width: 100%;
   min-width: 0;
 }
-
-.qscPlaceText{
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: min(62vw, 420px);
-}
+.qscPlaceText{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: min(60vw, 400px); }
 
 .qscAreaIconBtn{
-  width: 44px;
-  height: 44px;
-  border-radius: 16px;
-
+  width: 44px; height: 44px; border-radius: 16px;
   border: 1px solid rgba(15, 17, 21, 0.10);
   background: rgba(255, 255, 255, 0.78);
-
-  display: grid;
-  place-items: center;
-
-  cursor: pointer;
-  transition: transform 0.08s ease, background 0.18s ease, border-color 0.18s ease;
+  display: grid; place-items: center; cursor: pointer;
 }
-
 .qscAreaIconBtn:active{ transform: scale(0.98); }
 
-/* （互換）Row2 */
 .qscTopbarRow2{ display: none; }
 .qscTitleWrap{ display: flex; align-items: center; gap: 10px; }
 .qscTitle{ font-size: 16px; font-weight: 950; margin: 0; }
@@ -155,326 +87,79 @@
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 10px; border-radius: 999px;
   border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.78);
-  font-weight: 950;
+  background: rgba(255,255,255,0.78); font-weight: 950;
 }
 .qscMetaPills{ display: flex; gap: 8px; overflow: hidden; min-width: 0; }
 .qscPill{
   display: inline-flex; align-items: center; gap: 8px;
   padding: 8px 10px; border-radius: 999px;
   border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.78);
-  font-weight: 950;
-  white-space: nowrap;
+  background: rgba(255,255,255,0.78); font-weight: 950; white-space: nowrap;
 }
 
-/* =========================
-   Main scroll area（✅ここだけスクロール）
-   ========================= */
-
+/* Main Scroll */
 .qscMain{
   flex: 1 1 auto;
-  min-height: 0;
-
-  overflow-y: auto;
-  overflow-x: hidden; /* ✅ 横スクロール禁止 */
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior-y: contain;
-
-  padding: 12px 12px calc(var(--bottomH, 96px) + 18px);
-
-  max-width: 100%;
-  touch-action: pan-y;
-}
-
-/* 横スクロールが生まれやすい要素を抑制 */
-.qscMain :where(img, svg, video, canvas){
-  max-width: 100%;
-  height: auto;
-}
-
-.qscBottomSpacer{
-  height: 10px;
-}
-
-/* =========================
-   Drawer (Area)  ✅ REPLACE FULL
-   - “黒いやつ”寄せ（コンパクトなリスト行）
-   - 現在エリア: 薄いハイライト
-   - NG/HOLD: 薄い警告色（デカ見えの原因=影/強塗りを避ける）
-   ========================= */
-
-.qscDrawerOverlay{
-  position: fixed;
-  inset: 0;
-  z-index: 70;
-  display: grid;
-  place-items: start end;
-}
-
-.qscDrawerOverlayClose{
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 17, 21, 0.42);
-  backdrop-filter: blur(10px);
-  border: none;
-  cursor: pointer;
-}
-
-.qscDrawer{
-  position: relative;
-  width: min(420px, 92vw);
-  height: 100dvh;
-
-  /* ✅ シート感（カード感を弱める） */
-  background: rgba(255,255,255,0.98);
-  border-left: 1px solid rgba(15,17,21,0.08);
-  box-shadow: -12px 0 40px rgba(0,0,0,0.18);
-
-  padding: 10px;                 /* ✅ 全体余白を詰める */
-  display: grid;
-  grid-template-rows: auto 1fr;
-  gap: 8px;
-}
-
-.qscDrawerHead{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.qscDrawerTitle{
-  font-weight: 950;
-  font-size: 15px;
-}
-
-.qscDrawerClose{
-  width: 42px;
-  height: 42px;
-  border-radius: 16px;
-
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.86);
-
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-.qscDrawerBody{
   overflow-y: auto;
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
-
-  /* ✅ gridだと「カード並び感」が強く見えやすいので、縦リストに寄せる */
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  padding: 12px 12px calc(var(--qscBottomH, 260px) + 24px);
 }
 
-/* ✅ エリアボタン：カード → “行” にする（黒いやつ寄せ） */
+/* Drawer */
+.qscDrawerOverlay{ position: fixed; inset: 0; z-index: 70; display: grid; place-items: start end; }
+.qscDrawerOverlayClose{ position: absolute; inset: 0; background: rgba(15,17,21,0.4); backdrop-filter: blur(4px); border: none; }
+.qscDrawer{
+  position: relative; width: min(420px, 92vw); height: 100dvh;
+  background: rgba(255,255,255,0.98); border-left: 1px solid rgba(15,17,21,0.08);
+  box-shadow: -10px 0 40px rgba(0,0,0,0.15);
+  padding: 10px; display: grid; grid-template-rows: auto 1fr; gap: 8px;
+}
+.qscDrawerHead{ display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.qscDrawerTitle{ font-weight: 950; font-size: 15px; }
+.qscDrawerClose{
+  width: 42px; height: 42px; border-radius: 16px;
+  border: 1px solid rgba(15,17,21,0.10); background: rgba(255,255,255,0.86);
+  display: grid; place-items: center; cursor: pointer;
+}
+.qscDrawerBody{ overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+
 .qscAreaItem{
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-
-  padding: 10px 12px;
-  min-height: 46px;              /* ✅ ここが“黒いやつ”の高さ */
-  border-radius: 14px;
-
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.78);
-  box-shadow: none;              /* ✅ デカ見えの原因を消す */
-
-  cursor: pointer;
-  text-align: left;
-  min-width: 0;
-
-  transition: transform 0.08s ease, background 0.18s ease, border-color 0.18s ease;
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px; min-height: 46px; border-radius: 14px;
+  border: 1px solid rgba(15,17,21,0.10); background: rgba(255,255,255,0.78);
+  cursor: pointer; text-align: left;
 }
-
 .qscAreaItem:active{ transform: scale(0.99); }
+.qscAreaItemTitle{ font-weight: 950; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.areaCurrent .qscItemCard, .areaWarnNg .qscItemCard{ background: #fff !important; }
+.qscAreaBadges{ display: inline-flex; gap: 6px; align-items: center; flex: 0 0 auto; }
+.qscAreaItemCount{ font-weight: 950; font-size: 11.5px; padding: 5px 9px; border-radius: 999px; border: 1px solid rgba(15,17,21,0.10); background: rgba(15,17,21,0.04); }
+.qscAreaBadge{ font-weight: 950; font-size: 10.5px; padding: 4px 7px; border-radius: 999px; border: 1px solid rgba(15,17,21,0.10); background: rgba(255,255,255,0.75); white-space: nowrap; }
+.areaBadgeNg{ border-color: rgba(255,59,48,0.20); background: rgba(255,59,48,0.10); color: rgba(255,59,48,0.92); }
+.areaBadgeHold{ border-color: rgba(255,149,0,0.20); background: rgba(255,149,0,0.10); color: rgba(255,149,0,0.95); }
 
-.qscAreaItemTitle{
-  font-weight: 950;
-  font-size: 14px;
-  line-height: 1.15;
+/* Section / Items */
+.qscSection{ padding: 12px; margin-bottom: 12px; }
+.qscSectionTint{ position: relative; overflow: hidden; }
+.qscSectionTint::before{ content: ""; position: absolute; inset: 0; background: var(--secTint); opacity: 0.55; pointer-events: none; }
+.qscSectionTint::after{ content: ""; position: absolute; left: 0; top: 0; height: 4px; width: 100%; background: var(--secAccent); pointer-events: none; }
+.qscSectionTint > *{ position: relative; z-index: 1; }
 
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
+.qscSectionHead{ display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.qscSectionTitle{ font-weight: 950; font-size: 15px; }
+.qscSectionCount{ font-weight: 950; font-size: 12px; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(15,17,21,0.10); background: rgba(15,17,21,0.04); }
 
-/* ✅ 現在エリア（薄い線＋薄い塗り） */
-.areaCurrent .qscItemCard,
-.areaWarnNg .qscItemCard,
-.areaWarnHold .qscItemCard{
-  background: #ffffff !important;
-}
+.qscItems{ display: grid; gap: 10px; }
+.qscItemCard{ border-radius: 20px; border: 1px solid rgba(15,17,21,0.10); background: #fff; overflow: hidden; }
+.itemError{ border-color: rgba(255, 59, 48, 0.28); box-shadow: 0 18px 55px rgba(255, 59, 48, 0.08); }
 
-/* 右側のまとまり */
-.qscAreaBadges{
-  display: inline-flex;
-  gap: 6px;
-  align-items: center;
-  flex: 0 0 auto;
-}
+.qscItemTop{ padding: 12px; display: grid; gap: 10px; }
+.qscItemLabel{ font-weight: 950; line-height: 1.35; word-break: break-word; }
 
-/* 進捗ピル */
-.qscAreaItemCount{
-  font-weight: 950;
-  font-size: 11.5px;
-  padding: 5px 9px;
-
-  border-radius: 999px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(15,17,21,0.04);
-}
-
-/* NG/HOLD バッジ（控えめ） */
-.qscAreaBadge{
-  font-weight: 950;
-  font-size: 10.5px;
-  padding: 4px 7px;
-
-  border-radius: 999px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.75);
-  white-space: nowrap;
-}
-
-.areaBadgeNg{
-  border-color: rgba(255,59,48,0.20);
-  background: rgba(255,59,48,0.10);
-  color: rgba(255,59,48,0.92);
-}
-
-.areaBadgeHold{
-  border-color: rgba(255,149,0,0.20);
-  background: rgba(255,149,0,0.10);
-  color: rgba(255,149,0,0.95);
-}
-
-/* ✅ スマホ：さらに詰める */
-@media (max-width: 420px){
-  .qscDrawer{
-    width: min(360px, 92vw);
-    padding: 10px;
-  }
-
-  .qscAreaItem{
-    padding: 9px 10px;
-    min-height: 44px;
-    border-radius: 12px;
-  }
-
-  .qscAreaItemTitle{
-    font-size: 13.5px;
-  }
-}
-
-/* =========================
-   Sections / Items
-   ========================= */
-
-.qscSection{
-  padding: 12px;
-  margin-bottom: 12px;
-}
-
-/* ✅ セクション色の薄い帯（CSS変数で色を注入） */
-.qscSectionTint{
-  position: relative;
-  overflow: hidden;
-}
-.qscSectionTint::before{
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: var(--secTint, rgba(35,110,255,0.08));
-  opacity: 0.55;
-  pointer-events: none;
-}
-.qscSectionTint::after{
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  height: 4px;
-  width: 100%;
-  background: var(--secAccent, rgba(35,110,255,0.55));
-  pointer-events: none;
-}
-.qscSectionTint > *{
-  position: relative;
-  z-index: 1;
-}
-
-.qscSectionHead{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-  min-width: 0;
-}
-
-.qscSectionTitle{
-  font-weight: 950;
-  font-size: 15px;
-  min-width: 0;
-}
-
-.qscSectionCount{
-  font-weight: 950;
-  font-size: 12px;
-  padding: 6px 10px;
-
-  border-radius: 999px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(15,17,21,0.04);
-}
-
-.qscItems{
-  display: grid;
-  gap: 10px;
-}
-
-.qscItemCard{
-  border-radius: 20px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.96);
-  overflow: hidden;
-}
-
-/* ✅ カードにもセクション色を極薄で反映 */
-.qscItemCard{
-  background: #ffffff !important;
-  border: 1px solid rgba(15,17,21,0.10);
-}
-
-.itemError{
-  border-color: rgba(255, 59, 48, 0.28);
-  box-shadow: 0 18px 55px rgba(255, 59, 48, 0.08);
-}
-
-.qscItemTop{
-  padding: 12px;
-  display: grid;
-  gap: 10px;
-}
-
-.qscItemLabel{
-  font-weight: 950;
-  line-height: 1.35;
-  word-break: break-word;
-}
-
-/* choices */
+/* ----------------------------------------------------
+   Choices (4択ボタン) - ここを修正してデザイン復活
+   ---------------------------------------------------- */
 .qscChoices{
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -483,303 +168,152 @@
 
 .qscChoice{
   width: 100%;
-  display: inline-flex;
+  display: flex; /* 縦並び */
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 
-  padding: 10px 10px;
+  /* サイズと白背景 */
+  height: 72px;
+  padding: 10px 4px;
   border-radius: 16px;
-
-  border: 1px solid rgba(15,17,21,0.10);
-
-  /* ✅ セクション色を極薄で常時反映 */
-  background:
-    linear-gradient(0deg, var(--secTint, rgba(35,110,255,0.06)), var(--secTint, rgba(35,110,255,0.06))),
-    rgba(255,255,255,0.90);
+  border: 1px solid rgba(15,17,21,0.14);
+  background: #ffffff;
+  color: var(--fg);
+  box-shadow: 0 6px 16px rgba(15,17,21,0.04);
 
   cursor: pointer;
-  font-weight: 950;
   user-select: none;
-
-  transition: transform 0.08s ease, background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+  transition: all 0.15s ease;
 }
 
-.qscChoice:active{ transform: scale(0.99); }
+.qscChoice:active{ transform: translateY(1px); }
 
-.qscChoiceDot{
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: rgba(15,17,21,0.22);
-}
+/* ドット不要なら消す */
+.qscChoiceDot{ display: none; }
 
-.choiceOk{}
-.choiceHold{}
-.choiceNg{}
-.choiceNa{}
+.qscChoice svg { width: 18px; height: 18px; flex: 0 0 auto; display: block; }
 
-.choiceOn{
-  background:
-    linear-gradient(0deg, var(--secTint, rgba(35,110,255,0.10)), var(--secTint, rgba(35,110,255,0.10))),
-    rgba(35, 110, 255, 0.12);
-  border-color: rgba(35, 110, 255, 0.22);
-  box-shadow: 0 10px 26px rgba(35, 110, 255, 0.12);
-}
-
-.qscItemBottom{
-  padding: 12px;
-  border-top: 1px solid rgba(15,17,21,0.08);
-  display: grid;
-  gap: 10px;
-}
-
-/* =========================
-   Note / Photos
-   ========================= */
-
-.qscNoteHead{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-width: 0;
-}
-
-.qscNoteTitle{
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 950;
-  min-width: 0;
-}
-
-.qscRequired{
-  margin-left: 8px;
-  font-size: 11px;
-  font-weight: 950;
-  padding: 4px 8px;
-
-  border-radius: 999px;
-  background: rgba(255, 59, 48, 0.10);
-  border: 1px solid rgba(255, 59, 48, 0.18);
-  color: rgba(255, 59, 48, 0.95);
-}
-
-.qscPhotoHead{
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.qscPhotoAdd{
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 10px 10px;
-  border-radius: 16px;
-
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.90);
-
-  cursor: pointer;
-  font-weight: 950;
-  user-select: none;
-
-  appearance: none;
-  -webkit-appearance: none;
-}
-
-/* textarea */
-.qscNote{
-  width: 100%;
-  max-width: 100%;
-
-  border-radius: 18px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.92);
-
-  padding: 12px 12px;
+/* ラベル：2行許容 */
+.qscChoice span:not(.qscChoiceDot) {
+  font-size: 12px;
   font-weight: 900;
-  line-height: 1.45;
-
-  resize: vertical;
-  outline: none;
+  line-height: 1.2;
+  text-align: center;
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
 }
 
-.noteMissing{
-  border-color: rgba(255, 59, 48, 0.28);
-  background: rgba(255, 59, 48, 0.06);
+/* --- 選択状態 (枠と薄い背景色) --- */
+/* OK */
+.choiceOk.choiceOn{
+  background: rgba(47, 140, 230, 0.10);
+  border-color: rgba(47, 140, 230, 0.35);
+  color: #2f8ce6;
+  box-shadow: 0 10px 24px rgba(47, 140, 230, 0.12);
+}
+/* Hold */
+.choiceHold.choiceOn{
+  background: rgba(255, 159, 10, 0.12);
+  border-color: rgba(255, 159, 10, 0.40);
+  color: #ff9f0a;
+  box-shadow: 0 10px 24px rgba(255, 159, 10, 0.12);
+}
+/* NG */
+.choiceNg.choiceOn{
+  background: rgba(255, 59, 48, 0.12);
+  border-color: rgba(255, 59, 48, 0.45);
+  color: #ff3b30;
+  box-shadow: 0 10px 24px rgba(255, 59, 48, 0.12);
+}
+/* N/A */
+.choiceNa.choiceOn{
+  background: rgba(15, 17, 21, 0.06);
+  border-color: rgba(15, 17, 21, 0.30);
+  color: rgba(15, 17, 21, 0.65);
+  box-shadow: none;
 }
 
-.noteGuide{
-  animation: qscNotePulse 0.9s ease both;
-  border-color: rgba(35, 110, 255, 0.35);
-  box-shadow: 0 0 0 6px rgba(35, 110, 255, 0.10);
+@media (max-width: 420px){
+  .qscChoices{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .qscChoice{ height: 60px; flex-direction: row; gap: 8px; }
 }
 
+/* ---------------------------------------------------- */
+
+.qscItemBottom{ padding: 12px; border-top: 1px solid rgba(15,17,21,0.08); display: grid; gap: 10px; }
+.qscNoteHead{ display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.qscNoteTitle{ display: inline-flex; align-items: center; gap: 8px; font-weight: 950; }
+.qscRequired{ margin-left: 8px; font-size: 11px; font-weight: 950; padding: 4px 8px; border-radius: 999px; background: rgba(255, 59, 48, 0.10); border: 1px solid rgba(255, 59, 48, 0.18); color: rgba(255, 59, 48, 0.95); }
+.qscPhotoAdd{ display: inline-flex; align-items: center; gap: 8px; padding: 10px 10px; border-radius: 16px; border: 1px solid rgba(15,17,21,0.10); background: rgba(255,255,255,0.90); cursor: pointer; font-weight: 950; }
+
+.qscNote, .qscHoldNote{
+  width: 100%; border-radius: 18px; border: 1px solid rgba(15,17,21,0.10); background: rgba(255,255,255,0.92);
+  padding: 12px 12px; font-weight: 900; line-height: 1.45; resize: vertical; outline: none; font-size: 16px; /* iOS zoom prevent */
+}
+.noteMissing{ border-color: rgba(255, 59, 48, 0.28); background: rgba(255, 59, 48, 0.06); }
+.noteGuide{ animation: qscNotePulse 0.9s ease both; border-color: rgba(35, 110, 255, 0.35); }
 @keyframes qscNotePulse{
   0%{ box-shadow: 0 0 0 0 rgba(35,110,255,0.0); }
   40%{ box-shadow: 0 0 0 8px rgba(35,110,255,0.12); }
   100%{ box-shadow: 0 0 0 0 rgba(35,110,255,0.0); }
 }
+.qscErrorLine{ display: inline-flex; align-items: center; gap: 8px; font-weight: 950; color: rgba(255, 59, 48, 0.95); }
+/* ...既存コードの末尾に追記... */
 
-.qscErrorLine{
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 950;
-  color: rgba(255, 59, 48, 0.95);
-}
-
-/* hold detail */
-.qscHoldBox{
-  border-radius: 18px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(15,17,21,0.03);
-  padding: 10px;
-  display: grid;
-  gap: 8px;
-}
-
-.qscHoldTitle{
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 950;
-}
-
-.qscHoldNote{
-  width: 100%;
-  max-width: 100%;
-
-  border-radius: 16px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.92);
-
-  padding: 12px;
-  font-weight: 900;
-  line-height: 1.45;
-  outline: none;
-
-  resize: vertical;
-}
-
-/* photo thumbs */
-.qscPhotoGrid{
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-
-  overflow-x: hidden; /* ✅ 横は殺す */
-}
-
-.qscPhotoThumb{
-  position: relative;
-  border-radius: 18px;
-  overflow: hidden;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.90);
-}
-
-.qscPhotoOpen{
-  width: 100%;
-  border: none;
-  background: transparent;
-  padding: 0;
-  cursor: pointer;
-  display: block;
-}
-
-.qscPhotoOpen img{
-  width: 100%;
-  height: 110px;
-  object-fit: cover;
-  display: block;
-}
-
-.qscPhotoDel{
-  position: absolute;
-  right: 8px;
-  top: 8px;
-
-  width: 34px;
-  height: 34px;
-  border-radius: 14px;
-
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.92);
-
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-/* =========================
-   Responsive
-   ========================= */
-
-@media (max-width: 720px){
-  .qscChoice span{ font-size: 12px; }
-  .qscPhotoOpen img{ height: 104px; }
-}
-
-@media (max-width: 420px){
-  .qscChoices{
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .qscPlaceText{
-    max-width: 52vw;
-  }
-
-  /* ✅ エリアメニューの“でかさ”対策 */
-  .qscAreaItem{ padding: 9px 10px; border-radius: 16px; }
-  .qscAreaItemTitle{ font-size: 13px; }
-  .qscAreaItemCount{ font-size: 11px; padding: 5px 8px; }
-  .qscAreaBadge{ font-size: 10.5px; padding: 4px 7px; }
-}
-/* ✅ iOS Safari: フォーカス時ズーム防止（16px以上にする） */
-.qscNote,
-.qscHoldNote{
-  font-size: 16px;
-}
-
-/* 見た目を少し小さくしたいなら line-height と paddingで調整 */
-.qscNote{
-  line-height: 1.45;
-}
-.qscHoldNote{
-  line-height: 1.45;
-}
-.qscMain {
-  padding-bottom: calc(
-    var(--qscBottomH, 260px)
-    + max(env(safe-area-inset-bottom), 12px)
-    + 24px
-  );
-}
-.qscCheckRunPage{
-  height: 100dvh;            /* iOS含め安定 */
+/* 定型文チップ（横スクロール） */
+.qscPresetScroll {
   display: flex;
-  flex-direction: column;
-  overflow: hidden;          /* 外側はスクロールさせない */
-}
-
-.qscTopbar{
-  flex: 0 0 auto;            /* ヘッダー固定（既にfixedならOK） */
-}
-
-.qscMain{
-  flex: 1 1 auto;
-  overflow: auto;            /* スクロールはmainだけ */
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  margin-top: 8px;
   -webkit-overflow-scrolling: touch;
-
-  /* ✅ ここが本命：下にBottomDock分の余白を確保 */
-  padding-bottom: calc(
-    var(--qscBottomH, 260px) +
-    env(safe-area-inset-bottom) +
-    16px
-  );
+  scrollbar-width: none; /* Firefox */
 }
+.qscPresetScroll::-webkit-scrollbar { display: none; }
+
+.qscPresetChip {
+  flex: 0 0 auto;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.12);
+  background: #fff;
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: transform 0.1s, background 0.1s;
+}
+.qscPresetChip:active {
+  transform: scale(0.96);
+  background: rgba(15, 17, 21, 0.05);
+}
+.qscPresetChip svg { width: 14px; height: 14px; opacity: 0.6; }
+
+/* "次へ" ボタン（セクション末尾） */
+.qscNextSecBtn {
+  width: 100%;
+  margin-top: 12px;
+  height: 48px;
+  border-radius: 16px;
+  border: 1px dashed rgba(15, 17, 21, 0.2);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+}
+.qscNextSecBtn:active { background: rgba(15, 17, 21, 0.05); }

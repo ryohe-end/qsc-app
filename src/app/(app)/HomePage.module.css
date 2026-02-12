@@ -1,0 +1,123 @@
+/* src/app/(app)/HomePage.module.css */
+
+/* コンテナ */
+.homeWidget {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 10px 30px rgba(15, 17, 21, 0.08);
+  padding: 14px;
+}
+
+.homeWidget::before {
+  content: "";
+  position: absolute;
+  inset: -40px -30px auto -30px;
+  height: 120px;
+  background:
+    radial-gradient(140px 100px at 18% 28%, rgba(15, 17, 21, 0.09), rgba(15, 17, 21, 0)),
+    radial-gradient(160px 120px at 72% 8%, rgba(15, 17, 21, 0.06), rgba(15, 17, 21, 0)),
+    linear-gradient(90deg, rgba(15, 17, 21, 0.04), rgba(15, 17, 21, 0));
+  pointer-events: none;
+}
+
+.top {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.dateWrap {
+  text-align: right;
+  position: relative;
+}
+
+.dateBig {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+  color: #0f1115;
+}
+
+.mmdd {
+  font-size: 24px;
+  font-weight: 850;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.yearWrap {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.year {
+  font-size: 12px;
+  font-weight: 700;
+  color: #0f1115;
+  opacity: 0.85;
+  font-variant-numeric: tabular-nums;
+}
+
+.dow {
+  font-size: 12px;
+  font-weight: 650;
+  color: rgba(15, 17, 21, 0.62);
+}
+
+.grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 10px;
+}
+
+.tile {
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  border-radius: 14px;
+  padding: 10px 10px;
+  background: rgba(255, 255, 255, 0.68);
+  min-width: 0;
+}
+
+.tileWide {
+  grid-column: 1 / -1;
+}
+
+.key {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: rgba(15, 17, 21, 0.62);
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.val {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f1115;
+  line-height: 1.35;
+}
+
+.valMini {
+  font-size: 11px;
+  color: rgba(15, 17, 21, 0.62);
+  font-weight: 650;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .homeWidget { padding: 12px; }
+  .grid { grid-template-columns: 1fr; }
+  .mmdd { font-size: 23px; }
+}

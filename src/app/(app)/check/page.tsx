@@ -1,7 +1,7 @@
+// src/app/(app)/check/page.tsx
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
-
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,14 +12,12 @@ import {
   Layers3,
   Tag,
   Search,
-  X,
   Check,
   Circle,
   PauseCircle,
   CheckCircle2,
   Store,
   ClipboardCheck,
-  Plus,
   Sun,
   Cloud,
   CloudRain,
@@ -28,6 +26,10 @@ import {
   Wind,
   Thermometer,
 } from "lucide-react";
+
+import styles from "./CheckPage.module.css";
+// ✅ 認証フックをインポート
+import { useSession } from "@/app/(app)/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -59,7 +61,7 @@ type WeatherKind =
 type Tod = "morning" | "day" | "night";
 
 /* =========================
-   Mock master (後でAPI差替え)
+   Mock master
    ========================= */
 const STORE_MASTER: StoreRow[] = [
   {
@@ -157,24 +159,15 @@ function getTod(): Tod {
   return "night";
 }
 
-/** Open-Meteo の weathercode をざっくりUI用に丸める */
 function mapWeatherCode(code: number | null | undefined): WeatherKind {
   if (code == null) return "unknown";
-  // 0: Clear
   if (code === 0) return "sunny";
-  // 1-3: Mainly clear/partly cloudy/overcast
   if (code >= 1 && code <= 3) return "cloudy";
-  // 45-48: Fog
   if (code === 45 || code === 48) return "fog";
-  // 51-67: Drizzle/Rain (freezing含む)
   if (code >= 51 && code <= 67) return "rain";
-  // 71-77: Snow
   if (code >= 71 && code <= 77) return "snow";
-  // 80-82: Rain showers
   if (code >= 80 && code <= 82) return "rain";
-  // 85-86: Snow showers
   if (code === 85 || code === 86) return "snow";
-  // 95-99: Thunderstorm
   if (code >= 95 && code <= 99) return "rain";
   return "unknown";
 }
@@ -200,7 +193,7 @@ function WeatherIcon({ kind }: { kind: WeatherKind }) {
 }
 
 /* =========================
-   Small UI
+   Components
    ========================= */
 function StepBadge({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
@@ -241,9 +234,6 @@ function Chip({
   );
 }
 
-/**
- * ② 企業名：iOSっぽいボトムシート（検索＋一覧）
- */
 function CompanyPicker({
   value,
   options,
@@ -254,27 +244,25 @@ function CompanyPicker({
   onChange: (id: string) => void;
 }) {
   return (
-    <div className={`qsc-nativeSelect ${value ? "is-selected" : ""}`}>
-      {/* 見た目は今のボタン風 */}
-      <div className="qsc-nativeSelectUi" aria-hidden="true">
-        <span className="qsc-nativeSelectLeft">
-          <span className="qsc-companyBtnIcon">
+    <div className={`${styles.nativeSelect} ${value ? styles.isSelected : ""}`}>
+      <div className={styles.nativeSelectUi} aria-hidden="true">
+        <span className={styles.nativeSelectLeft}>
+          <span className={styles.nativeSelectIcon}>
             <Building2 size={18} />
           </span>
-          <span className="qsc-nativeSelectText">
+          <span className={styles.nativeSelectText}>
             {value ? value.name : "企業名を選択"}
           </span>
         </span>
 
-        <span className="qsc-nativeSelectRight">
-          {value ? <span className="qsc-companySelected">選択中</span> : null}
+        <span className={styles.nativeSelectRight}>
+          {value ? <span className={styles.companyLabel}>選択中</span> : null}
           <ChevronRight size={18} />
         </span>
       </div>
 
-      {/* ✅ 透明selectを被せる：タップでiOSホイール */}
       <select
-        className="qsc-nativeSelectEl"
+        className={styles.nativeSelectEl}
         value={value?.id ?? ""}
         onChange={(e) => onChange(e.target.value)}
         aria-label="企業名を選択"
@@ -291,30 +279,28 @@ function CompanyPicker({
 }
 
 /* =========================
-   Page
+   Page Main
    ========================= */
 export default function CheckPage() {
   const router = useRouter();
   const { mmdd, yyyy, dow, quarter } = useMemo(() => todayParts(), []);
 
-  // ✅ Widget state（天気＆気温）
+  // ✅ セッション取得
+  const { session } = useSession();
+
   const [tod, setTod] = useState<Tod>(() => getTod());
   const [weatherKind, setWeatherKind] = useState<WeatherKind>("unknown");
   const [tempC, setTempC] = useState<number | null>(null);
 
-  // ✅ Parallax target
   const widgetWrapRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    // 朝昼夜の更新（1分に1回で十分）
     const t = window.setInterval(() => setTod(getTod()), 60 * 1000);
     return () => window.clearInterval(t);
   }, []);
 
   useEffect(() => {
-    // ✅ 天気取得（Open-Meteo / 位置情報が取れなければ東京）
     let cancelled = false;
-
     const fetchWeather = async (lat: number, lon: number) => {
       try {
         const url =
@@ -337,23 +323,16 @@ export default function CheckPage() {
       }
     };
 
-    // まず東京で即表示（体感を良くする）
     fetchWeather(35.681236, 139.767125);
 
-    // 位置情報が許可されたら上書き
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          fetchWeather(pos.coords.latitude, pos.coords.longitude);
-        },
-        () => {
-          // 許可なしなら東京のまま
-        },
+        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+        () => {},
         { enableHighAccuracy: false, timeout: 2500, maximumAge: 10 * 60 * 1000 }
       );
     }
 
-    // 10分おきに更新
     const timer = window.setInterval(() => {
       fetchWeather(35.681236, 139.767125);
     }, 10 * 60 * 1000);
@@ -365,24 +344,19 @@ export default function CheckPage() {
   }, []);
 
   useEffect(() => {
-    // ✅ 微パララックス：ウィジェットだけふわっと動く（軽量版）
     const el = widgetWrapRef.current;
     if (!el) return;
 
     let raf = 0;
-
     const onScroll = () => {
       if (raf) return;
       raf = window.requestAnimationFrame(() => {
         raf = 0;
         const rect = el.getBoundingClientRect();
-        // 画面上端からの距離を -1..1 くらいに正規化
         const vh = window.innerHeight || 800;
         const centerY = rect.top + rect.height / 2;
-        const t = (centerY - vh / 2) / (vh / 2); // -1..1
-        // 移動量（px）
+        const t = (centerY - vh / 2) / (vh / 2);
         const y = Math.max(-18, Math.min(18, t * 12));
-        // ほんの少しだけ透明度＆ブラー感（気持ち）
         const a = Math.max(0.92, Math.min(1, 1 - Math.abs(t) * 0.06));
 
         el.style.setProperty("--qsc-parallaxY", `${y.toFixed(2)}px`);
@@ -401,20 +375,11 @@ export default function CheckPage() {
     };
   }, []);
 
-  // ② 企業（単一）
   const [companyId, setCompanyId] = useState<string>("");
-
-  // ③ 業態・ブランド（複数）
   const [bizIds, setBizIds] = useState<string[]>([]);
   const [brandIds, setBrandIds] = useState<string[]>([]);
-
-  // ④ 状態（横スワイプ / 複数）
   const [statusFilter, setStatusFilter] = useState<StoreStatus[]>(["new", "draft"]);
-
-  // ④ 店舗検索
   const [storeQuery, setStoreQuery] = useState("");
-
-  // ✅ 追加：選択した店舗（1つ）
   const [selectedStoreId, setSelectedStoreId] = useState<string>("");
 
   const companies = useMemo(() => {
@@ -448,7 +413,18 @@ export default function CheckPage() {
 
   const storeList = useMemo(() => {
     const k = storeQuery.trim().toLowerCase();
+    
+    // ✅ ユーザー権限によるフィルタリング
+    const assignedStoreId = session?.assignedStoreId;
+    const isRestricted = session?.role === "auditor" || session?.role === "manager";
+
     return STORE_MASTER.filter((r) => {
+      // 1. 権限チェック: 担当店舗のみ許可
+      if (isRestricted && assignedStoreId) {
+        if (r.storeId !== assignedStoreId) return false;
+      }
+
+      // 2. 通常のフィルタ
       if (companyId && r.companyId !== companyId) return false;
       if (bizIds.length && !bizIds.includes(r.bizId)) return false;
       if (brandIds.length && !brandIds.includes(r.brandId)) return false;
@@ -456,19 +432,18 @@ export default function CheckPage() {
       if (k && !r.storeName.toLowerCase().includes(k)) return false;
       return true;
     }).sort((a, b) => a.storeName.localeCompare(b.storeName, "ja"));
-  }, [companyId, bizIds, brandIds, statusFilter, storeQuery]);
+  }, [companyId, bizIds, brandIds, statusFilter, storeQuery, session]);
 
-  // ✅ 選択中店舗（フィルタで消えたら解除）
   const selectedStore = useMemo(() => {
     const found = STORE_MASTER.find((s) => s.storeId === selectedStoreId);
     if (!found) return null;
+    // フィルタリング後のリストに含まれているかチェック
     const visible = storeList.some((s) => s.storeId === selectedStoreId);
     if (!visible) return null;
     if (found.status === "done") return null;
     return found;
   }, [selectedStoreId, storeList]);
 
-  // ✅ 追加：AppBottomNav（共通FAB）でも使えるように、選択店舗を保存
   useEffect(() => {
     const key = "qsc_check_selected_store";
     if (!selectedStore) {
@@ -490,8 +465,6 @@ export default function CheckPage() {
     );
   }, [selectedStore]);
 
-  const canStart = !!selectedStore;
-
   const toggle = (arr: string[], id: string) =>
     arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id];
 
@@ -505,77 +478,54 @@ export default function CheckPage() {
     setStoreQuery("");
     setSelectedStoreId("");
   };
-
-  const goStart = () => {
-    if (!selectedStore) return;
-    router.push(
-      `/check/run?companyId=${encodeURIComponent(selectedStore.companyId)}` +
-        `&bizId=${encodeURIComponent(selectedStore.bizId)}` +
-        `&brandId=${encodeURIComponent(selectedStore.brandId)}` +
-        `&storeId=${encodeURIComponent(selectedStore.storeId)}`
-    );
-  };
-
-  // ✅ class for theme
-  const widgetClass = ["qsc-widget", `wx-${weatherKind}`, `tod-${tod}`].join(" ");
+  
+  const widgetClass = [styles.widget];
+  if (weatherKind) widgetClass.push(`wx-${weatherKind}`);
 
   return (
-    <div className="qsc-checkPage">
-      {/* =========================
-         ① 固定：Widget-ish（他カードと幅合わせ済）
-         - 天気でグロー切替
-         - 朝昼夜でトーン変化
-         - スクロールで微パララックス
-         ========================= */}
-      <div ref={widgetWrapRef} className="qsc-widgetWrap qsc-widgetParallax" aria-label="日付と天気">
-        {/* Date + Quarter */}
-        <div className={widgetClass} aria-label="日付とクォーター">
-          <div className="qsc-widgetGlow" aria-hidden="true" />
-          <div className="qsc-widgetRow">
-            <div className="qsc-dateMain">
-              {/* ✅ ユーザー指定の「羅列」寄りに見えるUI（でもダサくならない） */}
-              <div className="qsc-dateBig">
+    <div className={styles.page}>
+      
+      <div ref={widgetWrapRef} className={styles.widgetWrap} aria-label="日付と天気">
+        <div className={styles.widget} data-tod={tod} data-weather={weatherKind}>
+          <div className={styles.widgetGlow} aria-hidden="true" />
+          <div className={styles.widgetRow}>
+            <div className={styles.dateMain}>
+              <div className={styles.dateBig}>
                 <CalendarDays size={18} />
-                <span className="qsc-dateBigTx">{mmdd}</span>
+                <span className={styles.dateBigTx}>{mmdd}</span>
               </div>
-
-              <div className="qsc-dateSub" aria-label="年・曜日">
-                <span className="qsc-year">{yyyy}</span>
-                <span className="qsc-dateSubDot">•</span>
-                <span className="qsc-dow">{dow}</span>
+              <div className={styles.dateSub}>
+                <span className={styles.year}>{yyyy}</span>
+                <span className={styles.dateSubDot}>•</span>
+                <span className={styles.dow}>{dow}</span>
               </div>
             </div>
-
-            <div className="qsc-qMain" aria-label="クォーター">
-              <span className="qsc-qPill2">
-                <span className="qsc-qPill2Q">Q{quarter}</span>
-                <span className="qsc-qPill2Y">{yyyy}</span>
+            <div className={styles.qMain}>
+              <span className={styles.qPill}>
+                <span className={styles.qPillTx}>Q{quarter}</span>
               </span>
-              <span className="qsc-qLabel">Quarter</span>
+              <span className={styles.qLabel}>Quarter</span>
             </div>
           </div>
         </div>
 
-        {/* Weather + Temp */}
-        <div className={widgetClass} aria-label="天気と気温">
-          <div className="qsc-widgetGlow2" aria-hidden="true" />
-          <div className="qsc-widgetRow">
-            <div className="qsc-weatherMain">
-              <span className="qsc-weatherIc" aria-hidden="true">
+        <div className={styles.widget} data-tod={tod} data-weather={weatherKind}>
+          <div className={styles.widgetGlow2} aria-hidden="true" />
+          <div className={styles.widgetRow}>
+            <div className={styles.weatherMain}>
+              <span className={styles.weatherIc}>
                 <WeatherIcon kind={weatherKind} />
               </span>
-
-              <div className="qsc-weatherText">
-                <div className="qsc-weatherLabel">{weatherLabel(weatherKind)}</div>
-                <div className="qsc-weatherHint">
+              <div className={styles.weatherText}>
+                <div className={styles.weatherLabel}>{weatherLabel(weatherKind)}</div>
+                <div className={styles.weatherHint}>
                   {tod === "morning" ? "Morning" : tod === "day" ? "Daytime" : "Night"}
                 </div>
               </div>
             </div>
-
-            <div className="qsc-tempPill" aria-label="気温">
+            <div className={styles.tempPill}>
               <Thermometer size={16} style={{ opacity: 0.85 }} />
-              <span className="qsc-tempVal">{tempC == null ? "—" : `${Math.round(tempC)}°`}</span>
+              <span className={styles.tempVal}>{tempC == null ? "—" : `${Math.round(tempC)}°`}</span>
             </div>
           </div>
         </div>
@@ -594,14 +544,22 @@ export default function CheckPage() {
           <h1 className="qsc-title qsc-titleCheck" style={{ margin: 0 }}>
             店舗を選択して開始
           </h1>
-          <p className="qsc-sub qsc-subCheck" style={{ margin: "8px 0 0 0" }}>
-            店舗をタップで選択 → 右下の「＋」でスタート。
-          </p>
+          
+          {/* ✅ 権限に応じたメッセージ出し分け */}
+          {session?.role === "auditor" ? (
+             <p className="qsc-sub qsc-subCheck" style={{ margin: "8px 0 0 0" }}>
+               担当店舗のみ表示されています。対象を選択して開始してください。
+             </p>
+          ) : (
+             <p className="qsc-sub qsc-subCheck" style={{ margin: "8px 0 0 0" }}>
+               店舗をタップで選択 → 右下の「＋」でスタート。
+             </p>
+          )}
 
-          <div className="qsc-selectedLine" aria-live="polite">
+          <div className={styles.selectedLine} aria-live="polite">
             {selectedStore ? (
               <>
-                <span className="dot on" />
+                <span className={`${styles.dot} ${styles.dotOn}`} />
                 <span>
                   選択中：<b>{selectedStore.storeName}</b>（{selectedStore.companyName} /{" "}
                   {selectedStore.brandName}）
@@ -609,40 +567,34 @@ export default function CheckPage() {
               </>
             ) : (
               <>
-                <span className="dot" />
+                <span className={styles.dot} />
+                <span style={{ opacity: 0.6 }}>未選択</span>
               </>
             )}
           </div>
         </div>
       </header>
 
-      {/* =========================
-         ② 企業名（ボトムシート）
-         ========================= */}
+      {/* Company */}
       <section className="qsc-panel" aria-label="企業名">
         <div className="qsc-panel-head">
-          <StepBadge icon={<Building2 size={14} />} label="② 企業名" />
+          <StepBadge icon={<Building2 size={14} />} label="① 企業名" />
           <span className="qsc-swipehint">タップして選択</span>
         </div>
-
         <CompanyPicker value={selectedCompany} options={companies} onChange={onCompanyChange} />
-
-        {!companyId ? (
+        {!companyId && (
           <div className="qsc-mutedLine" style={{ marginTop: 10 }}>
             ※ 企業名を選択すると、業態 / ブランド / 店舗候補が絞れます
           </div>
-        ) : null}
+        )}
       </section>
 
-      {/* =========================
-         ③ 業態（横スワイプ / 複数）
-         ========================= */}
+      {/* Biz */}
       <section className="qsc-panel" aria-label="業態">
         <div className="qsc-panel-head">
-          <StepBadge icon={<Layers3 size={14} />} label="③ 業態" />
+          <StepBadge icon={<Layers3 size={14} />} label="② 業態" />
           <span className="qsc-swipehint">横にスワイプ / 複数選択</span>
         </div>
-
         <div className={`qsc-chipScroll2 ${!companyId ? "is-disabled" : ""}`}>
           {bizOptions.map((b) => (
             <Chip
@@ -659,21 +611,18 @@ export default function CheckPage() {
               }}
             />
           ))}
-          {companyId && bizOptions.length === 0 ? (
+          {companyId && bizOptions.length === 0 && (
             <div className="qsc-mutedLine">該当する業態がありません</div>
-          ) : null}
+          )}
         </div>
       </section>
 
-      {/* =========================
-         ③ ブランド（横スワイプ / 複数）
-         ========================= */}
+      {/* Brand */}
       <section className="qsc-panel" aria-label="ブランド">
         <div className="qsc-panel-head">
           <StepBadge icon={<Tag size={14} />} label="③ ブランド" />
           <span className="qsc-swipehint">横にスワイプ / 複数選択</span>
         </div>
-
         <div className={`qsc-chipScroll2 ${!companyId ? "is-disabled" : ""}`}>
           {brandOptions.map((b) => (
             <Chip
@@ -689,80 +638,44 @@ export default function CheckPage() {
               }}
             />
           ))}
-          {companyId && brandOptions.length === 0 ? (
+          {companyId && brandOptions.length === 0 && (
             <div className="qsc-mutedLine">該当するブランドがありません</div>
-          ) : null}
+          )}
         </div>
       </section>
 
-      {/* =========================
-         ④ 状態（横スワイプ） + 店舗検索
-         ========================= */}
+      {/* Status & Search */}
       <section className="qsc-panel" aria-label="店舗の絞り込み">
         <div className="qsc-panel-head">
           <StepBadge icon={<Store size={14} />} label="④ 絞り込み" />
           <span className="qsc-swipehint">状態は横スワイプ</span>
         </div>
-
-        <div className="qsc-chipScroll2" aria-label="状態フィルタ">
-          <Chip
-            active={statusFilter.includes("new")}
-            icon={<Circle size={16} />}
-            label="未着手"
-            onClick={() => {
-              toggleStatus("new");
-              setSelectedStoreId("");
-            }}
-          />
-          <Chip
-            active={statusFilter.includes("draft")}
-            icon={<PauseCircle size={16} />}
-            label="途中"
-            onClick={() => {
-              toggleStatus("draft");
-              setSelectedStoreId("");
-            }}
-          />
-          <Chip
-            active={statusFilter.includes("done")}
-            icon={<CheckCircle2 size={16} />}
-            label="完了"
-            onClick={() => {
-              toggleStatus("done");
-              setSelectedStoreId("");
-            }}
-          />
+        <div className="qsc-chipScroll2">
+          <Chip active={statusFilter.includes("new")} icon={<Circle size={16} />} label="未着手" onClick={() => { toggleStatus("new"); setSelectedStoreId(""); }} />
+          <Chip active={statusFilter.includes("draft")} icon={<PauseCircle size={16} />} label="途中" onClick={() => { toggleStatus("draft"); setSelectedStoreId(""); }} />
+          <Chip active={statusFilter.includes("done")} icon={<CheckCircle2 size={16} />} label="完了" onClick={() => { toggleStatus("done"); setSelectedStoreId(""); }} />
         </div>
-
-        <div className="qsc-searchRow2" style={{ marginTop: 12 }}>
-          <div className="qsc-searchIcon2">
-            <Search size={16} />
-          </div>
+        
+        <div className={`qsc-searchRow2 ${styles.searchRow}`}>
+          <div className="qsc-searchIcon2"><Search size={16} /></div>
           <input
             className="qsc-input"
             placeholder="店舗名で検索"
             value={storeQuery}
-            onChange={(e) => {
-              setStoreQuery(e.target.value);
-              setSelectedStoreId("");
-            }}
+            onChange={(e) => { setStoreQuery(e.target.value); setSelectedStoreId(""); }}
             inputMode="search"
             disabled={!companyId}
           />
         </div>
-
-        {!companyId ? <div className="qsc-mutedLine">※ 先に企業名を選択してください</div> : null}
+        {!companyId && <div className="qsc-mutedLine">※ 先に企業名を選択してください</div>}
       </section>
 
-      {/* =========================
-         ⑤ 店舗一覧（タップで選択）
-         ========================= */}
+      {/* Store List */}
       <section className="qsc-panel" aria-label="店舗一覧">
         <div className="qsc-panel-head">
           <StepBadge icon={<Store size={14} />} label="⑤ 店舗" />
           <span className="qsc-swipehint">{companyId ? `${storeList.length}件` : "—"}</span>
         </div>
-
         {!companyId ? (
           <div className="qsc-empty">
             <div className="qsc-emptyTitle">企業名を選択してください</div>
@@ -778,14 +691,11 @@ export default function CheckPage() {
             {storeList.map((s) => {
               const isDone = s.status === "done";
               const isSelected = selectedStoreId === s.storeId;
-
               return (
                 <button
                   key={s.storeId}
                   type="button"
-                  className={["qsc-storeCard", `status-${s.status}`, isSelected ? "is-selected" : ""].join(
-                    " "
-                  )}
+                  className={["qsc-storeCard", `status-${s.status}`, isSelected ? "is-selected" : ""].join(" ")}
                   disabled={isDone}
                   role="listitem"
                   onClick={() => {
@@ -797,18 +707,11 @@ export default function CheckPage() {
                   <div className="qsc-storeCardLeft">
                     <div className="qsc-storeTitle">{s.storeName}</div>
                     <div className="qsc-storeMeta">
-                      <span className="qsc-storeMetaItem">
-                        <Building2 size={14} /> {s.companyName}
-                      </span>
-                      <span className="qsc-storeMetaItem">
-                        <Layers3 size={14} /> {s.bizName}
-                      </span>
-                      <span className="qsc-storeMetaItem">
-                        <Tag size={14} /> {s.brandName}
-                      </span>
+                      <span className="qsc-storeMetaItem"><Building2 size={14} /> {s.companyName}</span>
+                      <span className="qsc-storeMetaItem"><Layers3 size={14} /> {s.bizName}</span>
+                      <span className="qsc-storeMetaItem"><Tag size={14} /> {s.brandName}</span>
                     </div>
                   </div>
-
                   <div className="qsc-storeCardRight">
                     <span className={`qsc-statusPill status-${s.status}`}>
                       {s.status === "new" ? <Circle size={14} /> : null}
@@ -816,14 +719,7 @@ export default function CheckPage() {
                       {s.status === "done" ? <CheckCircle2 size={14} /> : null}
                       {statusLabel(s.status)}
                     </span>
-
-                    {isSelected ? (
-                      <span className="qsc-pickedMark" aria-hidden="true">
-                        <Check size={18} />
-                      </span>
-                    ) : (
-                      <ChevronRight size={18} style={{ opacity: 0.75 }} />
-                    )}
+                    {isSelected ? <span className="qsc-pickedMark" aria-hidden="true"><Check size={18} /></span> : <ChevronRight size={18} style={{ opacity: 0.75 }} />}
                   </div>
                 </button>
               );
@@ -831,8 +727,6 @@ export default function CheckPage() {
           </div>
         )}
       </section>
-
-      <div style={{ height: 60 }} aria-hidden="true" />
     </div>
   );
 }

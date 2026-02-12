@@ -1,6 +1,6 @@
 /* =========================================================
    src/app/globals.css (QSC Clean / Field Ops - CLEAN FULL)
-   ✅ 1セレクタ1定義（重複排除）
+   ✅ 1セレクタ1定義（重複排除・軽量化済み）
    ✅ Login(.qsc-auth/.qsc-login)のみスクロール禁止 + 縦横センター
    ✅ 全ページ：スマホ枠(.qsc-frame) + 枠内スクロール(.qsc-frame-scroll)
    ✅ Home：縦流れ + カルーセルは枠内から絶対はみ出さない
@@ -40,7 +40,7 @@
   --login-shift-desktop: 4vh;
   --login-shift-mobile: 3vh;
   --login-shift-short: 2vh;
-  --login-shift-force: 0vh; /* ← 上げたいなら -10vh など */
+  --login-shift-force: 0vh;
 
   /* bottom tab */
   --tabbar-h: 66px;
@@ -62,25 +62,17 @@ html {
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
-
-  /* ✅ iOS/スマホで勝手に文字が拡大して「画面がデカい」事故を止める */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-
-  /* ✅ 余計な横スクロール・ズーム暴発を抑える（保険） */
   touch-action: manipulation;
 }
 
 body {
   margin: 0;
   color: var(--fg);
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, "Noto Sans JP", "Apple Color Emoji", "Segoe UI Emoji";
-
-  /* ✅ iOSの自動フォント拡大を確実に止める（htmlだけだと足りない端末がある） */
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", "Apple Color Emoji", "Segoe UI Emoji";
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
-
   background:
     radial-gradient(900px 520px at 20% 0%, rgba(47,140,230,.09), transparent 65%),
     radial-gradient(900px 560px at 50% 0%, rgba(47,179,109,.08), transparent 65%),
@@ -90,7 +82,6 @@ body {
 
 a { color: inherit; }
 input, button, select, textarea { font: inherit; }
-
 
 /* =========================
    Header (fixed)
@@ -312,50 +303,54 @@ html.qsc-leave body { transition: opacity 180ms ease; opacity: .86; }
 }
 
 /* =========================
-   Loading
+   Loading (Spinner used in Login)
    ========================= */
-.qsc-loading{
-  min-height: calc(100svh - var(--header-h));
-  display: grid;
-  place-items: center;
-  padding: 24px 16px;
-  animation: qscFadeIn .25s ease-out;
-}
-.qsc-loading-inner{
-  width: min(420px, 92vw);
-  border-radius: 22px;
-  border: 1px solid rgba(15,17,21,.08);
-  background: rgba(255,255,255,.95);
-  box-shadow: var(--shadow);
-  padding: 18px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-}
-.qsc-spinner{
+.qsc-spinner {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 3px solid rgba(15,17,21,.14);
-  border-top-color: rgba(15,17,21,.65);
-  animation: qscSpin .8s linear infinite;
+  border: 3px solid rgba(15, 17, 21, 0.14);
+  border-top-color: rgba(15, 17, 21, 0.65);
+  animation: qscSpin 0.8s linear infinite;
 }
-.qsc-loading-text{ font-size: 12px; opacity: .7; }
-@keyframes qscSpin { to { transform: rotate(360deg); } }
+
+@keyframes qscSpin {
+  to { transform: rotate(360deg); }
+}
 
 /* =========================================================
-   Auth / Login (全画面)
+   Auth / Login (全画面) - 修正版
+   ✅ スクロール禁止を解除し、キーボード表示やコンテンツ過多に対応
    ========================================================= */
+
+/* Login/Auth時でもスクロールを許可するように html/body のロックを解除 */
+html:has(.qsc-login),
+body:has(.qsc-login),
+html:has(.qsc-auth),
+body:has(.qsc-auth) {
+  height: auto;
+  min-height: 100%;
+  overflow-y: auto !important; /* hidden を解除 */
+}
+
+/* アプリのルート要素（Next.jsのdiv等）のロックも解除 */
+body:has(.qsc-login) > div,
+body:has(.qsc-auth) > div {
+  height: auto;
+  min-height: 100svh;
+  overflow: visible !important; /* hidden を解除 */
+}
+
 .qsc-auth,
 .qsc-login {
-  overflow: hidden;
+  /* overflow: hidden; を削除 */
   min-height: 100svh;
   display: grid;
   place-items: center;
-  padding: 0 14px;
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: auto;
+  /* 上下に十分な余白を持たせることで、スクロール時にコンテンツが端まで見えるようにする */
+  padding: 40px 14px 60px; 
+  overscroll-behavior: auto; /* none から変更 */
+  -webkit-overflow-scrolling: touch;
 }
 
 .qsc-auth-inner,
@@ -365,13 +360,16 @@ html.qsc-leave body { transition: opacity 180ms ease; opacity: .86; }
   display: flex;
   flex-direction: column;
   gap: 14px;
-  transform: translateY(var(--login-shift-desktop));
+  /* スクロール時に上が切れないよう中央寄せの調整 */
+  transform: translateY(0); 
 }
 
-/* tokenで最終上書き */
-body:has(.qsc-login) .qsc-login-inner,
-body:has(.qsc-auth)  .qsc-auth-inner {
-  transform: translateY(var(--login-shift-force));
+/* ローカル環境などでデスクトップ時に少し上に浮かせたい場合のみ調整 */
+@media (min-height: 700px) {
+  .qsc-auth-inner,
+  .qsc-login-inner {
+    transform: translateY(var(--login-shift-desktop, -2vh));
+  }
 }
 
 .qsc-auth-top,
@@ -390,7 +388,6 @@ body:has(.qsc-auth)  .qsc-auth-inner {
 
 .qsc-auth-title,
 .qsc-login-title { font-weight: 950; letter-spacing: -0.02em; font-size: 22px; margin: 0; }
-
 .qsc-auth-sub,
 .qsc-login-sub { margin: 0; font-size: 13px; opacity: 0.65; }
 
@@ -406,10 +403,8 @@ body:has(.qsc-auth)  .qsc-auth-inner {
 
 .qsc-form,
 .qsc-login-form { width: 100%; display: flex; flex-direction: column; gap: 14px; }
-
 .qsc-label,
 .qsc-login-field { display: flex; flex-direction: column; gap: 8px; }
-
 .qsc-label-text,
 .qsc-login-label { font-weight: 900; opacity: 0.92; font-size: 13px; }
 
@@ -424,8 +419,6 @@ body:has(.qsc-auth)  .qsc-auth-inner {
   background: rgba(255,255,255,0.96);
   transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
 }
-.qsc-input::placeholder,
-.qsc-login-input::placeholder { opacity: 0.55; }
 
 .qsc-input:focus,
 .qsc-login-input:focus {
@@ -460,7 +453,7 @@ body:has(.qsc-auth)  .qsc-auth-inner {
   text-align: center;
   opacity: 0.6;
   font-weight: 900;
-  padding: 6px 0 0;
+  padding: 12px 0 0;
   font-size: 12px;
 }
 
@@ -497,37 +490,11 @@ body:has(.qsc-auth)  .qsc-auth-inner {
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
-.qsc-checkbox:focus { box-shadow: 0 0 0 4px var(--focusRing); outline: none; }
-
-.qsc-remember-text {
-  font-size: 13px;
-  font-weight: 800;
-  opacity: 0.72;
-  transition: opacity 180ms ease;
-}
-.qsc-remember-label:hover .qsc-remember-text { opacity: 1; }
-
-/* Login/Authだけ全体スクロールロック */
-html:has(.qsc-login),
-body:has(.qsc-login),
-html:has(.qsc-auth),
-body:has(.qsc-auth) {
-  height: 100%;
-  overflow: hidden !important;
-}
-body:has(.qsc-login) > div,
-body:has(.qsc-auth) > div {
-  height: 100svh;
-  overflow: hidden !important;
-}
 
 /* =========================================================
    GLOBAL APP FRAME (All pages)
-   - 全ページを “スマホ枠” に入れる
-   - スクロールは枠内(.qsc-frame-scroll)だけ
    ========================================================= */
 .qsc-app {
-  /* 旧来のページ内paddingを無効化（枠に一本化） */
   padding-top: 0 !important;
   padding-bottom: 0 !important;
 }
@@ -536,10 +503,8 @@ body:has(.qsc-auth) > div {
   min-height: 100svh;
   padding-top: var(--header-h);
   padding-bottom: calc(var(--tabbar-h) + var(--tabbar-safe));
-
   display: grid;
   place-items: start center;
-
   padding-left: 16px;
   padding-right: 16px;
 }
@@ -548,22 +513,18 @@ body:has(.qsc-auth) > div {
   width: 100%;
   max-width: 520px;
   border-radius: 24px;
-
   overflow: hidden;
   min-width: 0;
-
   background: rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255,255,255,0.14);
   box-shadow: 0 18px 60px rgba(15, 17, 21, 0.10);
-
   height: calc(
     100svh
     - var(--header-h)
     - (var(--tabbar-h) + var(--tabbar-safe))
     - 24px
   );
-
   display: flex;
   flex-direction: column;
 }
@@ -575,19 +536,17 @@ body:has(.qsc-auth) > div {
   overflow-x: hidden;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
-
   padding: 16px;
+  overscroll-behavior-x: none;
 }
 
 .qsc-frame-shell * { max-width: 100%; }
 
-/* Login/Authは枠を出さない（全画面優先） */
 body:has(.qsc-login) .qsc-frame,
 body:has(.qsc-auth) .qsc-frame {
   display: none !important;
 }
 
-/* 旧 .qsc-page paddingは枠と二重になるので切る（ページ側で必要な余白は内側で付ける） */
 .qsc-page { padding: 0 !important; }
 
 /* =========================================================
@@ -601,6 +560,7 @@ body:has(.qsc-auth) .qsc-frame {
   padding: 14px;
   display: grid;
   gap: 12px;
+  margin-top: 12px;
 }
 
 .qsc-panel-head {
@@ -622,10 +582,10 @@ body:has(.qsc-auth) .qsc-frame {
   font-weight: 900;
   opacity: 0.72;
   text-decoration: none;
+  letter-spacing: 0.02em;
 }
 .qsc-panel-link:hover { opacity: 1; }
 
-/* News cards */
 .qsc-news-list { display: grid; gap: 10px; }
 
 .qsc-news {
@@ -652,12 +612,11 @@ body:has(.qsc-auth) .qsc-frame {
 .qsc-news-body { font-size: 12px; line-height: 1.55; opacity: 0.72; }
 
 /* =========================================================
-   Carousel (汎用/Ranking)
-   - 枠内から絶対はみ出さない
+   Carousel
    ========================================================= */
 .qsc-carousel,
 .qsc-rank-carousel {
-  overflow: hidden;  /* 外にはみ出す描画をカット */
+  overflow: hidden;
   margin-top: 2px;
 }
 
@@ -666,25 +625,19 @@ body:has(.qsc-auth) .qsc-frame {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-
   display: grid;
   grid-auto-flow: column;
   gap: 12px;
-
   overflow-x: auto;
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
   scroll-snap-type: x mandatory;
-
-  padding: 6px 0; /* 横幅を増やさない */
+  padding: 6px 0;
+  grid-auto-columns: calc(100% - 16px);
 }
 
-.qsc-carousel-inner { grid-auto-columns: calc(100% - 16px); }
-.qsc-rank-carousel-inner { grid-auto-columns: calc(100% - 16px); }
-
 @media (min-width: 768px) {
-  .qsc-carousel-inner { grid-auto-columns: calc(100% - 20px); }
-  .qsc-rank-carousel-inner { grid-auto-columns: calc(100% - 20px); }
+  .qsc-carousel-inner, .qsc-rank-carousel-inner { grid-auto-columns: calc(100% - 20px); }
 }
 
 .qsc-feature,
@@ -697,39 +650,24 @@ body:has(.qsc-auth) .qsc-frame {
   box-shadow: 0 14px 35px rgba(15,17,21,0.06);
   display: grid;
   gap: 10px;
-
   max-width: 100%;
   min-width: 0;
   overflow: hidden;
 }
 
 .qsc-feature-title { font-weight: 950; font-size: 13px; }
-.qsc-feature-text  { opacity: 0.80; line-height: 1.5; font-size: 12px; }
-.qsc-feature-hint  { opacity: 0.55; font-size: 11px; font-weight: 900; }
+.qsc-feature-text { opacity: 0.80; line-height: 1.5; font-size: 12px; }
+.qsc-feature-hint { opacity: 0.55; font-size: 11px; font-weight: 900; }
 
-/* Ranking list in card */
 .qsc-swipehint { font-size: 11px; font-weight: 900; opacity: 0.55; margin-top: -6px; }
 
-.qsc-rank-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-}
-
+.qsc-rank-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
 .qsc-rank-title { font-weight: 950; font-size: 13px; }
 .qsc-rank-sub { font-weight: 950; font-size: 11px; opacity: 0.6; margin-left: 6px; }
-
-.qsc-rank-more {
-  font-size: 12px;
-  font-weight: 900;
-  opacity: 0.72;
-  text-decoration: none;
-}
+.qsc-rank-more { font-size: 12px; font-weight: 900; opacity: 0.72; text-decoration: none; }
 .qsc-rank-more:hover { opacity: 1; }
 
 .qsc-rank-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
-
 .qsc-rank-row {
   display: flex;
   align-items: center;
@@ -741,9 +679,7 @@ body:has(.qsc-auth) .qsc-frame {
   background: rgba(255,255,255,0.92);
   min-width: 0;
 }
-
 .qsc-rank-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
-
 .qsc-rank-no {
   width: 22px;
   height: 22px;
@@ -756,7 +692,6 @@ body:has(.qsc-auth) .qsc-frame {
   font-weight: 950;
   flex: 0 0 auto;
 }
-
 .qsc-rank-store {
   font-size: 12px;
   font-weight: 900;
@@ -765,14 +700,12 @@ body:has(.qsc-auth) .qsc-frame {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-
 .qsc-rank-score { font-size: 12px; font-weight: 950; opacity: 0.78; flex: 0 0 auto; }
-
 .qsc-rank-footnote { font-size: 10px; font-weight: 900; opacity: 0.50; text-align: right; }
 
-/* =========================================================
-   Pills (icon + label) - 共通
-   ========================================================= */
+/* =========================
+   Pills (icon + label)
+   ========================= */
 .qsc-pill {
   display: inline-flex;
   align-items: center;
@@ -787,19 +720,18 @@ body:has(.qsc-auth) .qsc-frame {
   letter-spacing: 0.12em;
 }
 
-/* =========================================================
-   HOME Widget (one definitive version)
-   ========================================================= */
+/* =========================
+   HOME Widget
+   ========================= */
 .qsc-homeWidget {
   position: relative;
   overflow: hidden;
-  border-radius: 18px;
+  border-radius: 20px;
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.86);
   box-shadow: var(--shadow2);
   padding: 14px;
 }
-
 .qsc-homeWidget::before {
   content: "";
   position: absolute;
@@ -811,7 +743,6 @@ body:has(.qsc-auth) .qsc-frame {
     linear-gradient(90deg, rgba(15, 17, 21, 0.04), rgba(15, 17, 21, 0));
   pointer-events: none;
 }
-
 .qsc-homeWidget-top {
   position: relative;
   display: flex;
@@ -820,48 +751,12 @@ body:has(.qsc-auth) .qsc-frame {
   gap: 12px;
   margin-bottom: 12px;
 }
-
-.qsc-homeWidget-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.7);
-  color: var(--fg);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-}
-
-/* 日付：MM/DD big + YYYY + (曜) */
 .qsc-homeWidget-dateWrap { text-align: right; position: relative; }
-.qsc-homeWidget-dateBig {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  color: var(--fg);
-}
-.qsc-homeWidget-mmdd {
-  font-size: 24px;
-  font-weight: 850;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-}
+.qsc-homeWidget-dateBig { display: inline-flex; align-items: baseline; gap: 8px; color: var(--fg); }
+.qsc-homeWidget-mmdd { font-size: 24px; font-weight: 850; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
 .qsc-homeWidget-yearWrap { display: inline-flex; align-items: baseline; gap: 4px; }
-.qsc-homeWidget-year {
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--fg);
-  opacity: 0.85;
-  font-variant-numeric: tabular-nums;
-}
-.qsc-homeWidget-dow {
-  font-size: 12px;
-  font-weight: 650;
-  color: var(--muted);
-}
+.qsc-homeWidget-year { font-size: 12px; font-weight: 700; color: var(--fg); opacity: 0.85; font-variant-numeric: tabular-nums; }
+.qsc-homeWidget-dow { font-size: 12px; font-weight: 650; color: var(--muted); }
 
 .qsc-homeWidget-grid {
   position: relative;
@@ -869,7 +764,6 @@ body:has(.qsc-auth) .qsc-frame {
   grid-template-columns: 1.35fr 1fr;
   gap: 10px;
 }
-
 .qsc-homeTile {
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -877,9 +771,7 @@ body:has(.qsc-auth) .qsc-frame {
   background: rgba(255, 255, 255, 0.68);
   min-width: 0;
 }
-
 .qsc-homeTile-wide { grid-column: 1 / -1; }
-
 .qsc-homeTile-k {
   display: flex;
   align-items: center;
@@ -890,21 +782,8 @@ body:has(.qsc-auth) .qsc-frame {
   letter-spacing: 0.06em;
   margin-bottom: 6px;
 }
-
-.qsc-homeTile-v {
-  font-size: 13px;
-  font-weight: 700;
-  color: var(--fg);
-  line-height: 1.35;
-}
-
-.qsc-homeTile-mini {
-  font-size: 11px;
-  color: var(--muted);
-  font-weight: 650;
-  margin-left: 6px;
-  white-space: nowrap;
-}
+.qsc-homeTile-v { font-size: 13px; font-weight: 700; color: var(--fg); line-height: 1.35; }
+.qsc-homeTile-mini { font-size: 11px; color: var(--muted); font-weight: 650; margin-left: 6px; white-space: nowrap; }
 
 @media (max-width: 560px) {
   .qsc-homeWidget { padding: 12px; }
@@ -912,16 +791,15 @@ body:has(.qsc-auth) .qsc-frame {
   .qsc-homeWidget-mmdd { font-size: 23px; }
 }
 
-/* =========================================================
-   Bottom Tab Bar (iOS-ish)
-   ========================================================= */
+/* =========================
+   Bottom Tab Bar
+   ========================= */
 .qsc-tabbar {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   z-index: 80;
   pointer-events: none;
 }
-
 .qsc-tabbar-inner {
   pointer-events: auto;
   position: relative;
@@ -932,24 +810,18 @@ body:has(.qsc-auth) .qsc-frame {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
-
   background: rgba(255, 255, 255, 0.86);
   backdrop-filter: blur(12px);
   border-top: 1px solid rgba(15,17,21,0.10);
   box-shadow: 0 -18px 40px rgba(15,17,21,0.08);
 }
-
-.qsc-tabbar-safe {
-  height: var(--tabbar-safe);
-  background: rgba(255, 255, 255, 0.86);
-}
+.qsc-tabbar-safe { height: var(--tabbar-safe); background: rgba(255, 255, 255, 0.86); }
 
 .qsc-tab {
   display: grid;
   align-content: center;
   justify-items: center;
   gap: 4px;
-
   border-radius: 16px;
   text-decoration: none;
   color: rgba(15,17,21,0.60);
@@ -958,170 +830,94 @@ body:has(.qsc-auth) .qsc-frame {
 }
 .qsc-tab:hover { background: rgba(15,17,21,0.04); }
 .qsc-tab:active { transform: translateY(1px) scale(0.99); }
+.qsc-tab.is-active { color: rgba(15,17,21,0.90); background: rgba(15,17,21,0.05); }
 
-.qsc-tab-icon {
-  width: 22px;
-  height: 22px;
-  display: grid;
-  place-items: center;
-  position: relative;
-}
+.qsc-tab-icon { width: 22px; height: 22px; display: grid; place-items: center; position: relative; }
+.qsc-tab-label { font-size: 10px; font-weight: 900; letter-spacing: 0.02em; line-height: 1; }
 
-.qsc-tab-label {
-  font-size: 10px;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-  line-height: 1;
-}
-
-.qsc-tab.is-active {
-  color: rgba(15,17,21,0.90);
-  background: rgba(15,17,21,0.05);
-}
-
-@media (max-width: 380px) {
-  .qsc-tabbar-inner { padding: 8px 10px; height: 62px; }
-  .qsc-tab { border-radius: 14px; }
-}
-
-/* Badge (NG count) */
 .qsc-badge-dot {
   position: absolute;
-  top: -6px;
-  right: -10px;
-  min-width: 18px;
-  height: 18px;
+  top: -6px; right: -10px;
+  min-width: 18px; height: 18px;
   padding: 0 5px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-
-  font-size: 10px;
-  font-weight: 950;
-  letter-spacing: 0.01em;
-  color: #fff;
-
+  font-size: 10px; font-weight: 950; letter-spacing: 0.01em; color: #fff;
   background: var(--q-red);
   border: 2px solid rgba(255,255,255,0.90);
   box-shadow: 0 10px 22px rgba(15,17,21,0.16);
 }
 
-/* =========================================================
-   FAB
-   ========================================================= */
 .qsc-fab {
   position: absolute;
-  right: 16px;
-  top: calc(-56px - 10px);
-  width: 56px;
-  height: 56px;
+  right: 16px; top: calc(-56px - 10px);
+  width: 56px; height: 56px;
   border-radius: 999px;
   text-decoration: none;
   pointer-events: auto;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  box-shadow: none;
+  display: inline-block;
+  z-index: 50;
 }
-
-.qsc-fab-wrap {
-  position: relative;
-  width: 56px;
-  height: 56px;
-  display: grid;
-  place-items: center;
-}
-
+.qsc-fab:disabled { background: transparent; border: 0; box-shadow: none; }
+.qsc-fab-wrap { position: relative; width: 56px; height: 56px; display: grid; place-items: center; }
 .qsc-fab-inner {
-  width: 56px;
-  height: 56px;
+  width: 56px; height: 56px;
   border-radius: 999px;
   display: grid;
   place-items: center;
-
   background: linear-gradient(180deg, #1b2230 0%, #121826 100%);
   color: #fff;
-
   box-shadow: 0 18px 45px rgba(15,17,21,0.35);
   border: 1px solid rgba(255,255,255,0.18);
   transition: transform 160ms var(--e-out), box-shadow 160ms var(--e-out);
 }
-.qsc-fab:hover .qsc-fab-inner {
-  transform: translateY(-1px);
-  box-shadow: 0 22px 58px rgba(15,17,21,0.42);
-}
+.qsc-fab:hover .qsc-fab-inner { transform: translateY(-1px); box-shadow: 0 22px 58px rgba(15,17,21,0.42); }
 .qsc-fab:active .qsc-fab-inner { transform: translateY(1px) scale(0.99); }
-
 .qsc-fab-label {
   position: absolute;
-  left: 50%;
-  bottom: calc(56px + 10px);
+  left: 50%; bottom: calc(56px + 10px);
   transform: translateX(-50%);
   padding: 6px 10px;
   border-radius: 999px;
-
-  font-size: 11px;
-  font-weight: 950;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-
+  font-size: 11px; font-weight: 950; letter-spacing: 0.02em; white-space: nowrap;
   color: rgba(15,17,21,0.92);
   background: rgba(255,255,255,0.92);
   border: 1px solid rgba(15,17,21,0.10);
   box-shadow: 0 14px 28px rgba(15,17,21,0.12);
   backdrop-filter: blur(10px);
 }
+.qsc-fab:disabled .qsc-fab-label { opacity: 0.75; letter-spacing: 0.02em; }
 
-@media (max-width: 380px) { .qsc-fab { right: 10px; } }
-
-/* =========================
-   Header responsive
-   ========================= */
 @media (max-width: 920px) {
   .qsc-nav-desktop { display: none; }
   .qsc-burger { display: flex; }
   .qsc-nav-mobile { display: block; }
 }
-
-/* =========================
-   Login responsive
-   ========================= */
 @media (max-width: 480px){
-  .qsc-auth-inner,
-  .qsc-login-inner { gap: 12px; transform: translateY(var(--login-shift-mobile)); }
-
-  .qsc-auth-title,
-  .qsc-login-title{ font-size: 20px; }
-
-  .qsc-auth-sub,
-  .qsc-login-sub{ font-size: 12px; }
-
-  .qsc-auth-card,
-  .qsc-login-card{ padding: 14px; border-radius: 18px; }
-
-  .qsc-form,
-  .qsc-login-form{ gap: 12px; }
-
-  .qsc-input,
-  .qsc-login-input{ padding: 12px; border-radius: 14px; }
-
+  .qsc-auth-inner, .qsc-login-inner { gap: 12px; transform: translateY(var(--login-shift-mobile)); }
+  .qsc-auth-title, .qsc-login-title{ font-size: 20px; }
+  .qsc-auth-sub, .qsc-login-sub{ font-size: 12px; }
+  .qsc-auth-card, .qsc-login-card{ padding: 14px; border-radius: 18px; }
+  .qsc-form, .qsc-login-form{ gap: 12px; }
+  .qsc-input, .qsc-login-input{ padding: 12px; border-radius: 14px; }
   .qsc-btn{ height: 42px; border-radius: 14px; }
 }
-
 @media (max-height: 720px){
-  .qsc-auth-inner,
-  .qsc-login-inner{ transform: translateY(var(--login-shift-short)); }
-
-  .qsc-auth-top .qsc-logo-wrap img,
-  .qsc-login-top .qsc-logo-wrap img{
-    width: clamp(140px, 44vw, 230px) !important;
-  }
+  .qsc-auth-inner, .qsc-login-inner{ transform: translateY(var(--login-shift-short)); }
+  .qsc-auth-top .qsc-logo-wrap img, .qsc-login-top .qsc-logo-wrap img{ width: clamp(140px, 44vw, 230px) !important; }
 }
-
-/* =========================
-   Reduced motion
-   ========================= */
 @media (prefers-reduced-motion: reduce) {
-  .qsc-logo-anim,
-  .qsc-reveal,
-  .qsc-enter {
+  .qsc-logo-anim, .qsc-reveal, .qsc-enter {
     animation: none !important;
     opacity: 1 !important;
     transform: none !important;
@@ -1130,35 +926,26 @@ body:has(.qsc-auth) .qsc-frame {
 }
 
 /* =========================================================
-   CHECK PAGE (Final)
-   - Quarter widget / company bottom sheet / chips / store cards
+   CHECK PAGE (Cleaned up)
    ========================================================= */
 .qsc-checkPage { display: grid; gap: 14px; }
 
-/* ① 固定：日付 + Quarter */
 .qsc-quarterWidget {
-  position: sticky;
-  top: 10px;
-  z-index: 30;
-
-  display: flex;
+  position: sticky; top: 10px; z-index: 30;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 10px;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-
   border: 1px solid var(--line);
   border-radius: 18px;
-  padding: 12px 14px;
-
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--shadow2);
+  padding: 16px 16px 12px;
+  background: rgba(255,255,255,.82);
+  box-shadow: 0 14px 40px rgba(15,17,21,.08);
+  backdrop-filter: blur(10px);
   overflow: hidden;
 }
 .qsc-quarterWidget::before {
-  content: "";
-  position: absolute;
-  inset: -40px -40px auto -40px;
-  height: 120px;
+  content: ""; position: absolute; inset: -40px -40px auto -40px; height: 120px;
   background:
     radial-gradient(180px 120px at 18% 30%, rgba(25, 130, 255, 0.10), rgba(25, 130, 255, 0)),
     radial-gradient(160px 120px at 78% 10%, rgba(15, 17, 21, 0.06), rgba(15, 17, 21, 0));
@@ -1166,3079 +953,313 @@ body:has(.qsc-auth) .qsc-frame {
 }
 
 .qsc-quarterLeft { position: relative; display: grid; gap: 2px; }
+.qsc-mmdd { display: flex; align-items: center; gap: 10px; font-weight: 760; letter-spacing: -0.02em; }
+.qsc-mmdd span { font-size: 44px; line-height: 1; }
+.qsc-yearDow { margin-top: 6px; display: flex; gap: 10px; color: rgba(15,17,21,.62); font-weight: 650; }
+.qsc-year { font-size: 18px; }
+.qsc-dow { font-size: 18px; }
 
-.qsc-mmdd {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-  color: var(--fg);
+.qsc-quarterMid {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; justify-self: center;
+  padding: 6px 8px; border-radius: 999px;
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(10px);
 }
-
-.qsc-yearDow {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
-  color: var(--muted);
-  font-weight: 750;
+.qsc-weatherChip, .qsc-tempChip {
+  display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 10px;
+  border-radius: 999px; border: 1px solid rgba(15, 17, 21, 0.10); background: rgba(15, 17, 21, 0.04);
+  font-weight: 850; font-size: 12px; letter-spacing: -0.01em;
 }
-
-.qsc-year, .qsc-dow { font-size: 12px; font-variant-numeric: tabular-nums; }
+.qsc-tempChip { background: rgba(0, 122, 255, 0.10); border-color: rgba(0, 122, 255, 0.18); }
 
 .qsc-quarterRight { position: relative; display: grid; justify-items: end; gap: 4px; }
-
 .qsc-qChip {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
+  display: inline-flex; align-items: center; gap: 10px; padding: 10px 14px;
+  border-radius: 999px; background: rgba(59,130,246,.10); border: 1px solid rgba(59,130,246,.22);
+  font-weight: 760; letter-spacing: -0.01em; color: var(--sel-ink);
+}
+.qsc-qChipYear { opacity:.70; font-weight: 720; }
+.qsc-qHint { display:block; margin-top: 6px; text-align:right; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: rgba(15,17,21,.42); }
 
-  padding: 8px 12px;
-  border-radius: 999px;
-
-  border: 1px solid var(--sel-line);
-  background: var(--sel-bg);
-
-  font-size: 16px;
-  font-weight: 950;
-  letter-spacing: 0.08em;
-  color: var(--sel-ink);
-  white-space: nowrap;
+@media (max-width: 520px) {
+  .qsc-quarterWidget { grid-template-columns: 1fr 1fr; grid-template-areas: "left right" "mid mid"; }
+  .qsc-quarterLeft { grid-area: left; }
+  .qsc-quarterRight { grid-area: right; }
+  .qsc-quarterMid { grid-area: mid; justify-self: stretch; justify-content: center; }
 }
 
-.qsc-qChipYear {
-  font-size: 11px;
-  font-weight: 750;
-  color: var(--muted);
-  letter-spacing: 0.02em;
-  font-variant-numeric: tabular-nums;
-}
+.qsc-titleCheck { font-weight: 950; letter-spacing: -0.01em; line-height: 1.12; }
+.qsc-subCheck { font-weight: 800; color: rgba(15, 17, 21, 0.58); letter-spacing: 0.01em; }
 
-.qsc-qHint {
-  font-size: 11px;
-  font-weight: 750;
-  color: var(--muted);
-  letter-spacing: 0.10em;
-}
-
-/* ② Company button */
+/* Company button */
 .qsc-companyBtn {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-
-  padding: 12px 12px;
-  text-align: left;
-
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  border-radius: 18px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.92);
+  padding: 12px 12px; text-align: left;
   transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 .qsc-companyBtn:hover { transform: translateY(-1px); box-shadow: var(--shadow2); }
 .qsc-companyBtn.is-selected { border-color: var(--sel-line); background: var(--sel-bg); }
-
-.qsc-companyBtnLeft { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
-
 .qsc-companyBtnIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-  display: grid;
-  place-items: center;
-  color: rgba(15, 17, 21, 0.70);
+  width: 40px; height: 40px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.92);
+  display: grid; place-items: center; color: rgba(15, 17, 21, 0.70);
 }
-.qsc-companyBtn.is-selected .qsc-companyBtnIcon {
-  border-color: var(--sel-line);
-  background: rgba(255, 255, 255, 0.85);
-}
-
-.qsc-companyBtnText {
-  font-size: 15px;
-  font-weight: 950;
-  color: var(--fg);
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
+.qsc-companyBtn.is-selected .qsc-companyBtnIcon { border-color: var(--sel-line); background: rgba(255, 255, 255, 0.85); }
+.qsc-companyBtnText { font-size: 15px; font-weight: 950; color: var(--fg); letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .qsc-companyBtnRight { display: inline-flex; align-items: center; gap: 10px; color: rgba(15, 17, 21, 0.70); flex-shrink: 0; }
-
-.qsc-companySelected {
-  font-size: 11px;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  color: rgba(25, 130, 255, 0.85);
-}
+.qsc-companySelected { font-size: 11px; font-weight: 900; letter-spacing: 0.12em; color: rgba(25, 130, 255, 0.85); }
 
 /* Bottom sheet */
 .qsc-sheetOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-
-  /* ✅ 中央表示 */
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  /* iOS safe-area */
-  padding:
-    max(12px, env(safe-area-inset-top))
-    12px
-    max(12px, env(safe-area-inset-bottom))
-    12px;
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; align-items: center; justify-content: center;
+  padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom)) 12px;
 }
-
 .qsc-sheetBackdrop {
-  position: absolute;
-  inset: 0;
-  background: rgba(15, 17, 21, 0.48);
-  border: none;
+  position: absolute; inset: 0; border: none;
+  background: rgba(15,17,21,0.42); backdrop-filter: blur(2px);
 }
-
 .qsc-sheet {
-  position: relative;     /* absolute をやめる */
-  left: auto;
-  bottom: auto;
-  transform: none;
-
-  width: min(720px, 100%);
-  max-height: calc(
-    100dvh
-    - 24px
-    - env(safe-area-inset-top)
-    - env(safe-area-inset-bottom)
-  );
-
-  border-radius: 22px;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 22px 70px rgba(15, 17, 21, 0.30);
-  overflow: hidden;
-
-  display: grid;
-  grid-template-rows: auto auto 1fr;
+  position: relative; width: min(520px, calc(100% - 20px)); max-height: min(72svh, 640px);
+  bottom: 8px; border-radius: 24px;
+  border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.86);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 30px 90px rgba(15,17,21,0.34), 0 10px 24px rgba(15,17,21,0.12);
+  overflow: hidden; display: grid; grid-template-rows: auto auto 1fr;
 }
-
-.qsc-sheetHandle {
-  display: none;
+@media (max-width: 420px) {
+  .qsc-sheet { width: calc(100% - 16px); max-height: 68svh; bottom: 6px; border-radius: 20px; }
 }
-
-.qsc-sheetHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px 10px 12px;
-}
-
-.qsc-sheetTitle {
-  font-size: 13px;
-  font-weight: 950;
-  letter-spacing: 0.10em;
-  color: var(--fg);
-}
-
+.qsc-sheetHandle { width: 40px; height: 4px; margin: 10px auto 8px; background: rgba(15,17,21,0.16); }
+.qsc-sheetHead { padding: 10px 14px 8px; display: flex; align-items: center; justify-content: space-between; }
+.qsc-sheetTitle { font-size: 14px; font-weight: 900; letter-spacing: -0.01em; color: var(--fg); }
 .qsc-sheetClose {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-  display: grid;
-  place-items: center;
-  color: rgba(15, 17, 21, 0.75);
+  width: 40px; height: 40px; border-radius: 999px;
+  border: 1px solid rgba(15,17,21,0.10); background: rgba(255,255,255,0.72);
+  box-shadow: 0 10px 20px rgba(15,17,21,0.06); display: grid; place-items: center; color: rgba(15, 17, 21, 0.75);
 }
-
-.qsc-sheetSearch {
-  display: grid;
-  grid-template-columns: 42px 1fr 42px;
-  gap: 10px;
-  align-items: center;
-  padding: 0 12px 12px 12px;
-}
-
-.qsc-sheetSearchIcon {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-}
-
+.qsc-sheetClose:active{ transform: translateY(1px) scale(0.99); }
+.qsc-sheetSearch { padding: 0 14px 12px; display: grid; grid-template-columns: 42px 1fr 42px; gap: 10px; align-items: center; }
+.qsc-sheetSearchIcon { border-radius: 999px; width: 40px; height: 40px; border: 1px solid var(--line); background: rgba(255,255,255,0.72); display: grid; place-items: center; color: var(--muted); }
 .qsc-sheetSearchInput {
-  height: 42px;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-  padding: 0 12px;
-  font-size: 14px;
-  font-weight: 850;
-  outline: none;
+  border-radius: 999px; height: 42px; border: 1px solid rgba(15,17,21,0.10); background: rgba(15,17,21,0.04);
+  padding: 0 16px; font-size: 14px; font-weight: 850; outline: none;
 }
-.qsc-sheetSearchInput:focus { border-color: var(--sel-line); background: var(--sel-bg); }
-
-.qsc-sheetSearchClear {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-  color: rgba(15, 17, 21, 0.65);
-  font-weight: 950;
-}
-
-.qsc-sheetList { overflow: auto; border-top: 1px solid rgba(15, 17, 21, 0.06); }
-
+.qsc-sheetSearchInput:focus { background: rgba(33,94,255,0.08); border-color: rgba(33,94,255,0.20); box-shadow: 0 0 0 5px rgba(33,94,255,0.12); }
+.qsc-sheetSearchClear { border-radius: 999px; width: 40px; height: 40px; border: 1px solid var(--line); background: rgba(255,255,255,0.72); color: rgba(15, 17, 21, 0.65); font-weight: 950; }
+.qsc-sheetList { overflow: auto; border-top: 1px solid rgba(15, 17, 21, 0.08); background: rgba(255,255,255,0.55); }
 .qsc-sheetOpt {
-  width: 100%;
-  text-align: left;
-  display: grid;
-  grid-template-columns: 14px 1fr 28px;
-  align-items: center;
-  gap: 10px;
-
-  padding: 12px 14px;
-  border: none;
-  border-top: 1px solid rgba(15, 17, 21, 0.06);
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--fg);
+  width: 100%; text-align: left; display: grid; grid-template-columns: 14px 1fr 28px;
+  align-items: center; gap: 10px; padding: 14px 14px; border: none;
+  border-top: 1px solid rgba(15, 17, 21, 0.06); background: transparent; color: var(--fg);
+  transition: background 140ms ease, transform 120ms ease;
 }
 .qsc-sheetOpt:first-child { border-top: none; }
-.qsc-sheetOpt:hover { background: rgba(15, 17, 21, 0.04); }
-.qsc-sheetOpt.is-active { background: var(--sel-bg); }
+.qsc-sheetOpt:hover { background: rgba(15,17,21,0.03); }
+.qsc-sheetOpt:active { transform: scale(0.995); background: rgba(33,94,255,0.06); }
+.qsc-sheetOpt.is-active { background: rgba(33,94,255,0.10); }
+.qsc-sheetOptDot { width: 8px; height: 8px; border-radius: 999px; background: rgba(15,17,21,0.18); }
+.qsc-sheetOpt.is-active .qsc-sheetOptDot { background: rgba(33,94,255,0.70); }
+.qsc-sheetOptText { font-weight: 900; letter-spacing: -0.01em; }
+.qsc-sheetOptCheck { display: grid; place-items: center; color: rgba(33,94,255,0.90); }
+.qsc-sheetEmpty { padding: 14px; font-size: 12px; font-weight: 800; color: var(--muted); background: transparent; }
 
-.qsc-sheetOptDot { width: 10px; height: 10px; border-radius: 999px; background: rgba(15, 17, 21, 0.22); }
-.qsc-sheetOpt.is-active .qsc-sheetOptDot { background: rgba(25, 130, 255, 0.65); }
-
-.qsc-sheetOptText { font-weight: 900; }
-.qsc-sheetOptCheck { display: grid; place-items: center; color: rgba(25, 130, 255, 0.85); }
-
-.qsc-sheetEmpty { padding: 14px; font-size: 12px; font-weight: 800; color: var(--muted); }
-
-/* ③ Chips */
+/* Chips */
 .qsc-chipScroll2 {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 6px;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x mandatory;
+  display: flex; gap: 10px; overflow-x: hidden; overflow-y: visible;
+  scroll-snap-type: none; flex-wrap: wrap; padding-bottom: 0; row-gap: 10px;
 }
-.qsc-chipScroll2::-webkit-scrollbar { height: 6px; }
-.qsc-chipScroll2::-webkit-scrollbar-thumb { background: rgba(15, 17, 21, 0.12); border-radius: 999px; }
+.qsc-chipScroll2::-webkit-scrollbar { display: none; }
 .qsc-chipScroll2.is-disabled { opacity: 0.55; pointer-events: none; }
 
 .qsc-chip2 {
-  scroll-snap-align: start;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-
-  padding: 10px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--fg);
-
-  font-size: 12px;
-  font-weight: 950;
-  letter-spacing: 0.02em;
-
+  height: 40px; padding: 0 12px; gap: 8px; border-radius: 999px;
+  border: 1px solid var(--line); background: rgba(255, 255, 255, 0.92); color: var(--fg);
+  font-size: 12px; font-weight: 950; letter-spacing: 0.01em;
+  display: inline-flex; align-items: center;
   transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 .qsc-chip2:hover { transform: translateY(-1px); box-shadow: var(--shadow2); }
 .qsc-chip2:disabled { opacity: 0.55; cursor: not-allowed; transform: none; box-shadow: none; }
-
-.qsc-chip2-ic { display: grid; place-items: center; color: rgba(15, 17, 21, 0.70); }
-
-.qsc-chip2-ok {
-  width: 18px;
-  height: 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.14);
-  display: grid;
-  place-items: center;
-  color: rgba(25, 130, 255, 0.0);
-  background: rgba(255, 255, 255, 0.90);
+.qsc-chip2-ic { width: 18px; height: 18px; display: grid; place-items: center; color: rgba(15, 17, 21, 0.70); }
+.qsc-chip2-ic svg { width: 16px !important; height: 16px !important; display: block; }
+.qsc-chip2-tx {
+  font-size: 12px; font-weight: 950; line-height: 1; white-space: nowrap;
+  word-break: keep-all; writing-mode: horizontal-tb; text-orientation: mixed;
+  min-width: 0; overflow: hidden; text-overflow: ellipsis;
 }
+.qsc-chip2-ok { width: 18px; height: 18px; border-radius: 999px; border: 1px solid rgba(15, 17, 21, 0.14); display: grid; place-items: center; color: rgba(25, 130, 255, 0.0); background: rgba(255, 255, 255, 0.90); }
 .qsc-chip2-ok.is-on { color: rgba(25, 130, 255, 0.90); border-color: var(--sel-line); background: rgba(255, 255, 255, 0.96); }
-
+.qsc-chip2-ok svg { width: 14px !important; height: 14px !important; }
 .qsc-chip2.is-active { border-color: var(--sel-line); background: var(--sel-bg); box-shadow: var(--shadow2); }
 
-/* ④ Search row */
 .qsc-searchRow2 { display: grid; grid-template-columns: 42px 1fr; gap: 10px; align-items: center; }
+.qsc-searchIcon2 { width: 40px; height: 40px; border-radius: 14px; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.92); display: grid; place-items: center; color: var(--muted); }
 
-.qsc-searchIcon2 {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-}
-
-/* ⑤ Store cards */
+/* Store cards */
 .qsc-storeCards { display: grid; gap: 10px; }
-
 .qsc-storeCard {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgba(255, 255, 255, 0.92);
-  padding: 12px;
-
-  text-align: left;
-
+  width: 100%; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+  border-radius: 18px; padding: 12px; text-align: left;
+  background: rgba(255, 255, 255, 0.92); border: 1px solid rgba(15, 17, 21, 0.10);
   transition: transform 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 }
 .qsc-storeCard:hover { transform: translateY(-1px); box-shadow: var(--shadow2); }
-.qsc-storeCard:disabled { opacity: 0.62; cursor: not-allowed; transform: none; box-shadow: none; }
-
-.qsc-storeCardLeft { display: grid; gap: 8px; min-width: 0; }
-
-.qsc-storeTitle {
-  font-size: 15px;
-  font-weight: 950;
-  color: var(--fg);
-  letter-spacing: 0.02em;
-  line-height: 1.2;
+.qsc-storeCard:disabled { opacity: 0.55; cursor: not-allowed; }
+.qsc-storeCard.status-new, .qsc-storeCard.status-draft, .qsc-storeCard.status-done {
+  background: rgba(255, 255, 255, 0.92); box-shadow: 0 18px 45px rgba(15, 17, 21, 0.08);
 }
-
-.qsc-storeMeta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  color: var(--muted);
-  font-weight: 800;
-  font-size: 12px;
-}
-
-.qsc-storeMetaItem {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 1px solid rgba(15, 17, 21, 0.08);
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 999px;
-  padding: 6px 10px;
-  max-width: 100%;
-}
-
-.qsc-storeCardRight { display: grid; justify-items: end; gap: 10px; flex-shrink: 0; }
-
-.qsc-statusPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border-radius: 999px;
-  padding: 7px 10px;
-  font-size: 12px;
-  font-weight: 950;
-  border: 1px solid rgba(15, 17, 21, 0.12);
-  background: rgba(255, 255, 255, 0.92);
-  color: var(--fg);
-  white-space: nowrap;
-}
-
-/* 状態 */
-.qsc-storeCard.status-new { border-left: 4px solid rgba(15, 17, 21, 0.16); }
-.qsc-storeCard.status-draft { border-left: 4px solid rgba(25, 130, 255, 0.35); background: var(--sel-bg); border-color: var(--sel-line); }
-.qsc-storeCard.status-done { border-left: 4px solid rgba(0, 160, 80, 0.35); background: rgba(245, 247, 248, 0.96); }
-
-/* Empty / muted */
-.qsc-empty {
-  border: 1px dashed rgba(15, 17, 21, 0.14);
-  border-radius: 16px;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.60);
-}
-.qsc-emptyTitle { font-weight: 950; color: var(--fg); margin-bottom: 6px; }
-.qsc-emptyBody { font-size: 12px; font-weight: 750; color: var(--muted); }
-.qsc-mutedLine { font-size: 12px; font-weight: 750; color: var(--muted); }
-
-/* Mobile tweaks */
-@media (max-width: 560px) {
-  .qsc-quarterWidget { top: 8px; padding: 11px 12px; }
-  .qsc-mmdd { font-size: 24px; }
-  .qsc-storeCard { border-radius: 16px; padding: 11px 12px; }
-}
-/* =========================
-   Check page: 天気/気温 + タイトルの質感改善（追記）
-========================= */
-
-/* --- ① QuarterWidget内：中央（天気/気温） --- */
-.qsc-quarterWidget {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr; /* Left / Mid / Right */
-  gap: 10px;
-  align-items: center;
-}
-
-.qsc-quarterMid {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  justify-self: center;
-  padding: 6px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.75);
-  backdrop-filter: blur(10px);
-}
-
-/* chip */
-.qsc-weatherChip,
-.qsc-tempChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 30px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(15, 17, 21, 0.04);
-  font-weight: 850;
-  font-size: 12px;
-  letter-spacing: -0.01em;
-}
-
-.qsc-weatherChip.is-loading,
-.qsc-tempChip.is-loading {
-  opacity: 0.6;
-}
-
-.qsc-weatherLabel {
-  line-height: 1;
-}
-
-.qsc-tempChip {
-  background: rgba(0, 122, 255, 0.10);
-  border-color: rgba(0, 122, 255, 0.18);
-}
-
-.qsc-tempNum {
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.qsc-tempUnit {
-  font-size: 11px;
-  opacity: 0.8;
-}
-
-/* --- タイトル/説明文の“ダサさ”改善（Apple寄り） --- */
-.qsc-title {
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  line-height: 1.18;
-}
-
-.qsc-sub {
-  font-size: 13px;
-  font-weight: 650;
-  letter-spacing: -0.01em;
-  line-height: 1.55;
-  opacity: 0.72;
-}
-
-/* 小さい画面で3カラムが詰まるので、中央を下に落とす */
-@media (max-width: 520px) {
-  .qsc-quarterWidget {
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      "left right"
-      "mid mid";
-  }
-  .qsc-quarterLeft { grid-area: left; }
-  .qsc-quarterRight { grid-area: right; }
-  .qsc-quarterMid {
-    grid-area: mid;
-    justify-self: stretch;
-    justify-content: center;
-  }
-}
-/* =========================
-   Check: Quarter/Date widget polish (ADD)
-   ========================= */
-
-/* 既存の qsc-quarterWidget を “締まったカード” に */
-.qsc-quarterWidget{
-  border-radius: 18px;
-  padding: 16px 16px 12px;
-  background: rgba(255,255,255,.82);
-  border: 1px solid rgba(15,17,21,.08);
-  box-shadow: 0 14px 40px rgba(15,17,21,.08);
-  backdrop-filter: blur(10px);
-}
-
-/* 日付の主役感は維持しつつ、文字の階層を整える */
-.qsc-mmdd{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-weight: 760;
-  letter-spacing: -0.02em;
-}
-.qsc-mmdd span{
-  font-size: 44px; /* でかいのはOK。ここを主役にする */
-  line-height: 1;
-}
-.qsc-yearDow{
-  margin-top: 6px;
-  display:flex;
-  gap:10px;
-  color: rgba(15,17,21,.62);
-  font-weight: 650;
-}
-.qsc-year{
-  font-size: 18px;
-}
-.qsc-dow{
-  font-size: 18px;
-}
-
-/* Qチップは “線を薄く・中身を少し締める” */
-.qsc-qChip{
-  display:inline-flex;
-  align-items:center;
-  gap:10px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: rgba(59,130,246,.10);
-  border: 1px solid rgba(59,130,246,.22);
-  font-weight: 760;
-  letter-spacing: -0.01em;
-}
-.qsc-qChipYear{
-  opacity:.70;
-  font-weight: 720;
-}
-.qsc-qHint{
-  display:block;
-  margin-top: 6px;
-  text-align:right;
-  font-size: 12px;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: rgba(15,17,21,.42);
-}
-
-/* ▼ここが本命：下段の“間延びカプセル”をやめて、チップ列に */
-.qsc-metaRow{
-  margin-top: 12px;
-  display:flex;
-  align-items:center;
-  justify-content: flex-start; /* 左寄せ */
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-/* 天気/気温チップ（Appleっぽい薄いガラス） */
-.qsc-metaChip{
-  display:inline-flex;
-  align-items:center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(15,17,21,.10);
-  background: rgba(255,255,255,.72);
-  box-shadow: 0 8px 18px rgba(15,17,21,.06);
-  font-weight: 760;
-  letter-spacing: -0.01em;
-}
-.qsc-metaChip .ic{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  background: rgba(15,17,21,.06);
-}
-.qsc-metaChip .tx{
-  font-size: 16px;
-  line-height: 1;
-}
-
-/* 気温はほんのりブルーで“情報チップ”感 */
-.qsc-metaChip.is-temp{
-  background: rgba(59,130,246,.10);
-  border-color: rgba(59,130,246,.18);
-}
-.qsc-metaChip.is-temp .ic{
-  background: rgba(59,130,246,.18);
-}
-
-/* “店舗を選択して開始” の見出し/説明を上品に */
-.qsc-panel .qsc-title{
-  font-size: 22px;
-  letter-spacing: -0.02em;
-  font-weight: 780;
-}
-.qsc-panel .qsc-sub{
-  font-size: 14px;
-  line-height: 1.6;
-  color: rgba(15,17,21,.62);
-  font-weight: 650;
-}
-/* =========================================================
-   QSC Check - Date/Weather Card + Hero Typography
-   追記CSS（既存を崩さず上品に）
-   ========================================================= */
-
-.qsc-dateCard {
-  margin: 12px 14px 0;
-  padding: 14px 14px 12px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: var(--shadow2);
-  backdrop-filter: blur(10px);
-}
-
-.qsc-dateCardTop {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.qsc-dateBlock {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.qsc-qBlock {
-  display: grid;
-  gap: 6px;
-  justify-items: end;
-  text-align: right;
-  min-width: 120px;
-}
-
-.qsc-dateLine {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  white-space: nowrap;
-}
-
-.qsc-dateKey {
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  color: var(--muted);
-  min-width: 34px;
-}
-
-.qsc-dateVal {
-  font-size: 16px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--fg);
-}
-
-.qsc-dateValStrong {
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: 0.01em;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.qsc-qPill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(33, 94, 255, 0.18);
-  background: rgba(33, 94, 255, 0.08);
-  font-weight: 900;
-  letter-spacing: 0.06em;
-}
-
-.qsc-qHint {
-  margin-top: 2px;
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  color: rgba(15, 17, 21, 0.45);
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.qsc-dateCardBottom {
-  margin-top: 12px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.qsc-infoPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 10px 24px rgba(15, 17, 21, 0.06);
-}
-
-.qsc-infoIc {
-  width: 28px;
-  height: 28px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(15, 17, 21, 0.06);
-}
-
-.qsc-infoKey {
-  font-size: 12px;
-  color: var(--muted);
-  letter-spacing: 0.08em;
-  font-weight: 800;
-}
-
-.qsc-infoVal {
-  font-size: 16px;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-}
-
-.qsc-weatherHint {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: rgba(15, 17, 21, 0.45);
-  margin-left: auto;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px dashed rgba(15, 17, 21, 0.16);
-  background: rgba(255, 255, 255, 0.6);
-}
-
-/* ✅ 「店舗を選択して開始」周りのダサさ改善 */
-.qsc-checkHeroTitle {
-  font-size: 22px;
-  font-weight: 900;
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-}
-
-.qsc-checkHeroSub {
-  font-size: 13px;
-  color: rgba(15, 17, 21, 0.62);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-}
-
-/* モバイル微調整 */
-@media (max-width: 420px) {
-  .qsc-dateValStrong {
-    font-size: 24px;
-  }
-  .qsc-qBlock {
-    min-width: 108px;
-  }
-  .qsc-infoVal {
-    font-size: 15px;
-  }
-}
-/* =========================================================
-   QSC Check - iOS/Widget-ish Glass Cards (WIDTH FIXED)
-   ※ 他の qsc-panel と横幅を完全一致させる版
-   ========================================================= */
-
-/* 他カードと同じ「横幅の箱」に乗せる */
-.qsc-widgetWrap {
-  width: 100%;
-  display: grid;
-  gap: 10px;
-  margin-top: 12px; /* 上だけ余白 */
-}
-
-/* ウィジェット本体 */
-.qsc-widget {
-  width: 100%;
-  position: relative;
-  overflow: hidden;
-  border-radius: 22px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.78),
-    rgba(255, 255, 255, 0.62)
-  );
-  box-shadow:
-    0 22px 60px rgba(15, 17, 21, 0.10),
-    0 10px 22px rgba(15, 17, 21, 0.06);
-  backdrop-filter: blur(14px);
-}
-
-/* 中身の余白は panel と同じ感覚に */
-.qsc-widgetRow {
-  position: relative;
-  z-index: 2;
-  padding: 14px 16px; /* ← 他のカードの padding に合わせる */
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-/* subtle glow */
-.qsc-widgetGlow,
-.qsc-widgetGlow2 {
-  position: absolute;
-  inset: -40px;
-  z-index: 1;
-  filter: blur(30px);
-  opacity: 0.85;
-  pointer-events: none;
-  background:
-    radial-gradient(500px 220px at 20% 20%, rgba(33, 94, 255, 0.18), transparent 60%),
-    radial-gradient(420px 220px at 85% 30%, rgba(120, 200, 255, 0.14), transparent 62%),
-    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
-}
-
-.qsc-widgetGlow2 {
-  background:
-    radial-gradient(520px 240px at 18% 15%, rgba(33, 94, 255, 0.14), transparent 62%),
-    radial-gradient(420px 220px at 90% 30%, rgba(255, 180, 80, 0.12), transparent 60%),
-    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
-}
-
-/* =========================
-   Date widget
-   ========================= */
-.qsc-dateMain {
-  min-width: 0;
-}
-
-.qsc-dateBig {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 950;
-  letter-spacing: 0.01em;
-  font-size: 30px;
-  line-height: 1.05;
-}
-
-.qsc-dateBig svg {
-  opacity: 0.9;
-}
-
-.qsc-dateSub {
-  margin-top: 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 800;
-  color: rgba(15, 17, 21, 0.62);
-  letter-spacing: 0.02em;
-}
-
-.qsc-dateSubDot {
-  opacity: 0.5;
-}
-
-/* =========================
-   Quarter block
-   ========================= */
-.qsc-qMain {
-  text-align: right;
-  display: grid;
-  gap: 6px;
-  justify-items: end;
-  flex: 0 0 auto;
-}
-
-.qsc-qPill2 {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(33, 94, 255, 0.18);
-  background: rgba(33, 94, 255, 0.08);
-  box-shadow: 0 10px 22px rgba(15, 17, 21, 0.06);
-}
-
-.qsc-qPill2Q {
-  font-weight: 950;
-  letter-spacing: 0.06em;
-}
-
-.qsc-qPill2Y {
-  font-weight: 900;
-  color: rgba(15, 17, 21, 0.62);
-}
-
-.qsc-qLabel {
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(15, 17, 21, 0.45);
-  font-weight: 900;
-}
-
-/* =========================
-   Weather widget
-   ========================= */
-.qsc-weatherMain {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.qsc-weatherIc {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(15, 17, 21, 0.06);
-  box-shadow: 0 10px 20px rgba(15, 17, 21, 0.06);
-}
-
-.qsc-weatherText {
-  min-width: 0;
-}
-
-.qsc-weatherLabel {
-  font-size: 16px;
-  font-weight: 950;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.qsc-weatherHint {
-  margin-top: 4px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: rgba(15, 17, 21, 0.52);
-}
-
-/* =========================
-   Temp pill
-   ========================= */
-.qsc-tempPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06);
-}
-
-.qsc-tempVal {
-  font-size: 16px;
-  font-weight: 950;
-  letter-spacing: 0.02em;
-}
-
-/* =========================
-   Mobile tuning
-   ========================= */
-@media (max-width: 420px) {
-  .qsc-widgetRow {
-    padding: 13px 14px; /* panel と同じ */
-  }
-  .qsc-dateBig {
-    font-size: 28px;
-  }
-  .qsc-qPill2 {
-    padding: 8px 11px;
-  }
-}
-/* =========================================================
-   QSC Widget - Weather theme / TOD tone / Parallax
-   （既存の qsc-widget 系CSSの “下に追記” でOK）
-   ========================================================= */
-
-/* 微パララックス（ウィジェットwrapだけ動く） */
-.qsc-widgetParallax {
-  --qsc-parallaxY: 0px;
-  --qsc-parallaxA: 1;
-  transform: translate3d(0, var(--qsc-parallaxY), 0);
-  opacity: var(--qsc-parallaxA);
-  will-change: transform, opacity;
-}
-
-/* ウィジェットの雰囲気を “朝昼夜” で変える */
-.qsc-widget.tod-morning {
-  border-color: rgba(15, 17, 21, 0.10);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.84),
-    rgba(255, 255, 255, 0.64)
-  );
-}
-.qsc-widget.tod-day {
-  border-color: rgba(15, 17, 21, 0.10);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.78),
-    rgba(255, 255, 255, 0.60)
-  );
-}
-.qsc-widget.tod-night {
-  border-color: rgba(15, 17, 21, 0.14);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.72),
-    rgba(255, 255, 255, 0.54)
-  );
-}
-
-/* Dateの文字トーンも少し変える（夜は締める） */
-.qsc-widget.tod-night .qsc-dateSub,
-.qsc-widget.tod-night .qsc-weatherHint {
-  color: rgba(15, 17, 21, 0.56);
-}
-.qsc-widget.tod-morning .qsc-dateSub,
-.qsc-widget.tod-morning .qsc-weatherHint {
-  color: rgba(15, 17, 21, 0.60);
-}
-
-/* 天気で “グロー色” を切り替え（スマホウィジェット感の核） */
-.qsc-widget.wx-sunny .qsc-widgetGlow,
-.qsc-widget.wx-sunny .qsc-widgetGlow2 {
-  background:
-    radial-gradient(520px 260px at 22% 18%, rgba(255, 170, 60, 0.18), transparent 62%),
-    radial-gradient(460px 240px at 88% 28%, rgba(255, 220, 120, 0.16), transparent 62%),
-    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
-}
-
-.qsc-widget.wx-cloudy .qsc-widgetGlow,
-.qsc-widget.wx-cloudy .qsc-widgetGlow2 {
-  background:
-    radial-gradient(520px 260px at 22% 18%, rgba(120, 170, 255, 0.16), transparent 62%),
-    radial-gradient(460px 240px at 88% 28%, rgba(180, 200, 230, 0.14), transparent 62%),
-    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
-}
-
-.qsc-widget.wx-rain .qsc-widgetGlow,
-.qsc-widget.wx-rain .qsc-widgetGlow2 {
-  background:
-    radial-gradient(520px 260px at 22% 18%, rgba(60, 140, 255, 0.18), transparent 62%),
-    radial-gradient(460px 240px at 88% 28%, rgba(80, 190, 255, 0.14), transparent 62%),
-    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
-}
-
-.qsc-widget.wx-snow .qsc-widgetGlow,
-.qsc-widget.wx-snow .qsc-widgetGlow2 {
-  background:
-    radial-gradient(520px 260px at 22% 18%, rgba(200, 240, 255, 0.18), transparent 62%),
-    radial-gradient(460px 240px at 88% 28%, rgba(170, 210, 255, 0.14), transparent 62%),
-    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
-}
-
-.qsc-widget.wx-fog .qsc-widgetGlow,
-.qsc-widget.wx-fog .qsc-widgetGlow2 {
-  background:
-    radial-gradient(520px 260px at 22% 18%, rgba(160, 170, 190, 0.16), transparent 62%),
-    radial-gradient(460px 240px at 88% 28%, rgba(210, 210, 210, 0.12), transparent 62%),
-    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
-}
-
-/* タイトル/説明の “ダサい” を矯正（他カードのトーンに合わせる） */
-.qsc-titleCheck {
-  font-weight: 950;
-  letter-spacing: -0.01em;
-  line-height: 1.12;
-}
-
-.qsc-subCheck {
-  font-weight: 800;
-  color: rgba(15, 17, 21, 0.58);
-  letter-spacing: 0.01em;
-}
-/* =========================================================
-   QSC Check RUN - iOS/Widget-ish Glass Cards (FULL)
-   - 他カード幅に合わせる（qsc-panel内で100%）
-   - 天気ごとにグロー色切替（晴れ=暖色 / 雨=寒色）
-   - 朝昼夜でトーン変化
-   - スクロールでウィジェット微パララックス（JS側でtransform）
-   ========================================================= */
-
-.qsc-checkRunPage .qsc-panel {
-  /* 既存qsc-panel前提：幅統一 */
-}
-
-/* ウィジェット：panel内でフル幅 */
-.qsc-widget.qsc-widget--full {
-  width: 100%;
-}
-
-/* 開発用ボタン（後で消してOK） */
-.qsc-widgetDev {
-  position: absolute;
-  right: 12px;
-  bottom: 10px;
-  z-index: 3;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.08);
-  cursor: pointer;
-}
-.qsc-widgetDev:active {
-  transform: translateY(1px);
-}
-
-/* =========================================================
-   Widget base (あなたのCSSをベースに維持)
-   ========================================================= */
-
-.qsc-widget {
-  position: relative;
-  overflow: hidden;
-  border-radius: 22px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: linear-gradient(
-    135deg,
-    rgba(255, 255, 255, 0.78),
-    rgba(255, 255, 255, 0.62)
-  );
-  box-shadow:
-    0 22px 60px rgba(15, 17, 21, 0.10),
-    0 10px 22px rgba(15, 17, 21, 0.06);
-  backdrop-filter: blur(14px);
-  will-change: transform;
-}
-
-.qsc-widgetRow {
-  position: relative;
-  z-index: 2;
-  padding: 14px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-/* subtle glow base */
-.qsc-widgetGlow,
-.qsc-widgetGlow2 {
-  position: absolute;
-  inset: -40px;
-  z-index: 1;
-  filter: blur(30px);
-  opacity: 0.92;
-  pointer-events: none;
-}
-
-/* =========================================================
-   天気別グロー（晴れ=暖色 / 雨=寒色）
-   - data-weather で切替
-   ========================================================= */
-
-/* default */
-.qsc-widgetGlow {
-  background:
-    radial-gradient(520px 240px at 18% 15%, rgba(33, 94, 255, 0.14), transparent 62%),
-    radial-gradient(420px 220px at 90% 30%, rgba(120, 200, 255, 0.12), transparent 60%),
-    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.45), transparent 60%);
-}
-.qsc-widgetGlow2 {
-  background:
-    radial-gradient(520px 240px at 18% 15%, rgba(33, 94, 255, 0.10), transparent 62%),
-    radial-gradient(420px 220px at 90% 30%, rgba(255, 180, 80, 0.10), transparent 60%),
-    radial-gradient(520px 260px at 70% 110%, rgba(255, 255, 255, 0.38), transparent 60%);
-}
-
-/* SUNNY = 暖色強め */
-.qsc-widget[data-weather="sunny"] .qsc-widgetGlow {
-  background:
-    radial-gradient(520px 260px at 20% 18%, rgba(255, 170, 70, 0.22), transparent 62%),
-    radial-gradient(460px 240px at 88% 30%, rgba(255, 220, 140, 0.18), transparent 60%),
-    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.45), transparent 60%);
-}
-.qsc-widget[data-weather="sunny"] .qsc-widgetGlow2 {
-  background:
-    radial-gradient(520px 260px at 18% 15%, rgba(255, 140, 40, 0.16), transparent 62%),
-    radial-gradient(460px 240px at 92% 26%, rgba(255, 200, 120, 0.12), transparent 60%),
-    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.40), transparent 60%);
-}
-
-/* RAIN = 寒色強め */
-.qsc-widget[data-weather="rain"] .qsc-widgetGlow {
-  background:
-    radial-gradient(520px 260px at 18% 16%, rgba(40, 120, 255, 0.22), transparent 62%),
-    radial-gradient(460px 240px at 90% 30%, rgba(120, 200, 255, 0.18), transparent 60%),
-    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.40), transparent 60%);
-}
-.qsc-widget[data-weather="rain"] .qsc-widgetGlow2 {
-  background:
-    radial-gradient(520px 260px at 18% 16%, rgba(20, 80, 190, 0.14), transparent 62%),
-    radial-gradient(460px 240px at 92% 28%, rgba(120, 200, 255, 0.12), transparent 60%),
-    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.34), transparent 60%);
-}
-
-/* CLOUDY = 中間 */
-.qsc-widget[data-weather="cloudy"] .qsc-widgetGlow {
-  background:
-    radial-gradient(520px 260px at 18% 16%, rgba(80, 120, 220, 0.16), transparent 62%),
-    radial-gradient(460px 240px at 90% 30%, rgba(170, 190, 220, 0.16), transparent 60%),
-    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.42), transparent 60%);
-}
-
-/* SNOW = 透明感寄り */
-.qsc-widget[data-weather="snow"] .qsc-widgetGlow {
-  background:
-    radial-gradient(520px 260px at 18% 16%, rgba(160, 220, 255, 0.20), transparent 62%),
-    radial-gradient(460px 240px at 90% 30%, rgba(230, 245, 255, 0.20), transparent 60%),
-    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.46), transparent 60%);
-}
-
-/* WIND = 寒色寄り */
-.qsc-widget[data-weather="wind"] .qsc-widgetGlow {
-  background:
-    radial-gradient(520px 260px at 18% 16%, rgba(70, 160, 220, 0.18), transparent 62%),
-    radial-gradient(460px 240px at 90% 30%, rgba(160, 220, 255, 0.14), transparent 60%),
-    radial-gradient(520px 300px at 70% 112%, rgba(255, 255, 255, 0.42), transparent 60%);
-}
-
-/* =========================================================
-   朝昼夜トーン（data-daypart）
-   - 文字/背景を微調整して “時間帯の空気” を出す
-   ========================================================= */
-
-.qsc-widget[data-daypart="morning"] {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.66));
-}
-.qsc-widget[data-daypart="day"] {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.62));
-}
-.qsc-widget[data-daypart="night"] {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(245, 248, 255, 0.58));
-}
-.qsc-widget[data-daypart="night"] .qsc-dateSub,
-.qsc-widget[data-daypart="night"] .qsc-qPill2Y,
-.qsc-widget[data-daypart="night"] .qsc-weatherHint {
-  color: rgba(15, 17, 21, 0.56);
-}
-
-/* =========================================================
-   Date widget
-   ========================================================= */
-
-.qsc-dateMain {
-  min-width: 0;
-}
-
-.qsc-dateBig {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 950;
-  letter-spacing: 0.01em;
-  font-size: 30px;
-  line-height: 1.05;
-}
-
-.qsc-dateBig svg {
-  opacity: 0.9;
-}
-
-.qsc-dateSub {
-  margin-top: 6px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 13px;
-  font-weight: 800;
-  color: rgba(15, 17, 21, 0.62);
-  letter-spacing: 0.02em;
-}
-
-.qsc-dateSubDot {
-  opacity: 0.5;
-}
-
-.qsc-dateSubStrong {
-  font-weight: 900;
-}
-
-.qsc-dateSubTime {
-  font-variant-numeric: tabular-nums;
-}
-
-/* =========================================================
-   Quarter block
-   ========================================================= */
-
-.qsc-qMain {
-  text-align: right;
-  display: grid;
-  gap: 10px;
-  justify-items: end;
-  flex: 0 0 auto;
-}
-
-.qsc-qPill2 {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(33, 94, 255, 0.18);
-  background: rgba(33, 94, 255, 0.08);
-  box-shadow: 0 10px 22px rgba(15, 17, 21, 0.06);
-}
-
-.qsc-qPill2Q {
-  font-weight: 950;
-  letter-spacing: 0.06em;
-}
-
-.qsc-qPill2Y {
-  font-weight: 900;
-  color: rgba(15, 17, 21, 0.62);
-}
-
-.qsc-qLabel {
-  font-size: 11px;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: rgba(15, 17, 21, 0.45);
-  font-weight: 900;
-}
-
-/* =========================================================
-   Weather widget
-   ========================================================= */
-
-.qsc-weatherMain {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.qsc-weatherIc {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(15, 17, 21, 0.06);
-  box-shadow: 0 10px 20px rgba(15, 17, 21, 0.06);
-}
-
-.qsc-weatherText {
-  min-width: 0;
-  text-align: left;
-}
-
-.qsc-weatherLabel {
-  font-size: 16px;
-  font-weight: 950;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.qsc-weatherHint {
-  margin-top: 4px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-  color: rgba(15, 17, 21, 0.52);
-}
-
-/* Temp pill */
-.qsc-tempPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.75);
-  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06);
-}
-
-.qsc-tempVal {
-  font-size: 16px;
-  font-weight: 950;
-  letter-spacing: 0.02em;
-}
-
-/* Mobile tuning */
-@media (max-width: 420px) {
-  .qsc-widgetRow {
-    padding: 13px 12px;
-  }
-  .qsc-dateBig {
-    font-size: 28px;
-  }
-  .qsc-qPill2 {
-    padding: 8px 11px;
-  }
-}
-
-/* =========================================================
-   RUN Page Layout / Cards / Buttons
-   ========================================================= */
-
-.qsc-runTop {
-  margin-top: 12px;
-}
-
-.qsc-runTopRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.qsc-runMetaRight {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-
-.qsc-runMiniPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.82);
-  font-weight: 900;
-  font-size: 12px;
-  letter-spacing: 0.02em;
-  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06);
-}
-
-.qsc-runTitleRow {
-  margin-top: 10px;
-  display: grid;
-  gap: 10px;
-}
-
-.qsc-runTitle {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 950;
-  letter-spacing: 0.01em;
-}
-
-.qsc-runProgressText {
-  font-size: 12px;
-  font-weight: 900;
-  color: rgba(15, 17, 21, 0.62);
-  letter-spacing: 0.02em;
-  margin-bottom: 6px;
-}
-
-.qsc-runBar {
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(15, 17, 21, 0.08);
-  overflow: hidden;
-}
-
-.qsc-runBarFill {
-  height: 100%;
-  border-radius: 999px;
-  background: rgba(33, 94, 255, 0.62);
-  box-shadow: 0 14px 30px rgba(33, 94, 255, 0.20);
-}
-
-.qsc-runStoreCard {
-  border-radius: 18px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 55px rgba(15, 17, 21, 0.08);
-  padding: 12px 12px;
-}
-
-.qsc-runStoreTop {
-  display: grid;
-  gap: 10px;
-}
-
-.qsc-runStoreName {
-  font-size: 18px;
-  font-weight: 950;
-  letter-spacing: 0.01em;
-}
-
-.qsc-runStorePills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.qsc-runPill {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 8px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(15, 17, 21, 0.04);
-  font-size: 12px;
-  font-weight: 900;
-  letter-spacing: 0.02em;
-}
-
-.qsc-runStoreHint {
-  margin-top: 10px;
-  color: rgba(15, 17, 21, 0.62);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-
-.qsc-runSectionHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 10px;
-}
-
-.qsc-runSectionTitle {
-  font-size: 15px;
-  font-weight: 950;
-  letter-spacing: 0.02em;
-}
-
-.qsc-runSectionCount {
-  font-size: 12px;
-  font-weight: 900;
-  color: rgba(15, 17, 21, 0.62);
-}
-
-.qsc-runItems {
-  display: grid;
-  gap: 12px;
-}
-
-.qsc-runItem {
-  border-radius: 16px;
-  border: 1px solid rgba(15, 17, 21, 0.08);
-  background: rgba(255, 255, 255, 0.80);
-  padding: 12px 12px;
-  box-shadow: 0 14px 30px rgba(15, 17, 21, 0.05);
-}
-
-.qsc-runItemLabel {
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.01em;
-}
-
-.qsc-runTri {
-  margin-top: 10px;
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.qsc-runTriBtn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 10px;
-  border-radius: 14px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06);
-  font-weight: 950;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.08s ease, box-shadow 0.12s ease, background 0.12s ease;
-}
-
-.qsc-runTriBtn:active {
-  transform: translateY(1px) scale(0.99);
-}
-
-.qsc-runTriBtn.is-on {
-  border-color: rgba(33, 94, 255, 0.30);
-  background: rgba(33, 94, 255, 0.10);
-  box-shadow: 0 16px 36px rgba(33, 94, 255, 0.14);
-}
-
-.qsc-runTriBtn.is-ng.is-on {
-  border-color: rgba(230, 80, 80, 0.28);
-  background: rgba(230, 80, 80, 0.10);
-  box-shadow: 0 16px 36px rgba(230, 80, 80, 0.12);
-}
-
-.qsc-runTriBtn.is-hold.is-on {
-  border-color: rgba(255, 170, 70, 0.28);
-  background: rgba(255, 170, 70, 0.10);
-  box-shadow: 0 16px 36px rgba(255, 170, 70, 0.12);
-}
-
-/* Fixed bottom */
-.qsc-runBottom {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 50;
-  padding: 10px 14px 12px;
-  display: grid;
-  grid-template-columns: 1fr 1.2fr;
-  gap: 10px;
-  background: linear-gradient(
-    180deg,
-    rgba(246, 248, 251, 0.0),
-    rgba(246, 248, 251, 0.92) 28%,
-    rgba(246, 248, 251, 0.98)
-  );
-  backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(15, 17, 21, 0.08);
-}
-
-.qsc-runAction {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 14px 12px;
-  border-radius: 16px;
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.90);
-  box-shadow: 0 18px 55px rgba(15, 17, 21, 0.08);
-  font-weight: 950;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-}
-
-.qsc-runAction.is-primary {
-  border-color: rgba(33, 94, 255, 0.22);
-  background: rgba(33, 94, 255, 0.12);
-  box-shadow: 0 20px 60px rgba(33, 94, 255, 0.16);
-}
-
-.qsc-runAction.is-ghost {
-  background: rgba(255, 255, 255, 0.82);
-}
-
-.qsc-runAction.is-busy {
-  opacity: 0.72;
-  cursor: progress;
-}
-
-@media (max-width: 420px) {
-  .qsc-runBottom {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-/* =========================================================
-   RUN: spacing + typography finalize
-   ========================================================= */
-
-/* RUNページのpanel間のリズムを統一 */
-.qsc-checkRunPage .qsc-panel {
-  margin-top: 12px;
-}
-
-/* タイトル周りの余白と字面をApple寄りに締める */
-.qsc-checkRunPage .qsc-panel-link {
-  font-weight: 900;
-  letter-spacing: 0.02em;
-}
-
-/* セクションカードの見出しを“勝ち”にする */
-.qsc-runSectionTitle {
-  font-size: 16px;
-  letter-spacing: 0.01em;
-}
-
-/* 3択ボタン：押し心地をもう一段上げる */
-.qsc-runTriBtn {
-  -webkit-tap-highlight-color: transparent;
-}
-.qsc-runTriBtn:focus-visible {
-  outline: 3px solid rgba(33, 94, 255, 0.28);
-  outline-offset: 2px;
-}
-
-/* 固定ボトム：端末セーフエリア対応（iPhone） */
-.qsc-runBottom {
-  padding-bottom: calc(12px + env(safe-area-inset-bottom));
-}
-
-/* ウィジェット：他カードと同じ“角の丸みの体感”に寄せる */
-.qsc-widget {
-  border-radius: 20px; /* 22→20にしてpanel/cardと統一感 */
-}
-/* /check時に disabled の時だけ少し控えめに */
-.qsc-fab:disabled .qsc-fab-label {
-  opacity: 0.75;
-  letter-spacing: 0.02em;
-}
-/* ✅ 店舗カード：選択時の見た目 */
-.qsc-storeCard.is-selected{
-  border-color: rgba(33, 94, 255, 0.35);
-  background: rgba(33, 94, 255, 0.08);
-  box-shadow:
-    0 18px 45px rgba(15, 17, 21, 0.10),
-    0 10px 22px rgba(33, 94, 255, 0.12);
-  transform: translateY(-1px);
-}
-
-.qsc-storeCard.is-selected .qsc-storeTitle{
-  font-weight: 950;
-}
-
-.qsc-storeCard.is-selected .qsc-statusPill{
-  border-color: rgba(33, 94, 255, 0.25);
-  background: rgba(33, 94, 255, 0.10);
-}
-/* FAB が消える事故防止（z-index / pointer） */
-.qsc-fab {
-  z-index: 50;
-}
-
-/* bottomNavが fixed の場合、FABが背面に回るのを防ぐ */
-.qsc-bottomNav,
-nav[aria-label="App Bottom Navigation"] {
-  position: relative;
-  z-index: 40;
-}
-
-/* =========================
-   Store card: status色は「ピルだけ」にする
-   ========================= */
-.qsc-storeCard {
-  background: rgba(255, 255, 255, 0.92) !important;
-  border: 1px solid rgba(15, 17, 21, 0.10) !important;
-}
-
-/* status-* でカード全体に色が付いてる場合は殺す */
-.qsc-storeCard.status-new,
-.qsc-storeCard.status-draft,
-.qsc-storeCard.status-done {
-  background: rgba(255, 255, 255, 0.92) !important;
-  box-shadow: 0 18px 45px rgba(15, 17, 21, 0.08) !important;
-}
-
-/* ✅ 選択中だけ「ちゃんと青い」 */
 .qsc-storeCard.is-selected {
   border-color: rgba(33, 94, 255, 0.30) !important;
   background: rgba(33, 94, 255, 0.08) !important;
-  box-shadow:
-    0 22px 60px rgba(33, 94, 255, 0.16),
-    0 12px 26px rgba(15, 17, 21, 0.08) !important;
+  box-shadow: 0 22px 60px rgba(33, 94, 255, 0.16), 0 12px 26px rgba(15, 17, 21, 0.08) !important;
+  transform: translateY(-1px);
+}
+.qsc-storeCard.is-selected .qsc-storeTitle { font-weight: 950; }
+.qsc-storeCard.is-selected .qsc-statusPill { border-color: rgba(33, 94, 255, 0.25); background: rgba(33, 94, 255, 0.10); }
+
+.qsc-storeCardLeft { display: grid; gap: 8px; min-width: 0; }
+.qsc-storeTitle { font-size: 15px; font-weight: 950; color: var(--fg); letter-spacing: 0.02em; line-height: 1.2; }
+.qsc-storeMeta { display: flex; flex-wrap: wrap; gap: 8px; color: var(--muted); font-weight: 800; font-size: 12px; }
+.qsc-storeMetaItem {
+  display: inline-flex; align-items: center; gap: 6px;
+  border: 1px solid rgba(15, 17, 21, 0.08); background: rgba(255, 255, 255, 0.92);
+  border-radius: 999px; padding: 6px 10px; max-width: 100%;
+}
+.qsc-storeCardRight { display: grid; justify-items: end; gap: 10px; flex-shrink: 0; }
+.qsc-statusPill {
+  display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 7px 10px;
+  font-size: 12px; font-weight: 950; border: 1px solid rgba(15, 17, 21, 0.12);
+  background: rgba(255, 255, 255, 0.92); color: var(--fg); white-space: nowrap;
 }
 
-/* 完了カードは押せない＆色を落とす（任意） */
-.qsc-storeCard:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
 /* =========================================================
-   FIX: FAB double circle (button default styles)
+   RUN Page Layout Specifics
    ========================================================= */
-button.qsc-fab {
-  /* buttonデフォルトを完全に殺す */
-  appearance: none;
-  -webkit-appearance: none;
-
-  border: 0;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-
-  outline: none;
-  box-shadow: none;
-
-  /* レイアウト安定 */
-  display: inline-block;
-  border-radius: 999px;
+.qsc-runTop { margin-top: 12px; }
+.qsc-runTopRow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.qsc-runMetaRight { display: flex; gap: 10px; align-items: center; }
+.qsc-runMiniPill {
+  display: inline-flex; align-items: center; gap: 8px; padding: 8px 10px;
+  border-radius: 999px; border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(255, 255, 255, 0.82); font-weight: 900; font-size: 12px; letter-spacing: 0.02em;
+  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06);
 }
-
-/* disabledでも外側ボタンに背景/枠が出ないように */
-button.qsc-fab:disabled {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
+.qsc-runTitleRow { margin-top: 10px; display: grid; gap: 10px; }
+.qsc-runTitle { margin: 0; font-size: 22px; font-weight: 950; letter-spacing: 0.01em; }
+.qsc-runProgressText {
+  font-size: 12px; font-weight: 900; color: rgba(15, 17, 21, 0.62); letter-spacing: 0.02em; margin-bottom: 6px;
 }
-
-/* フォーカスリングは “内側” に寄せたいならこれ（任意） */
-button.qsc-fab:focus-visible {
-  outline: none;
+.qsc-runBar { height: 10px; border-radius: 999px; background: rgba(15, 17, 21, 0.08); overflow: hidden; }
+.qsc-runBarFill {
+  height: 100%; border-radius: 999px; background: rgba(33, 94, 255, 0.62);
+  box-shadow: 0 14px 30px rgba(33, 94, 255, 0.20);
 }
-button.qsc-fab:focus-visible .qsc-fab-inner {
-  box-shadow: 0 0 0 5px var(--focusRing), 0 18px 45px rgba(15,17,21,0.35);
+.qsc-runStoreCard {
+  border-radius: 18px; border: 1px solid rgba(15, 17, 21, 0.10); background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 55px rgba(15, 17, 21, 0.08); padding: 12px 12px;
 }
-/* =========================
-   Modal / Overlay “画面に収める”固定
-   ========================= */
-.qscModalOverlay,
-.qscPhotoModalOverlay,
-.qscDrawerOverlay {
-  max-width: 100vw;
-  max-height: 100svh;
+.qsc-runStoreTop { display: grid; gap: 10px; }
+.qsc-runStoreName { font-size: 18px; font-weight: 950; letter-spacing: 0.01em; }
+.qsc-runStorePills { display: flex; flex-wrap: wrap; gap: 8px; }
+.qsc-runPill {
+  display: inline-flex; align-items: center; gap: 7px; padding: 8px 10px;
+  border-radius: 999px; border: 1px solid rgba(15, 17, 21, 0.10);
+  background: rgba(15, 17, 21, 0.04); font-size: 12px; font-weight: 900; letter-spacing: 0.02em;
 }
+.qsc-runStoreHint { margin-top: 10px; color: rgba(15, 17, 21, 0.62); font-size: 12px; font-weight: 800; letter-spacing: 0.02em; }
 
-.qscModal,
-.qscPhotoModal,
-.qscDrawer {
-  max-width: 100vw;
-  max-height: 100svh;
+.qsc-runSectionHead { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.qsc-runSectionTitle { font-size: 16px; font-weight: 950; letter-spacing: 0.01em; }
+.qsc-runSectionCount { font-size: 12px; font-weight: 900; color: rgba(15, 17, 21, 0.62); }
+
+.qsc-runItems { display: grid; gap: 12px; }
+.qsc-runItem {
+  border-radius: 16px; border: 1px solid rgba(15, 17, 21, 0.08);
+  background: rgba(255, 255, 255, 0.80); padding: 12px 12px;
+  box-shadow: 0 14px 30px rgba(15, 17, 21, 0.05);
 }
+.qsc-runItemLabel { font-size: 14px; font-weight: 900; letter-spacing: 0.01em; }
 
-/* モーダル中のスクロールが効かず “画面がデカい” っぽくなるのを防ぐ */
-.qscModalBody,
-.qscPhotoModalBody {
-  min-height: 0;
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-}
-/* =========================
-   AppChrome: /check/run 用（枠は使うがHeader/Tabは無い）
-   ========================= */
-.qsc-frame.qsc-frame--run{
-  padding-top: 0; /* ✅ 共通ヘッダーが無いので詰める */
-  padding-bottom: 16px; /* ✅ 下タブが無いので最低限だけ */
-}
-
-.qsc-frame-shell.qsc-frame-shell--run{
-  /* runページは bottom sheet とかあるので “枠高さ” を少し余裕に */
-  height: calc(100svh - 16px);
-}
-
-.qsc-frame-scroll.qsc-frame-scroll--run{
-  /* runページ側の fixed bottom card を邪魔しない余白（必要なら） */
-  padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
-}
-/* 4択ピルの親が flex のとき：wrapさせずに等分に寄せる */
-.qsc-runItem :where(.triRow, .triGroup, .choiceRow, .choices){
-  display: grid !important;
-  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
-  gap: 8px !important;
-  min-width: 0;
-}
-
-/* ボタン共通（既存classが何でも効くように） */
-.qsc-runItem :where(button){
-  min-width: 0;
-}
-
-/* ピルっぽいボタンだけ狙いたいなら（丸い/枠線系） */
-.qsc-runItem :where(button){
-  overflow: hidden;
-}
-.qsc-runItem :where(button) :where(span){
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* =========================================
-   FIX: 4択ボタン（OK/保留/NG/該当なし）
-   - スマホで文字が潰れる問題を根本解決
-   - 2×2レイアウトにして可読性確保
-   ========================================= */
-
-/* まずボタン自体は “中身が潰れない” 基本形に固定 */
-.qsc-runTriBtn{
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-
-  height: 44px;
-  padding: 0 12px;
-  border-radius: 999px;
-
-  font-size: 14px;
-  font-weight: 900;
-  line-height: 1;
-  letter-spacing: 0.01em;
-
-  white-space: nowrap;
-  min-width: 0;
-}
-
-/* アイコンは縮まない */
-.qsc-runTriBtn svg{
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  display: block;
-}
-
-/* ラベルは潰れたら…省略（でも基本2×2で潰れない） */
-.qsc-runTriBtn span{
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* === ここが本命：スマホは 2×2 にする === */
-@media (max-width: 520px){
-  .qsc-runTri{
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .qsc-runTriBtn{
-    width: 100%;
-    justify-content: center;
-  }
-}
-
-/* さらに小さい端末だけ少し締める */
-@media (max-width: 380px){
-  .qsc-runTriBtn{
-    height: 42px;
-    padding: 0 10px;
-    font-size: 13px;
-  }
-}
-/* =========================
-   STOP BLEED: RUN 4択ボタン崩壊だけ止める
-   （globals.css の一番最後に追記）
-   ========================= */
-
-/* 危険：全ボタンを巻き込むやつを無効化（存在する場合の保険） */
-@supports selector(:has(*)) {
-  button:has(> svg.lucide){
-    display: revert !important;
-    align-items: revert !important;
-    justify-content: revert !important;
-    gap: revert !important;
-    overflow: visible !important;
-    white-space: normal !important;
-    line-height: normal !important;
-  }
-}
-
-/* RUNの4択だけを確実に整える */
-.qsc-runTri{
-  display:grid;
-  grid-template-columns:repeat(4, minmax(0, 1fr));
-  gap:8px;
-}
-
-.qsc-runTriBtn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-
-  min-width:0;
-  white-space:nowrap;
-  line-height:1;
-}
-
-.qsc-runTriBtn svg{
-  flex:0 0 auto;
-  width:16px;
-  height:16px;
-  display:block;
-}
-
-.qsc-runTriBtn span{
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-@media (max-width:520px){
-  .qsc-runTri{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
-  .qsc-runTriBtn{ width:100%; }
-}
-
-/* =========================
-   FIX: RUN 4択だけに限定（フッター等は巻き込まない）
-   globals.css の末尾に追記
-   ========================= */
-
-/* ❶ もし以前の “全button:has” が残ってるなら、無効化（保険） */
-@supports selector(:has(*)) {
-  button:has(> svg.lucide){
-    display: revert !important;
-    align-items: revert !important;
-    justify-content: revert !important;
-    gap: revert !important;
-    overflow: visible !important;
-    white-space: normal !important;
-    line-height: normal !important;
-  }
-}
-
-/* ❷ 4択ゾーンの中だけ、アイコン付きボタンを整形 */
-@supports selector(:has(*)) {
-  .qsc-runTri button:has(> svg.lucide){
-    display:inline-flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    gap:8px !important;
-
-    min-width:0;
-    overflow:hidden;
-    white-space:nowrap;
-    line-height:1;
-  }
-
-  .qsc-runTri button:has(> svg.lucide) > svg.lucide{
-    flex:0 0 auto;
-    width:16px;
-    height:16px;
-    display:block;
-  }
-
-  .qsc-runTri button:has(> svg.lucide) > span{
-    min-width:0;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-  }
-}
-
-/* ❸ 4択レイアウトは .qsc-runTri の中だけ */
-.qsc-runTri{
-  display:grid;
-  grid-template-columns:repeat(4, minmax(0, 1fr));
-  gap:8px;
-}
-
-/* ❹ 4択ボタンの見た目も .qsc-runTri の中だけに限定 */
-.qsc-runTri .qsc-runTriBtn{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-
-  min-width:0;
-  white-space:nowrap;
-  line-height:1;
-}
-
-.qsc-runTri .qsc-runTriBtn svg{
-  flex:0 0 auto;
-  width:16px;
-  height:16px;
-  display:block;
-}
-
-.qsc-runTri .qsc-runTriBtn span{
-  min-width:0;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-@media (max-width:520px){
-  .qsc-runTri{ grid-template-columns:repeat(2, minmax(0,1fr)); gap:10px; }
-  .qsc-runTri .qsc-runTriBtn{ width:100%; }
-}
-
-@supports selector(:has(*)) {
-  /* ✅ RUNの4択だけ */
-  .qsc-runTri button:has(> svg.lucide){
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    gap:8px;
-
-    min-width:0;
-    overflow:hidden;
-    white-space:nowrap;
-    line-height:1;
-  }
-  .qsc-runTri button:has(> svg.lucide) > svg.lucide{
-    flex:0 0 auto;
-    width:16px;
-    height:16px;
-    display:block;
-  }
-  .qsc-runTri button:has(> svg.lucide) > span{
-    min-width:0;
-    overflow:hidden;
-    text-overflow:ellipsis;
-    white-space:nowrap;
-  }
-}
-/* =========================================
-   FIX: 4択（OK/保留/NG/該当なし）
-   - “縦積み”で重心を揃えて崩れないようにする
-   - フッター(.qsc-runBottom)は影響させない
-   ========================================= */
-
-/* 4択のコンテナ */
-.qsc-runItem .qsc-runTri{
+/* 4択ボタン（OK/保留/NG/該当なし） - 縦積み・スマホ対応 */
+.qsc-runTri {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
+  margin-top: 10px;
 }
 
-/* 4択ボタン：アイコン上、文字下で統一 */
-.qsc-runItem .qsc-runTriBtn{
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  height: 64px;            /* ✅ 縦積み用の高さを確保 */
-  padding: 10px 8px;
-  border-radius: 18px;
-
-  gap: 6px;
-  line-height: 1;
-  letter-spacing: 0;       /* ✅ ここがズレの原因になりやすいので0 */
-  -webkit-tap-highlight-color: transparent;
-
+.qsc-runTriBtn {
+  appearance: none; -webkit-appearance: none;
+  border: 1px solid rgba(15, 17, 21, 0.10); background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 12px 26px rgba(15, 17, 21, 0.06); border-radius: 18px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; height: 64px; padding: 8px 4px;
+  color: var(--fg); cursor: pointer;
+  transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
   min-width: 0;
-  overflow: hidden;
+}
+.qsc-runTriBtn:active { transform: translateY(1px) scale(0.99); }
+.qsc-runTriBtn svg { flex: 0 0 auto; width: 18px; height: 18px; display: block; }
+.qsc-runTriBtn span {
+  font-size: 13px; font-weight: 900; line-height: 1.15; text-align: center;
+  white-space: normal; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+.qsc-runTriBtn.is-on { background: rgba(33, 94, 255, 0.10); border-color: rgba(33, 94, 255, 0.30); box-shadow: 0 14px 30px rgba(33, 94, 255, 0.14); }
+.qsc-runTriBtn.is-ng.is-on { background: rgba(230, 80, 80, 0.10); border-color: rgba(230, 80, 80, 0.28); box-shadow: 0 14px 30px rgba(230, 80, 80, 0.12); }
+.qsc-runTriBtn.is-hold.is-on { background: rgba(255, 170, 70, 0.10); border-color: rgba(255, 170, 70, 0.28); box-shadow: 0 14px 30px rgba(255, 170, 70, 0.12); }
+
+@media (max-width: 520px) {
+  .qsc-runTri { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
 }
 
-/* アイコン：サイズ固定 & 縮まない */
-.qsc-runItem .qsc-runTriBtn > svg{
-  flex: 0 0 auto;
-  width: 18px;
-  height: 18px;
-  display: block;
+/* チェック項目選択ボタン */
+.qscChoices { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.qscChoice {
+  appearance: none; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 6px; height: 72px; padding: 8px 4px; border-radius: 16px;
+  border: 1px solid rgba(15, 17, 21, 0.10); background: #fff; color: var(--fg);
+  cursor: pointer; transition: all 0.18s ease; box-shadow: 0 6px 16px rgba(15, 17, 21, 0.04);
 }
+.qscChoice:active { transform: translateY(1px); }
+.qscChoice svg { width: 20px; height: 20px; flex: 0 0 auto; }
+.qscChoice span { font-size: 12px; font-weight: 900; line-height: 1.2; text-align: center; white-space: normal; }
+.qscChoice[aria-pressed="true"] { box-shadow: 0 10px 24px rgba(15,17,21,0.12); }
+.qscChoice.choiceOk[aria-pressed="true"] { background: rgba(47, 140, 230, 0.10); border-color: rgba(47, 140, 230, 0.35); color: #2f8ce6; }
+.qscChoice.choiceHold[aria-pressed="true"] { background: rgba(255, 159, 10, 0.12); border-color: rgba(255, 159, 10, 0.40); color: #ff9f0a; }
+.qscChoice.choiceNg[aria-pressed="true"] { background: rgba(255, 59, 48, 0.12); border-color: rgba(255, 59, 48, 0.45); color: #ff3b30; }
+.qscChoice.choiceNa[aria-pressed="true"] { background: rgba(15, 17, 21, 0.06); border-color: rgba(15, 17, 21, 0.30); color: rgba(15, 17, 21, 0.65); }
 
-/* ラベル：2行OK。センターで “該当なし” でも破綻しない */
-.qsc-runItem .qsc-runTriBtn > span{
-  font-size: 13px;
-  font-weight: 900;
-  line-height: 1.15;
-
-  white-space: normal;     /* ✅ 2行許可 */
-  text-align: center;
-  text-wrap: balance;      /* 対応ブラウザでは良い感じに折る */
+/* 実行画面フッター */
+.qsc-runBottom {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
+  padding: 10px 14px 12px;
+  display: grid; grid-template-columns: 1fr 1.2fr; gap: 10px;
+  background: linear-gradient(180deg, rgba(246, 248, 251, 0.0), rgba(246, 248, 251, 0.92) 28%, rgba(246, 248, 251, 0.98));
+  backdrop-filter: blur(10px); border-top: 1px solid rgba(15, 17, 21, 0.08);
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
 }
-
-/* 小さい端末は少し締める */
-@media (max-width: 380px){
-  .qsc-runItem .qsc-runTriBtn{
-    height: 60px;
-    padding: 9px 7px;
-    border-radius: 16px;
-  }
-  .qsc-runItem .qsc-runTriBtn > span{
-    font-size: 12.5px;
-  }
+.qsc-runAction {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  height: 52px; padding: 0 16px; border-radius: 18px;
+  border: 1px solid rgba(15, 17, 21, 0.10); background: rgba(255, 255, 255, 0.90);
+  box-shadow: 0 18px 55px rgba(15, 17, 21, 0.08);
+  font-weight: 950; letter-spacing: 0.02em; line-height: 1; white-space: nowrap;
+  cursor: pointer;
 }
-
-/* ✅ ここ重要：フッターのボタンは “横並び” を強制して守る */
-.qsc-runBottom .qsc-runAction,
-.qsc-runBottom button[class*="qscAction"],
-.qsc-runBottom button[class*="actionPrimary"],
-.qsc-runBottom button[class*="actionGhost"]{
-  display: inline-flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 10px !important;
-
-  height: 52px;
-  padding: 0 16px;
-  border-radius: 18px;
-
-  line-height: 1 !important;
+.qsc-runAction.is-primary {
+  border-color: rgba(33, 94, 255, 0.22); background: rgba(33, 94, 255, 0.12);
+  box-shadow: 0 20px 60px rgba(33, 94, 255, 0.16);
 }
+.qsc-runAction.is-ghost { background: rgba(255, 255, 255, 0.82); }
+.qsc-runAction.is-busy { opacity: 0.72; cursor: progress; }
 
-.qsc-runBottom .qsc-runAction > span,
-.qsc-runBottom button[class*="qscAction"] > span{
-  white-space: nowrap !important;
-  text-align: center;
-}
-
-.qsc-runBottom .qsc-runAction > svg,
-.qsc-runBottom button[class*="qscAction"] > svg{
-  width: 18px;
-  height: 18px;
-  flex: 0 0 auto;
-  display: block;
-}
-/* =========================================
-   HARD FIX: グローバル button:has(>svg.lucide) を局所化
-   - 4択だけ縦積み
-   - フッターは横並びを強制
-   ========================================= */
-
-/* --- 0) まず「全ボタン」に効いてしまうやつを“無効化”する上書き --- */
-/* :has が効く環境ではこれが最優先で刺さるので、必要な場所で打ち消す */
-.qsc-runBottom button,
-.qsc-runBottom a,
-.qsc-runBottom .qsc-runAction,
-.qsc-runBottom [class*="qscAction"]{
-  display: inline-flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 10px !important;
-  overflow: visible !important;
-  white-space: normal !important;
-  line-height: 1 !important;
-}
-
-/* フッター内のsvg/テキストを安定 */
-.qsc-runBottom button > svg,
-.qsc-runBottom a > svg,
-.qsc-runBottom .qsc-runAction > svg{
-  width: 18px !important;
-  height: 18px !important;
-  flex: 0 0 auto !important;
-  display: block !important;
-}
-.qsc-runBottom button > span,
-.qsc-runBottom a > span,
-.qsc-runBottom .qsc-runAction > span{
-  white-space: nowrap !important;
-  min-width: 0 !important;
-}
-
-/* --- 1) 4択（OK/保留/NG/該当なし）だけを “縦積み固定” --- */
-/* .qsc-runTriBtn を使ってない場合もあるので、triコンテナ配下のボタンを直指定 */
-.qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button{
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-
-  height: 64px !important;
-  padding: 10px 8px !important;
-  gap: 6px !important;
-
-  min-width: 0 !important;
-  overflow: hidden !important;
-  line-height: 1 !important;
-  border-radius: 18px !important;
-}
-
-/* 4択：アイコン */
-.qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button > svg{
-  width: 18px !important;
-  height: 18px !important;
-  flex: 0 0 auto !important;
-  display: block !important;
-}
-
-/* 4択：ラベル（2行OKで崩れない） */
-.qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button > span{
-  font-size: 13px !important;
-  font-weight: 900 !important;
-  line-height: 1.15 !important;
-  text-align: center !important;
-  white-space: normal !important; /* ← “該当なし” を2行にできる */
-  overflow: hidden !important;
-}
-
-/* 小さい端末だけ少し締める */
-@media (max-width: 380px){
-  .qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button{
-    height: 60px !important;
-    padding: 9px 7px !important;
-    border-radius: 16px !important;
-  }
-  .qsc-runItem :where(.qsc-runTri, [class*="runTri"], [class*="tri"], [class*="choice"], [class*="choices"]) > button > span{
-    font-size: 12.5px !important;
-  }
-}
-/* =========================================
-   FIX: CheckRunPage の「4択」と「フッター」を完全分離
-   - CSS Modules のハッシュ変動に強い（class* で拾う）
-   - 4択: 縦積み（アイコン上・文字下）
-   - フッター: 横並び（アイコン左・文字右）
-   ========================================= */
-
-/* -------------------------
-   1) フッターボタン（__qscAction）
-   ------------------------- */
-button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"]{
-  display: inline-flex !important;
-  flex-direction: row !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 10px !important;
-
-  height: 54px !important;
-  padding: 0 16px !important;
-
-  white-space: nowrap !important;
-  line-height: 1 !important;
-
-  overflow: hidden !important; /* 見切れ防止 */
-  min-width: 0 !important;
-}
-
-button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"] > svg.lucide{
-  width: 18px !important;
-  height: 18px !important;
-  flex: 0 0 auto !important;
-  display: block !important;
-}
-
-button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"] > span{
-  white-space: nowrap !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-  text-overflow: ellipsis !important;
-}
-
-/* -------------------------
-   2) 4択ボタン（__qscChoice）
-   ------------------------- */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  gap: 6px !important;
-
-  height: 64px !important;
-  padding: 10px 8px !important;
-
-  line-height: 1 !important;
-  min-width: 0 !important;
-  overflow: hidden !important;
-}
-
-/* 4択の「左の点」 */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] > span[class*="__qscChoiceDot"]{
-  display: none !important; /* 点が不要なら消す（必要ならこの行だけ消してOK） */
-}
-
-/* 4択のアイコン */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] > svg.lucide{
-  width: 18px !important;
-  height: 18px !important;
-  flex: 0 0 auto !important;
-  display: block !important;
-}
-
-/* 4択のラベル（該当なしなどは2行OK） */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] > span:not([class*="__qscChoiceDot"]){
-  font-size: 13px !important;
-  font-weight: 900 !important;
-  line-height: 1.15 !important;
-  text-align: center !important;
-
-  white-space: normal !important;  /* ← ここが肝：2行にできる */
-  overflow: hidden !important;
-}
-
-/* 超小型だけ少し締める */
-@media (max-width: 380px){
-  button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
-    height: 60px !important;
-    padding: 9px 7px !important;
-    gap: 5px !important;
-  }
-  button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] > span:not([class*="__qscChoiceDot"]){
-    font-size: 12.5px !important;
-  }
-}
-/* =========================================
-   FIX2: 文字欠け対策（4択 / フッター）
-   ========================================= */
-
-/* -------------------------
-   A) 4択（__qscChoice）: 「該当なし」を2行で確実に見せる
-   ------------------------- */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
-  height: 72px !important;           /* ← 少しだけ高さを足す */
-  padding: 10px 8px !important;
-  overflow: visible !important;       /* ← ここが重要：文字の欠けを止める */
-}
-
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
-  > span:not([class*="__qscChoiceDot"]){
-  max-width: 100% !important;
-  white-space: normal !important;     /* ← 2行OK */
-  line-height: 1.15 !important;
-  text-align: center !important;
-
-  /* 2行で止める（はみ出しは防ぐが、途中欠けはしない） */
-  display: -webkit-box !important;
-  -webkit-box-orient: vertical !important;
-  -webkit-line-clamp: 2 !important;
-  overflow: hidden !important;
-}
-
-/* -------------------------
-   B) フッター（__qscAction）:
-      Primary(完了)だけ「横並び」
-      それ以外は「縦積み」で省略を根絶
-   ------------------------- */
-
-/* まず共通：切り詰めを無効化 */
-button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"] > span{
-  text-overflow: clip !important;
-}
-
-/* Primary（完了）は横並びのまま */
-button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"][class*="__actionPrimary"]{
-  flex-direction: row !important;
-  height: 54px !important;
-}
-
-/* Primary以外（途中保存/破棄）は縦積みで幅不足を回避 */
-button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"]:not([class*="__actionPrimary"]){
-  flex-direction: column !important;
-  height: 62px !important;
-  gap: 6px !important;
-  padding: 10px 10px !important;
-}
-
-button[class*="CheckRunPage-bottom-module__"][class*="__qscAction"]:not([class*="__actionPrimary"]) > span{
-  white-space: nowrap !important;     /* 縦積みなのでnowrapでも入る */
-  font-size: 12.5px !important;       /* ここで少し締める */
-  line-height: 1 !important;
-}
-/* =========================================
-   FIX3: 4択（OK/保留/NG/該当なし）
-   - 背景は全部白
-   - アイコンだけ色
-   - 「該当なし」の “なし” 切れ防止
-   ========================================= */
-
-/* 4択ボタン本体（__qscChoice） */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
-  background: rgba(255,255,255,0.95) !important; /* ← 全部白 */
-  border: 1px solid rgba(15,17,21,0.14) !important;
-  box-shadow: 0 10px 24px rgba(15,17,21,0.06) !important;
-
-  height: 78px !important;            /* ← 72→78 で “なし” 切れを止める */
-  padding: 11px 10px 13px !important; /* ← 下に余白を足す（重要） */
-
-  overflow: visible !important;       /* 文字の欠け防止 */
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-/* ドット（qscChoiceDot）は色を変えない：必要なら後で調整 */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] 
-  > span[class*="__qscChoiceDot"]{
-  opacity: 0.35 !important;
-}
-
-/* ラベル（OK/保留/NG/該当なし）：2行で見せる＆下切れ防止 */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
-  > span:not([class*="__qscChoiceDot"]){
-  white-space: normal !important;
-  line-height: 1.22 !important;       /* ← 下切れしにくい値 */
-  text-align: center !important;
-
-  display: -webkit-box !important;
-  -webkit-box-orient: vertical !important;
-  -webkit-line-clamp: 2 !important;   /* 2行 */
-  overflow: hidden !important;
-  padding-bottom: 1px !important;     /* ← iOSの微妙なクリップ保険 */
-}
-
-/* アイコン共通（サイズ＆位置安定） */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"] svg.lucide{
-  width: 18px !important;
-  height: 18px !important;
-  flex: 0 0 auto !important;
-  display: block !important;
-}
-
-/* --- アイコンだけ色分け（lucideのクラス名で判定） --- */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
-  svg.lucide-circle-check{ color: #2f8ce6 !important; } /* OK: 青 */
-
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
-  svg.lucide-circle-pause{ color: #ff9f0a !important; } /* 保留: オレンジ */
-
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
-  svg.lucide-circle-x{ color: #ff3b30 !important; }     /* NG: 赤 */
-
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
-  svg.lucide-circle-minus{ color: rgba(15,17,21,0.55) !important; } /* 該当なし: グレー */
-
-/* 押下中（aria-pressed=true）は「枠だけ」少し強く（背景は白のまま） */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]{
-  border-color: rgba(25,130,255,0.28) !important;
-  box-shadow: 0 14px 30px rgba(15,17,21,0.08) !important;
-}
-
-/* active時の沈み */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]:active{
-  transform: translateY(1px) scale(0.99);
-}
-/* 選択中：白背景のまま「内側グロー」 */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]{
-  box-shadow:
-    0 14px 30px rgba(15,17,21,0.08),
-    0 0 0 4px rgba(25,130,255,0.10) inset !important;
-}
-
-/* 「該当なし」行だけの保険（2行目の切れを完全停止） */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]
-  svg.lucide-circle-minus
-  + span{
-  padding-bottom: 2px !important;
-}
-/* =========================================
-   4択：色だけで分かる「選択中」UI（最終形）
-   ========================================= */
-
-/* 共通（未選択） */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]{
-  background: #fff !important;
-  border: 1px solid rgba(15,17,21,0.16) !important;
-  box-shadow: 0 6px 16px rgba(15,17,21,0.06) !important;
-  transition: background .18s ease, border-color .18s ease, box-shadow .18s ease;
-}
-
-/* 余計な装飾は完全OFF */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"]::before{
-  content: none !important;
-}
-
-/* -------------------------
-   選択中（aria-pressed）
-   ------------------------- */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]{
-  box-shadow: 0 10px 24px rgba(15,17,21,0.12) !important;
-}
-
-/* =========================
-   状態別：色だけで表現
-   ========================= */
-
-/* OK */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]
-  svg.lucide-circle-check{
-  color: #2f8ce6 !important;
-}
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]:has(svg.lucide-circle-check){
-  background: rgba(47,140,230,0.10) !important;
-  border-color: rgba(47,140,230,0.35) !important;
-}
-
-/* 保留 */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]
-  svg.lucide-circle-pause{
-  color: #ff9f0a !important;
-}
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]:has(svg.lucide-circle-pause){
-  background: rgba(255,159,10,0.12) !important;
-  border-color: rgba(255,159,10,0.40) !important;
-}
-
-/* NG */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]
-  svg.lucide-circle-x{
-  color: #ff3b30 !important;
-}
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]:has(svg.lucide-circle-x){
-  background: rgba(255,59,48,0.12) !important;
-  border-color: rgba(255,59,48,0.45) !important;
-}
-
-/* 該当なし */
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]
-  svg.lucide-circle-minus{
-  color: rgba(15,17,21,0.65) !important;
-}
-button[class*="CheckRunPage-base-module__"][class*="__qscChoice"][aria-pressed="true"]:has(svg.lucide-circle-minus){
-  background: rgba(15,17,21,0.06) !important;
-  border-color: rgba(15,17,21,0.30) !important;
-}
-/* =========================================================
-   FIX: 横スクロールを根絶（ページ全体 + チップ列）
-   ========================================================= */
-
-/* 画面外にはみ出す要素があっても横スクロールさせない */
-html, body {
-  overflow-x: hidden !important;
-}
-
-.qsc-frame,
-.qsc-frame-shell,
-.qsc-frame-scroll,
-.qsc-checkPage {
-  max-width: 100%;
-  overflow-x: hidden !important;
-}
-
-/* iOSで“横にグイッ”の慣性が出るのも抑える */
-.qsc-frame-scroll {
-  overscroll-behavior-x: none;
-}
-
-/* チップ列：横スクロール → 折り返し（wrap）へ */
-.qsc-chipScroll2 {
-  overflow-x: hidden !important;
-  overflow-y: visible !important;
-  scroll-snap-type: none !important;
-
-  flex-wrap: wrap;            /* ✅ 横流れをやめる */
-  padding-bottom: 0 !important;
-  row-gap: 10px;
-}
-.qsc-chipScroll2::-webkit-scrollbar {
-  display: none !important;
-}
-/* =========================================================
-   FIX: CompanyPicker ボトムシートを“デカすぎ”にしない
-   ========================================================= */
-
-.qsc-sheet {
-  width: min(520px, calc(100% - 20px)) !important; /* 720→520 */
-  max-height: min(72svh, 640px) !important;        /* 82vh→締める */
-  bottom: 8px !important;
-}
-
-/* 中の余白も少し締めて“情報密度”を上げる */
-.qsc-sheetHead {
-  padding: 10px 12px !important;
-}
-.qsc-sheetSearch {
-  padding: 0 12px 10px 12px !important;
-}
-
-/* 小さい端末は“ほぼフル幅”だけど高さは守る */
 @media (max-width: 420px) {
-  .qsc-sheet {
-    width: calc(100% - 16px) !important;
-    max-height: 68svh !important;
-    bottom: 6px !important;
-    border-radius: 20px !important;
-  }
-}
-/* =========================================================
-   FIX: チップ（業態/ブランド/状態）トンマナ統一
-   - アイコン大きすぎ → 固定
-   - 文字が縦になる → 折り制御
-   ========================================================= */
-
-.qsc-chip2 {
-  height: 40px;                 /* ✅ 高さ固定で揃える */
-  padding: 0 12px;              /* 上下paddingをやめる */
-  gap: 8px;
-  border-radius: 999px;
-  letter-spacing: 0.01em;
+  .qsc-runBottom { grid-template-columns: 1fr 1fr; }
 }
 
-/* アイコン枠を固定（デカく見える事故を止める） */
-.qsc-chip2-ic {
-  width: 18px;
-  height: 18px;
-  display: grid;
-  place-items: center;
-}
-
-/* lucideを確実に小さめ固定 */
-.qsc-chip2-ic svg {
-  width: 16px !important;
-  height: 16px !important;
-  display: block;
-}
-
-/* ラベル：1行固定＆“1文字改行”を封じる */
-.qsc-chip2-tx {
-  font-size: 12px;
-  font-weight: 950;
-  line-height: 1;
-
-  white-space: nowrap !important;
-  word-break: keep-all !important;
-  writing-mode: horizontal-tb !important;
-  text-orientation: mixed !important;
-
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-/* ✅ チェック丸もサイズ固定で統一 */
-.qsc-chip2-ok {
-  width: 18px;
-  height: 18px;
-}
-.qsc-chip2-ok svg {
-  width: 14px !important;
-  height: 14px !important;
-}
-/* =========================================================
-   FIX: 状態フィルタの揃いを強制（任意）
-   ========================================================= */
-
-/* 状態チップだけ少し“同じ幅感”に */
-.qsc-panel[aria-label="店舗の絞り込み"] .qsc-chip2 {
-  min-width: 104px;      /* 3つが揃って見える */
-  justify-content: center;
-}
-/* =========================================
-   Apple-ish Bottom Sheet for Company Select
-   ========================================= */
-
-/* overlay はそのまま。Backdropを少し上品に */
-.qsc-sheetBackdrop{
-  background: rgba(15,17,21,0.42);
-  backdrop-filter: blur(2px);
-}
-
-/* シート本体：ガラス + 薄い境界線 */
-.qsc-sheet{
-  bottom: 10px;
-  border-radius: 24px;
-  border: 1px solid rgba(255,255,255,0.22);
-  background: rgba(255,255,255,0.86);
-  backdrop-filter: blur(18px);
-  box-shadow:
-    0 30px 90px rgba(15,17,21,0.34),
-    0 10px 24px rgba(15,17,21,0.12);
-}
-
-/* ハンドル：よりiOSっぽく */
-.qsc-sheetHandle{
-  width: 40px;
-  height: 4px;
-  margin: 10px auto 8px;
-  background: rgba(15,17,21,0.16);
-}
-
-/* ヘッダー：タイトルを少し大きく、余白もiOS風 */
-.qsc-sheetHead{
-  padding: 10px 14px 8px;
-}
-.qsc-sheetTitle{
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: -0.01em;
-}
-
-/* 閉じる：丸く、薄い枠、押し心地 */
-.qsc-sheetClose{
-  border-radius: 999px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.72);
-  box-shadow: 0 10px 20px rgba(15,17,21,0.06);
-}
-.qsc-sheetClose:active{ transform: translateY(1px) scale(0.99); }
-
-/* 検索：iOSのSearch bar風（左アイコン＋pill） */
-.qsc-sheetSearch{
-  padding: 0 14px 12px;
-  grid-template-columns: 42px 1fr 42px;
-}
-.qsc-sheetSearchIcon{
-  border-radius: 999px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.72);
-}
-.qsc-sheetSearchInput{
-  border-radius: 999px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(15,17,21,0.04);
-  padding: 0 16px;
-  font-weight: 850;
-}
-.qsc-sheetSearchInput:focus{
-  background: rgba(33,94,255,0.08);
-  border-color: rgba(33,94,255,0.20);
-  box-shadow: 0 0 0 5px rgba(33,94,255,0.12);
-}
-.qsc-sheetSearchClear{
-  border-radius: 999px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.72);
-}
-
-/* リスト：セル。セパレータは薄く */
-.qsc-sheetList{
-  border-top: 1px solid rgba(15,17,21,0.08);
-  background: rgba(255,255,255,0.55);
-}
-
-/* セル：左余白、右にチェック、ハイライトは薄い青 */
-.qsc-sheetOpt{
-  padding: 14px 14px;
-  border-top: 1px solid rgba(15,17,21,0.06);
-  background: transparent;
-  transition: background 140ms ease, transform 120ms ease;
-}
-.qsc-sheetOpt:hover{
-  background: rgba(15,17,21,0.03);
-}
-.qsc-sheetOpt:active{
-  transform: scale(0.995);
-  background: rgba(33,94,255,0.06);
-}
-
-/* 選択状態：iOSの選択行っぽく */
-.qsc-sheetOpt.is-active{
-  background: rgba(33,94,255,0.10);
-}
-
-/* 左のドットは“アクセント”として小さめに */
-.qsc-sheetOptDot{
-  width: 8px;
-  height: 8px;
-  background: rgba(15,17,21,0.18);
-}
-.qsc-sheetOpt.is-active .qsc-sheetOptDot{
-  background: rgba(33,94,255,0.70);
-}
-
-/* テキスト：セルっぽく読みやすく */
-.qsc-sheetOptText{
-  font-weight: 900;
-  letter-spacing: -0.01em;
-}
-
-/* チェック：青、少し太めに */
-.qsc-sheetOptCheck{
-  color: rgba(33,94,255,0.90);
-}
-
-/* 空状態 */
-.qsc-sheetEmpty{
-  padding: 14px;
-  background: transparent;
-  color: rgba(15,17,21,0.55);
-}
-@supports (-webkit-touch-callout: none) {
-  input, textarea, select {
-    font-size: 16px !important;
-  }
-}
-
-/* 企業行：左がホイール、右が検索ボタン */
-.qsc-companyRow{
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 10px;
-  align-items: center;
-}
-
-/* ネイティブselectを透明で被せる */
-.qsc-nativeSelect{
-  position: relative;
-  width: 100%;
-}
-
-.qsc-nativeSelectUi{
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 12px 14px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,.92);
-}
-
-.qsc-nativeSelectLeft{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-.qsc-nativeSelectText{
-  font-weight: 900;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.qsc-nativeSelectRight{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
-}
-
-/* 透明select（iOSホイールを呼ぶ） */
-.qsc-nativeSelectEl{
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-
-  appearance: none;
-  -webkit-appearance: none;
-  border: none;
-  background: transparent;
-
-  /* ✅ iOSのズーム防止＆操作感 */
-  font-size: 16px;
-}
-
-/* 検索ボタン */
-.qsc-companySearchBtn{
-  height: 46px;
-  padding: 0 12px;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,.92);
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 900;
-  color: rgba(15,17,21,.78);
-  white-space: nowrap;
-}
-.qsc-companySearchBtn:active{
-  transform: translateY(1px);
-}
-.qsc-nativeSelect{
-  position: relative;
-  width: 100%;
-}
-
-.qsc-nativeSelectUi{
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-
-  padding: 12px 14px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: rgba(255,255,255,.92);
-}
-
-.qsc-nativeSelectLeft{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-.qsc-nativeSelectText{
-  font-weight: 900;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.qsc-nativeSelectRight{
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
-}
-
-/* ✅ ネイティブホイールを呼ぶ透明select */
-.qsc-nativeSelectEl{
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-
-  appearance: none;
-  -webkit-appearance: none;
-  border: none;
-  background: transparent;
-
-  /* ✅ iOSズーム防止 */
-  font-size: 16px;
-}
-/* ===== BottomDock shell (ヘッダーと同じ考え方) ===== */
-.qscBottomDock {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 9000; /* Z.bottomDock と合わせる（JS側で上書きしてもOK） */
-
-  /* ✅ iPhoneホームバー対策 */
-  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 10px);
-  padding-left: 8px;
-  padding-right: 8px;
-
-  /* ✅ ヘッダーと同じ “ガラスの土台” */
-  background: linear-gradient(
-    to top,
-    rgba(255, 255, 255, 0.92),
-    rgba(255, 255, 255, 0.55)
-  );
-  backdrop-filter: saturate(1.2) blur(12px);
-  -webkit-backdrop-filter: saturate(1.2) blur(12px);
-
-  border-top: 1px solid rgba(15, 17, 21, 0.08);
-}
-
-/* ✅ ヘッダーと同じ：中央寄せコンテナ */
-.qscBottomDockInner {
-  width: min(720px, calc(100% - 0px));
-  margin: 0 auto;
-}
-
-/* ===== Bottom card ===== */
-.qscBottomCard {
-  /* ✅ 高さは既に --qscBottomH を使ってる想定 */
-  height: var(--qscBottomH);
-  border-radius: 18px;
-
-  border: 1px solid rgba(15, 17, 21, 0.10);
-  background: rgba(255, 255, 255, 0.86);
-  box-shadow: 0 14px 40px rgba(15, 17, 21, 0.18);
-
-  overflow: hidden;
-}
-
-/* Grab部分がカード上で気持ちよく見えるように */
-.qscGrab {
-  padding-top: 8px;
-  padding-bottom: 6px;
-}
-.qscGrabBar {
-  width: 44px;
-  height: 5px;
-  border-radius: 999px;
-  margin: 0 auto;
-  background: rgba(15, 17, 21, 0.18);
-}
+/* AppChrome: /check/run 用 */
+.qsc-frame.qsc-frame--run{ padding-top: 0; padding-bottom: 16px; }
+.qsc-frame-shell.qsc-frame-shell--run{ height: calc(100svh - 16px); }
+.qsc-frame-scroll.qsc-frame-scroll--run{ padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }

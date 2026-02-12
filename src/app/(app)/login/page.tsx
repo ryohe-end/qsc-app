@@ -1,10 +1,11 @@
-// src/app/login/page.tsx
 "use client";
 
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import BrandLogo from "@/app/(app)/components/BrandLogo";
+// ✅ 追加: auth.ts から loginMock をインポート
+import { loginMock } from "@/app/(app)/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -82,7 +83,7 @@ export default function LoginPage() {
               throw new Error(j?.error || "Google認証に失敗しました");
             }
 
-            // ✅ B案: Cookieセット（middlewareが読む）
+            // Googleログイン成功時の処理
             document.cookie = `qsc_authed=1; path=/; max-age=${remember ? 60 * 60 * 24 * 7 : 60 * 60 * 6}`;
 
             router.replace("/");
@@ -129,10 +130,7 @@ export default function LoginPage() {
     ensureScript();
   }, [router, googleClientId, remember]);
 
-  // ✅ 仮のID/PASS（フリーパスじゃない）
-  const VALID_ID = "qsc";
-  const VALID_PASS = "1234"; // 仮：あとでAPI連携に置換する
-
+  // ✅ モックログイン処理へ変更
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!canSubmit) return;
@@ -142,18 +140,18 @@ export default function LoginPage() {
 
     try {
       // UX: ちょい待たせる
-      await new Promise((r) => setTimeout(r, 220));
+      await new Promise((r) => setTimeout(r, 600));
 
       const id = userId.trim().toLowerCase();
       const pass = password;
 
-      const ok = id === VALID_ID && pass === VALID_PASS;
-      if (!ok) {
-        throw new Error("ID またはパスワードが違います");
+      // ✅ デモ用パスワードチェック
+      if (pass !== "1234") {
+        throw new Error("ID またはパスワードが違います (Test: 1234)");
       }
 
-      // ✅ B案: Cookieセット（middlewareが読む）
-      document.cookie = `qsc_authed=1; path=/; max-age=${remember ? 60 * 60 * 24 * 7 : 60 * 60 * 6}`;
+      // ✅ auth.ts のモックログインを実行（ロール割り当て）
+      loginMock(id);
 
       // ✅ 重要: replaceで戻るとログインに戻りにくい
       router.replace("/");
@@ -173,7 +171,18 @@ export default function LoginPage() {
   const onBlur = () => setDim(false);
 
   return (
-    <main className="qsc-auth qsc-login" style={{ height: "100svh" }}>
+    <main 
+      className="qsc-auth qsc-login" 
+      style={{ 
+        minHeight: "100svh", 
+        height: "auto", 
+        overflowY: "auto", 
+        display: "block",
+        WebkitOverflowScrolling: "touch",
+        position: "relative",
+        background: "var(--bg)"
+      }}
+    >
       {/* ✅ フォーカス時 背景ほんのり暗転 */}
       <div
         aria-hidden
@@ -188,7 +197,17 @@ export default function LoginPage() {
         }}
       />
 
-      <div className="qsc-auth-inner" style={{ position: "relative", zIndex: 2 }}>
+      <div 
+        className="qsc-auth-inner" 
+        style={{ 
+          position: "relative", 
+          zIndex: 2, 
+          padding: "40px 20px 120px", /* 十分なスクロール余白 */
+          maxWidth: "420px",
+          margin: "0 auto",
+          display: "block"
+        }}
+      >
         {/* ✅ ロゴはカード外 */}
         <div
           className="qsc-enter"
@@ -263,7 +282,7 @@ export default function LoginPage() {
                 className="qsc-input"
                 value={userId}
                 onChange={(e) => setUserId(e.target.value)}
-                placeholder="例：QSC"
+                placeholder="例：admin"
                 autoComplete={remember ? "username" : "off"}
                 inputMode="text"
                 onFocus={onFocus}
@@ -374,6 +393,16 @@ export default function LoginPage() {
               </span>
             </button>
 
+            {/* ✅ デモ用アカウントヒント */}
+            <div style={{ marginTop: 14, padding: "12px 14px", background: "rgba(0,0,0,0.04)", borderRadius: 12, fontSize: 11, color: "rgba(15,17,21,0.7)", lineHeight: 1.5 }}>
+              <p style={{fontWeight: "900", marginBottom: 6}}>【デモ用アカウント】PWは全て 1234</p>
+              <ul style={{ listStyle: "none", padding: 0, display: "grid", gap: 4 }}>
+                <li><code style={{fontWeight:800, background:"rgba(255,255,255,0.6)", padding:"2px 4px", borderRadius:4}}>admin</code> : 管理者 (全機能)</li>
+                <li><code style={{fontWeight:800, background:"rgba(255,255,255,0.6)", padding:"2px 4px", borderRadius:4}}>audit</code> : チェック者 (店舗制限・分析OK)</li>
+                <li><code style={{fontWeight:800, background:"rgba(255,255,255,0.6)", padding:"2px 4px", borderRadius:4}}>store</code> : 店舗 (自店のみ・点検不可)</li>
+              </ul>
+            </div>
+
             <div className="qsc-or">
               <span>または</span>
             </div>
@@ -383,7 +412,7 @@ export default function LoginPage() {
                 <div ref={googleBtnRef} />
               ) : (
                 <div style={{ fontSize: 12, opacity: 0.7, textAlign: "center" }}>
-                  Googleログインは未設定です（NEXT_PUBLIC_GOOGLE_CLIENT_ID を設定すると表示されます）
+                  Googleログインは未設定です
                 </div>
               )}
               {googleBusy ? <div style={{ fontSize: 12, opacity: 0.7 }}>Googleで認証中…</div> : null}
@@ -407,7 +436,7 @@ export default function LoginPage() {
           </div>
         </section>
 
-        <footer className="qsc-footer qsc-enter qsc-enter--d5">© 2026 QSC Check</footer>
+        <footer className="qsc-footer qsc-enter qsc-enter--d5" style={{ padding: "40px 0" }}>© 2026 QSC Check</footer>
       </div>
     </main>
   );

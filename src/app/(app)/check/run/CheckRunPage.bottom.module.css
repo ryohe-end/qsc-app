@@ -1,116 +1,43 @@
 /* =========================================================
-   CheckRunPage.bottom.module.css (QSC Run - BOTTOM / CLEAN)
-   ✅ BottomDock 固定
-   ✅ mainの被り防止（data-qsc-main）
-   ✅ カード幅をヘッダーと揃える
-   ✅ iOS safe-area 対応
+   CheckRunPage.bottom.module.css
    ========================================================= */
 
-:root{
-  --qscDockMaxW: 980px; /* ヘッダーに合わせたい最大幅 */
-}
+:root{ --qscDockMaxW: 980px; }
 
-/* ✅ Dockを画面下に固定（背景は薄いバー） */
 .qscBottomDock{
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-
-  z-index: 9000;
-  pointer-events: auto;
-
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 9000;
   padding-bottom: env(safe-area-inset-bottom);
   height: calc(var(--qscBottomH, 72px) + env(safe-area-inset-bottom));
-
   background: rgba(255,255,255,0.72);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid rgba(15,17,21,0.08);
+  pointer-events: auto;
 }
 
-/* ✅ 中央寄せコンテナ（ヘッダーと同じ幅） */
 .qscBottomDockInner{
-  height: 100%;
-  width: min(var(--qscDockMaxW), 100%);
-  margin: 0 auto;
-
-  padding: 10px 12px;
-
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  height: 100%; width: min(var(--qscDockMaxW), 100%); margin: 0 auto;
+  padding: 10px 12px; display: flex; align-items: flex-end; justify-content: center;
 }
 
-/* ✅ Dock内カード（中身） */
 .qscBottomCard{
-  width: 100%;
-  height: var(--qscBottomH, 72px);
-
-  border-radius: 22px;
-  overflow: hidden;
-
-  background: rgba(255,255,255,0.90);
+  width: 100%; height: var(--qscBottomH, 72px);
+  border-radius: 22px; overflow: hidden; background: rgba(255,255,255,0.90);
   border: 1px solid rgba(15,17,21,0.10);
-
-  box-shadow:
-    0 18px 40px rgba(0,0,0,0.12),
-    inset 0 1px 0 rgba(255,255,255,0.70);
-
+  box-shadow: 0 18px 40px rgba(0,0,0,0.12), inset 0 1px 0 rgba(255,255,255,0.70);
   transition: height 260ms ease;
 }
 
-/* Grab handle */
-.qscGrab{
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: grab;
-  touch-action: pan-y;
-}
+.qscGrab{ height: 26px; display: flex; align-items: center; justify-content: center; cursor: grab; touch-action: pan-y; }
+.qscGrabBar{ width: 44px; height: 5px; border-radius: 999px; background: rgba(15,17,21,0.18); }
 
-.qscGrabBar{
-  width: 44px;
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(15,17,21,0.18);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
-}
-
-/* Collapse button */
 .qscCollapseBtn{
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 10px;
-  border-radius: 999px;
-
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.72);
-  cursor: pointer;
-  user-select: none;
-  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px;
+  border-radius: 999px; border: 1px solid rgba(15,17,21,0.10); background: rgba(255,255,255,0.72);
+  cursor: pointer; font-weight: 800;
 }
 
-/* Indicator */
-.qscIndicatorWrap{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  min-width: 0;
-}
-
-/* Segmented progress bar */
-.qscSegBar{
-  height: 8px;
-  border-radius: 999px;
-  overflow:hidden;
-  background: rgba(15,17,21,0.08);
-  border: 1px solid rgba(15,17,21,0.06);
-  display:flex;
-}
-
+.qscIndicatorWrap{ display:flex; align-items:center; gap:10px; min-width: 0; }
+.qscSegBar{ height: 8px; border-radius: 999px; overflow:hidden; background: rgba(15,17,21,0.08); display:flex; }
 .qscSeg{ height: 100%; }
 .qscSegOk{ background: rgba(52,199,89,0.95); }
 .qscSegHold{ background: rgba(255,149,0,0.95); }
@@ -118,58 +45,53 @@
 .qscSegNa{ background: rgba(142,142,147,0.70); }
 .qscSegUnset{ background: rgba(15,17,21,0.10); }
 
-/* Badges */
 .qscBadge{
-  padding: 6px 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(15,17,21,0.10);
-  background: rgba(255,255,255,0.70);
-  font-weight: 900;
-  font-size: 12px;
-  white-space: nowrap;
+  padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(15,17,21,0.10);
+  background: rgba(255,255,255,0.70); font-weight: 900; font-size: 12px; white-space: nowrap;
 }
 
-/* Action buttons */
+/* ----------------------------------------------------
+   Actions Buttons (FIX: レイアウト修正)
+   ---------------------------------------------------- */
 .qscAction{
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
-  height: 42px;
-  padding: 0 12px;
   border-radius: 14px;
-
   border: 1px solid rgba(15,17,21,0.10);
   background: rgba(255,255,255,0.75);
-
   cursor: pointer;
   font-weight: 900;
-  white-space: nowrap;
-
   transition: transform 0.08s ease, box-shadow 0.18s ease;
 }
 
-.qscAction:active{ transform: scale(0.99); }
-
-.actionGhost{
-  background: rgba(255,255,255,0.75);
-  color: rgba(15,17,21,0.92);
-}
-
+/* Primary (完了) は横長・アイコン左 */
 .actionPrimary{
+  flex-direction: row;
+  height: 54px;
+  padding: 0 16px;
   background: rgba(15,17,21,0.92);
   color: rgba(255,255,255,0.96);
   border-color: rgba(15,17,21,0.92);
   box-shadow: 0 14px 40px rgba(15,17,21,0.18);
 }
 
-.qscAction:disabled{
-  opacity: 0.55;
-  cursor: not-allowed;
+/* Ghost (途中保存・破棄) は縦積みで文字省略を回避 */
+.actionGhost{
+  flex-direction: column;
+  height: 62px;
+  padding: 8px 6px;
+  gap: 4px;
+  background: rgba(255,255,255,0.75);
+  color: rgba(15,17,21,0.92);
+}
+.actionGhost span {
+  font-size: 11px;
+  white-space: nowrap;
 }
 
-/* ✅ mainがDockに被らないようにする（ローカルclassなのでOK） */
-.qscMainPad{
-  padding-bottom: calc(var(--qscBottomH, 0px) + env(safe-area-inset-bottom) + 16px);
-}
+.qscAction:active{ transform: scale(0.99); }
+.qscAction:disabled{ opacity: 0.55; cursor: not-allowed; }
+
+.qscMainPad{ padding-bottom: calc(var(--qscBottomH, 0px) + env(safe-area-inset-bottom) + 16px); }
