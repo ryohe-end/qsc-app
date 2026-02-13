@@ -351,7 +351,7 @@ export default function ImprovementReportsPage() {
                       {issue.afterPhoto ? (
                         <>
                           <img src={issue.afterPhoto} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                          <button onClick={() => setZoomedImage(issue.afterPhoto)} style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(15,23,42,0.8)", border: "none", borderRadius: 10, padding: 8, color: "#fff", cursor: "pointer" }}><Maximize2 size={16} /></button>
+                          <button onClick={() => setZoomedImage(issue.afterPhoto || null)} style={{ position: "absolute", bottom: 8, right: 8, background: "rgba(15,23,42,0.8)", border: "none", borderRadius: 10, padding: 8, color: "#fff", cursor: "pointer" }}><Maximize2 size={16} /></button>
                         </>
                       ) : (
                         <div style={{ textAlign: "center" }}>
