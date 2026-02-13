@@ -14,12 +14,22 @@ export function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2) ログイン系は素通し（ここ重要）
-  if (pathname.startsWith("/login")) return NextResponse.next();
-
-  // 3) Cookieでログイン判定（B案）
+  // Cookieでログイン判定
   const authed = req.cookies.get("qsc_authed")?.value === "1";
 
+  // 2) ログインページへのアクセス制御
+  if (pathname.startsWith("/login")) {
+    // 既にログイン済みならホームへリダイレクト
+    if (authed) {
+      const url = req.nextUrl.clone();
+      url.pathname = "/";
+      return NextResponse.redirect(url);
+    }
+    // 未ログインならそのままログインページを表示
+    return NextResponse.next();
+  }
+
+  // 3) その他のページ（未ログインならログインへ強制転送）
   if (!authed) {
     const url = req.nextUrl.clone();
     url.pathname = "/login";

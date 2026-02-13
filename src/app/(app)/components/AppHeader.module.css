@@ -1,0 +1,193 @@
+/* src/app/(app)/components/AppHeader.module.css */
+
+.header {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 100;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(15, 17, 21, 0.08);
+  height: 64px;
+  transition: all 0.2s ease;
+}
+
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* ブランド部分 */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-decoration: none;
+  color: var(--fg);
+  transition: opacity 0.2s;
+  cursor: pointer;
+}
+.brand:hover { opacity: 0.7; }
+
+.divider {
+  width: 1px;
+  height: 16px;
+  background: rgba(15, 17, 21, 0.2);
+}
+
+.appName {
+  font-weight: 800;
+  font-size: 14px;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+  white-space: nowrap;
+}
+
+/* 右側エリア */
+.right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ユーザーボタン（ピル型） */
+.userBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 4px;
+  padding-right: 10px;
+  border-radius: 99px;
+  border: 1px solid rgba(15, 17, 21, 0.08);
+  background: rgba(255, 255, 255, 0.5);
+  color: var(--fg);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.userBtn:hover {
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  transform: translateY(-1px);
+}
+
+.isAuthed {
+  background: #fff;
+  border-color: rgba(15, 17, 21, 0.12);
+  padding-right: 12px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(15, 17, 21, 0.06);
+  display: grid;
+  place-items: center;
+  color: var(--muted);
+}
+
+.userName {
+  font-size: 13px;
+  font-weight: 700;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--fg);
+}
+
+.chevron {
+  color: var(--muted);
+  opacity: 0.6;
+}
+
+/* ドロップダウンメニュー */
+.menuWrap {
+  position: relative;
+}
+
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  background: transparent;
+  cursor: default;
+}
+
+.dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 220px;
+  background: rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border: 1px solid rgba(15, 17, 21, 0.08);
+  box-shadow: 0 10px 40px rgba(15, 17, 21, 0.12);
+  padding: 8px;
+  z-index: 102;
+  transform-origin: top right;
+  animation: dropdownIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: scale(0.95) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.dropdownInfo {
+  padding: 10px 14px;
+}
+.dropdownRole {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--fg);
+  text-transform: capitalize;
+}
+.dropdownId {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.dropdownItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: var(--fg);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.1s;
+  text-align: left;
+}
+
+.dropdownItem:hover {
+  background: rgba(15, 17, 21, 0.05);
+}
+
+.dropdownItemText {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.dropdownDivider {
+  height: 1px;
+  background: rgba(15, 17, 21, 0.06);
+  margin: 4px 0;
+}

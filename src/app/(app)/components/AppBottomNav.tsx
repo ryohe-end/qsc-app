@@ -1,34 +1,20 @@
 // src/app/(app)/components/AppBottomNav.tsx
 "use client";
 
-import type React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   Home,
   ClipboardCheck,
   AlertTriangle,
-  History,
-  Settings,
-  Plus,
   BarChart2,
+  Plus,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useSession } from "@/app/(app)/lib/auth"; // ✅ 追加
+import { useSession } from "@/app/(app)/lib/auth";
+import styles from "./AppBottomNav.module.css";
 
-type Item = {
-  href: string;
-  label: string;
-  Icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
-  showBadge?: boolean;
-};
-
-function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(href + "/");
-}
-
-/** /check で保存される選択店舗 */
+// /check で保存される選択店舗の型定義
 type SelectedStoreCache = {
   companyId: string;
   bizId: string;
@@ -38,6 +24,7 @@ type SelectedStoreCache = {
   ts?: number;
 };
 
+// 実行URLを構築するヘルパー
 function buildRunUrl(s: SelectedStoreCache) {
   return (
     `/check/run?companyId=${encodeURIComponent(s.companyId)}` +
@@ -51,7 +38,7 @@ export default function AppBottomNav() {
   const pathname = usePathname() || "/";
   const router = useRouter();
   
-  // ✅ セッション情報を取得
+  // セッション情報を取得
   const { session } = useSession();
 
   // ログイン画面などは非表示
@@ -63,36 +50,36 @@ export default function AppBottomNav() {
   // /check/run など実行中はFAB不要
   const isRunning = pathname.startsWith("/check/");
 
+  // アクティブ判定
+  const isActive = (href: string) => {
+    if (href === "/") return pathname === "/";
+    return pathname.startsWith(href);
+  };
+
   // =========================================================
-  // ✅ ロールごとのメニュー定義
+  // ロールごとのメニュー定義
   // =========================================================
-  const items: Item[] = useMemo(() => {
+  const navItems = useMemo(() => {
     const role = session?.role || "viewer";
 
+    const itemHome = { href: "/", label: "ホーム", Icon: Home };
+    const itemCheck = { href: "/check", label: "チェック", Icon: ClipboardCheck };
+    const itemResults = { href: "/results", label: "結果", Icon: BarChart2 };
+    const itemNg = { href: "/ng", label: "是正報告", Icon: AlertTriangle, showBadge: true };
+
     // 1. 店舗ユーザー (manager)
-    // 「点検」メニューがなく、「結果確認」がメイン
+    // 「ホーム」「結果」「是正報告」
     if (role === "manager") {
-      return [
-        { href: "/", label: "ホーム", Icon: Home },
-        { href: "/results", label: "結果", Icon: BarChart2 }, // 自店舗の結果
-        { href: "/ng", label: "是正報告", Icon: AlertTriangle, showBadge: true }, // NG対応
-        { href: "/settings", label: "設定", Icon: Settings },
-      ];
+      return [itemHome, itemResults, itemNg];
     }
 
-    // 2. 管理者 (admin) / チェック者 (auditor)
-    // 全機能にアクセス可能
-    return [
-      { href: "/", label: "ホーム", Icon: Home },
-      { href: "/check", label: "点検", Icon: ClipboardCheck },
-      { href: "/ng", label: "NG是正", Icon: AlertTriangle, showBadge: true },
-      { href: "/history", label: "履歴", Icon: History },
-      { href: "/settings", label: "設定", Icon: Settings },
-    ];
+    // 2. 管理者 (admin) / チェック者 (auditor) / その他
+    // 「ホーム」「チェック」「結果」「是正報告」
+    return [itemHome, itemCheck, itemResults, itemNg];
   }, [session]);
 
-  // ✅ FAB（点検開始ボタン）を表示するか？
-  // 店舗ユーザーは点検しないので非表示。実行画面(isRunning)でも非表示。
+  // FAB（点検開始ボタン）を表示するか？
+  // 店舗ユーザー以外 かつ 実行画面以外の場合に表示
   const showFab = !isRunning && session?.role !== "manager";
 
   // =========================================================
@@ -146,6 +133,7 @@ export default function AppBottomNav() {
     read();
     const onStorage = (e: StorageEvent) => { if (e.key === "qsc_check_selected_store") read(); };
     window.addEventListener("storage", onStorage);
+    // ポーリングでも監視（簡易実装）
     const t = window.setInterval(read, 500);
     return () => {
       window.removeEventListener("storage", onStorage);
@@ -187,61 +175,61 @@ export default function AppBottomNav() {
   };
 
   return (
-    <nav className="qsc-tabbar" aria-label="アプリメニュー">
-      <div className="qsc-tabbar-inner">
-        {items.map(({ href, label, Icon, showBadge }) => {
-          const active = isActive(pathname, href);
+    <nav className={styles.tabbar} aria-label="アプリメニュー">
+      <div className={styles.inner}>
+        {navItems.map(({ href, label, Icon, showBadge }) => {
+          const active = isActive(href);
           return (
             <Link
               key={href}
               href={href}
-              className={`qsc-tab ${active ? "is-active" : ""}`}
+              className={`${styles.tab} ${active ? styles.isActive : ""}`}
               aria-current={active ? "page" : undefined}
             >
-              <span className="qsc-tab-icon" aria-hidden="true">
-                <Icon size={20} strokeWidth={2.2} />
+              <div className={styles.iconWrap}>
+                <Icon size={22} strokeWidth={active ? 2.5 : 2} />
                 {showBadge && cappedNg && (
-                  <span className="qsc-badge-dot" aria-label={`未対応NG ${cappedNg}件`}>
+                  <span className={styles.badgeDot} aria-label={`未対応NG ${cappedNg}件`}>
                     {cappedNg}
                   </span>
                 )}
-              </span>
-              <span className="qsc-tab-label">{label}</span>
+              </div>
+              <span className={styles.label}>{label}</span>
             </Link>
           );
         })}
 
-        {/* ✅ FAB: 店舗ユーザー以外 かつ 通常画面でのみ表示 */}
+        {/* FAB: 店舗ユーザー以外 かつ 通常画面でのみ表示 */}
         {showFab ? (
           fab.mode === "link" ? (
-            <Link className="qsc-fab" href={fab.href} aria-label={fab.label}>
-              <span className="qsc-fab-wrap">
-                <span className="qsc-fab-inner" aria-hidden="true">
-                  <Plus size={22} strokeWidth={2.6} />
+            <Link className={styles.fab} href={fab.href} aria-label={fab.label}>
+              <span className={styles.fabWrap}>
+                <span className={styles.fabInner} aria-hidden="true">
+                  <Plus size={24} strokeWidth={2.6} />
                 </span>
-                <span className="qsc-fab-label">{fab.label}</span>
+                <span className={styles.fabLabel}>{fab.label}</span>
               </span>
             </Link>
           ) : (
             <button
               type="button"
-              className={`qsc-fab ${fab.enabled ? "is-on" : ""}`}
+              className={styles.fab}
               onClick={onFabClick}
               disabled={!fab.enabled}
               aria-label={fab.label}
               title={fab.enabled ? "点検を開始" : "店舗を選択してください"}
             >
-              <span className="qsc-fab-wrap">
-                <span className="qsc-fab-inner" aria-hidden="true">
-                  <Plus size={22} strokeWidth={2.6} />
+              <span className={styles.fabWrap}>
+                <span className={styles.fabInner} aria-hidden="true" style={{ opacity: fab.enabled ? 1 : 0.5 }}>
+                  <Plus size={24} strokeWidth={2.6} />
                 </span>
-                <span className="qsc-fab-label">{fab.label}</span>
+                <span className={styles.fabLabel}>{fab.label}</span>
               </span>
             </button>
           )
         ) : null}
       </div>
-      <div className="qsc-tabbar-safe" aria-hidden="true" />
+      <div className={styles.safeArea} aria-hidden="true" />
     </nav>
   );
 }

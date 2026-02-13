@@ -1,0 +1,172 @@
+/* src/app/(app)/components/AppBottomNav.module.css */
+
+.tabbar {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 80;
+  pointer-events: none; /* エリア外のクリックを透過 */
+}
+
+.inner {
+  pointer-events: auto;
+  position: relative;
+  max-width: 640px;
+  margin: 0 auto;
+  height: 66px; /* var(--tabbar-h) */
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); /* 均等割り */
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(15, 17, 21, 0.10);
+  box-shadow: 0 -18px 40px rgba(15, 17, 21, 0.08);
+}
+
+.safeArea {
+  height: env(safe-area-inset-bottom, 0px);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(12px);
+}
+
+/* タブボタン */
+.tab {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 4px;
+  border-radius: 16px;
+  text-decoration: none;
+  color: rgba(15, 17, 21, 0.60);
+  padding: 8px 6px;
+  transition: transform 0.1s ease, background 0.1s ease, color 0.1s ease;
+}
+
+.tab:hover {
+  background: rgba(15, 17, 21, 0.04);
+}
+
+.tab:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.isActive {
+  color: rgba(15, 17, 21, 0.90);
+  background: rgba(15, 17, 21, 0.05);
+}
+
+.iconWrap {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+/* バッジ (NG件数など) */
+.badgeDot {
+  position: absolute;
+  top: -4px; right: -8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 950;
+  color: #fff;
+  background: #ff3b30; /* var(--q-red) */
+  border: 2px solid rgba(255, 255, 255, 0.90);
+  box-shadow: 0 2px 6px rgba(15, 17, 21, 0.16);
+}
+
+/* FAB (チェック開始ボタン) */
+.fab {
+  position: absolute;
+  right: 16px;
+  top: calc(-56px - 10px);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  text-decoration: none;
+  pointer-events: auto;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  outline: none;
+  box-shadow: none;
+  display: inline-block;
+  z-index: 50;
+  cursor: pointer;
+}
+
+.fab:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.fabWrap {
+  position: relative;
+  width: 56px;
+  height: 56px;
+  display: grid;
+  place-items: center;
+}
+
+.fabInner {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #1b2230 0%, #121826 100%); /* Primary Dark */
+  color: #fff;
+  box-shadow: 0 18px 45px rgba(15, 17, 21, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition: transform 0.16s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.16s ease;
+}
+
+.fab:hover .fabInner {
+  transform: translateY(-2px);
+  box-shadow: 0 22px 58px rgba(15, 17, 21, 0.42);
+}
+
+.fab:active .fabInner {
+  transform: translateY(1px) scale(0.96);
+}
+
+/* FABの下に出るラベル */
+.fabLabel {
+  position: absolute;
+  left: 50%;
+  bottom: calc(56px + 8px);
+  transform: translateX(-50%);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  color: rgba(15, 17, 21, 0.92);
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(15, 17, 21, 0.10);
+  box-shadow: 0 8px 20px rgba(15, 17, 21, 0.12);
+  backdrop-filter: blur(8px);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.fab:hover .fabLabel {
+  opacity: 1;
+}
