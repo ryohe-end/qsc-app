@@ -6,16 +6,13 @@ import {
   ClipboardList,
   Megaphone,
   Users,
-  Settings,
   Store,
-  ChevronRight,
   Shield,
-  LayoutGrid,
   FileStack,
   ArrowUpRight,
   Sparkles,
   ClipboardCheck,
-  TrendingUp, // 追加
+  TrendingUp,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -74,7 +71,7 @@ export default function AdminHomePage() {
             </div>
           </div>
 
-          {/* Group 2: QSC Operations (★ここを拡張) */}
+          {/* Group 2: QSC Operations */}
           <div>
             <h2 style={{ fontSize: 13, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16, marginLeft: 8 }}>QSC Operations</h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
@@ -86,11 +83,11 @@ export default function AdminHomePage() {
                 color="#f43f5e"
               />
               <AdminTile
-                href="/admin/qsc/analytics" // analyticsへのパス
+                href="/admin/qsc/analytics"
                 icon={<TrendingUp size={24} />}
                 title="是正状況分析"
                 desc="統計グラフ・店舗別状況の可視化"
-                color="#ec4899" // analyticsを際立たせるためにピンク系を配色
+                color="#ec4899"
               />
             </div>
           </div>
@@ -119,26 +116,13 @@ export default function AdminHomePage() {
           {/* Group 4: Communication & System */}
           <div>
              <h2 style={{ fontSize: 13, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16, marginLeft: 8 }}>System & Support</h2>
-             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 20 }}>
+             {/* カラム数を他と合わせて2に変更（要素が1つなので左寄せになります） */}
+             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
                 <AdminTile
                   href="/admin/news"
                   icon={<Megaphone size={20} />}
                   title="お知らせ"
                   desc="全店配信情報の管理"
-                  small
-                />
-                <AdminTile
-                  href="/admin/settings"
-                  icon={<Settings size={20} />}
-                  title="システム設定"
-                  desc="全体環境設定"
-                  small
-                />
-                <AdminTile
-                  href="/admin/logs"
-                  icon={<LayoutGrid size={20} />}
-                  title="操作ログ"
-                  desc="実行履歴の確認"
                   small
                 />
              </div>

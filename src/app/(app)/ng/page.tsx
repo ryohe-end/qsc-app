@@ -1,7 +1,6 @@
-// src/app/(app)/ng/page.tsx
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import Link from "next/link";
 import { 
   ChevronLeft, 
@@ -11,13 +10,19 @@ import {
   Send,
   CheckCircle,
   MessageSquare,
-  Check
+  Check,
+  Building2,
+  ChevronRight,
+  AlertCircle
 } from "lucide-react";
 import styles from "./NgPage.module.css";
 import { useSession } from "@/app/(app)/lib/auth";
 
 export const dynamic = "force-dynamic";
 
+/* =========================================
+   Types
+   ========================================= */
 type NgIssue = {
   id: string;
   category: string;
@@ -27,16 +32,25 @@ type NgIssue = {
   beforePhoto: string;
   afterPhoto?: string;
   comment: string;
-  isSubmitting?: boolean; // 個別のローディング状態
+  isSubmitting?: boolean;
 };
 
-export default function NgPage() {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
-  const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
+/* =========================================
+   Mock Data
+   ========================================= */
+const ADMIN_STORES = [
+  { id: "S001", name: "JOYFIT 札幌大通", pending: 2, urgent: 1 },
+  { id: "S002", name: "JOYFIT 仙台駅前", pending: 5, urgent: 0 },
+  { id: "S003", name: "JOYFIT 新宿西口", pending: 1, urgent: 1 },
+  { id: "S004", name: "JOYFIT 名古屋栄", pending: 3, urgent: 0 },
+  { id: "S005", name: "JOYFIT 梅田", pending: 0, urgent: 0 },
+];
 
-  // Mock Data
-  const [issues, setIssues] = useState<NgIssue[]>([
+function getMockIssues(storeId: string): NgIssue[] {
+  // デモ用：店舗IDによって出し分け（S005は完了済みとする）
+  if (storeId === "S005") return [];
+
+  return [
     {
       id: "IS-001",
       category: "Cleanliness",
@@ -55,7 +69,31 @@ export default function NgPage() {
       beforePhoto: "https://images.unsplash.com/photo-1586769852836-bc069f19e1b6?w=400",
       comment: ""
     }
-  ]);
+  ];
+}
+
+/* =========================================
+   Components
+   ========================================= */
+
+/**
+ * 店舗向け詳細ビュー（是正報告の実画面）
+ */
+function StoreNgView({ 
+  storeName, 
+  storeId, 
+  onBack 
+}: { 
+  storeName: string; 
+  storeId: string;
+  onBack?: () => void; 
+}) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
+  const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
+  
+  // 初期データロード
+  const [issues, setIssues] = useState<NgIssue[]>(() => getMockIssues(storeId));
 
   const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>, issueId: string) => {
     const file = e.target.files?.[0];
@@ -76,24 +114,18 @@ export default function NgPage() {
     ));
   };
 
-  // ✅ 追加：個別報告の送信
   const handleSingleSubmit = async (issueId: string) => {
     setIssues(prev => prev.map(iss => iss.id === issueId ? { ...iss, isSubmitting: true } : iss));
-    
-    await new Promise(r => setTimeout(r, 800)); // シミュレーション
-    
+    await new Promise(r => setTimeout(r, 800));
     alert("この項目の報告を送信しました。");
     setIssues(prev => prev.filter(iss => iss.id !== issueId));
   };
 
-  // ✅ 一括報告の送信
   const handleBatchSubmit = async () => {
     const targets = issues.filter(iss => !!iss.afterPhoto);
     if (targets.length === 0) return;
-
     setIsBatchSubmitting(true);
     await new Promise(r => setTimeout(r, 1500));
-    
     alert(`${targets.length}件の是正報告をまとめて送信しました。`);
     setIssues(prev => prev.filter(iss => !iss.afterPhoto));
     setIsBatchSubmitting(false);
@@ -103,17 +135,28 @@ export default function NgPage() {
   const canBatchSubmit = batchCount > 0 && !isBatchSubmitting;
 
   return (
-    <main className={styles.container}>
+    <div className={styles.container}>
       <div className={styles.scrollArea}>
         
+        {/* Navigation */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Link href="/" className="qsc-btn qsc-btn-secondary" style={{ height: 36, padding: "0 12px", gap: 6, fontSize: 12 }}>
-             <ChevronLeft size={16} /> ホーム
-          </Link>
+          {onBack ? (
+            <button 
+              onClick={onBack} 
+              className="qsc-btn qsc-btn-secondary" 
+              style={{ height: 36, padding: "0 12px", gap: 6, fontSize: 12 }}
+            >
+               <ChevronLeft size={16} /> 店舗一覧に戻る
+            </button>
+          ) : (
+            <Link href="/" className="qsc-btn qsc-btn-secondary" style={{ height: 36, padding: "0 12px", gap: 6, fontSize: 12 }}>
+               <ChevronLeft size={16} /> ホーム
+            </Link>
+          )}
         </div>
 
         <div className={styles.header}>
-          <h1 className={styles.title}>是正報告</h1>
+          <h1 className={styles.title}>{storeName} 是正報告</h1>
           <p className={styles.sub}>対応した項目の写真を撮り、報告してください。</p>
         </div>
 
@@ -189,7 +232,6 @@ export default function NgPage() {
                 />
               </div>
 
-              {/* ✅ 個別報告アクション */}
               <div className={styles.actions}>
                 <button 
                   className={styles.submitSingleBtn}
@@ -211,7 +253,6 @@ export default function NgPage() {
         )}
       </div>
 
-      {/* 一括報告ボタン（複数あるときに出すと効果的） */}
       {batchCount >= 2 && (
         <div className={styles.bottomBar}>
           <button 
@@ -236,6 +277,101 @@ export default function NgPage() {
         ref={fileInputRef} style={{ display: 'none' }}
         onChange={(e) => activeIssueId && handlePhotoSelect(e, activeIssueId)}
       />
-    </main>
+    </div>
   );
+}
+
+/**
+ * 管理者・監査員向けダッシュボード（店舗一覧）
+ */
+function AdminNgDashboard({ 
+  onSelect 
+}: { 
+  onSelect: (store: typeof ADMIN_STORES[0]) => void 
+}) {
+  return (
+    <div className={styles.container}>
+      <div className={styles.scrollArea}>
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Link href="/" className="qsc-btn qsc-btn-secondary" style={{ height: 36, padding: "0 12px", gap: 6, fontSize: 12 }}>
+             <ChevronLeft size={16} /> ホーム
+          </Link>
+        </div>
+
+        <div className={styles.header}>
+          <h1 className={styles.title}>是正状況一覧</h1>
+          <p className={styles.sub}>是正報告が必要な店舗の一覧です。</p>
+        </div>
+
+        {ADMIN_STORES.map((store) => (
+          <button
+            key={store.id}
+            onClick={() => onSelect(store)}
+            className={styles.card}
+            style={{ 
+              width: "100%", padding: "16px 20px", textAlign: "left", cursor: "pointer", 
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 40, height: 40, background: "#f1f5f9", borderRadius: 12, display: "grid", placeItems: "center", color: "#64748b" }}>
+                <Building2 size={20} />
+              </div>
+              <div>
+                <div style={{ fontSize: 15, fontWeight: 800, color: "#1e293b" }}>{store.name}</div>
+                <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700, display: "flex", gap: 8, marginTop: 4 }}>
+                  {store.pending > 0 ? (
+                    <span style={{ color: "#ef4444" }}>未対応 {store.pending}件</span>
+                  ) : (
+                    <span style={{ color: "#16a34a" }}>対応完了</span>
+                  )}
+                  {store.urgent > 0 && (
+                    <span style={{ color: "#d97706", display: "flex", alignItems: "center", gap: 2 }}>
+                      <AlertCircle size={12} /> 緊急 {store.urgent}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <ChevronRight size={18} color="#cbd5e1" />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* =========================================
+   Main Page Component
+   ========================================= */
+export default function NgPage() {
+  const { session, loading } = useSession();
+  const [selectedStore, setSelectedStore] = useState<typeof ADMIN_STORES[0] | null>(null);
+
+  if (loading) return null;
+
+  const role = session?.role || "viewer";
+  const isManager = role === "manager";
+
+  // ① 店舗ユーザー: 自店舗の詳細を即時表示
+  if (isManager) {
+    const storeDisplayName = session?.name ? session.name.split(" ")[0] : "自店舗";
+    // 自店舗ID（本来はセッションから取得）
+    const myStoreId = session?.assignedStoreId || "MY_STORE";
+    return <StoreNgView storeName={storeDisplayName} storeId={myStoreId} />;
+  }
+
+  // ② 管理者・その他: ドリルダウン表示
+  if (selectedStore) {
+    return (
+      <StoreNgView 
+        storeName={selectedStore.name} 
+        storeId={selectedStore.id} 
+        onBack={() => setSelectedStore(null)} 
+      />
+    );
+  }
+
+  // デフォルト: 管理者用ダッシュボード
+  return <AdminNgDashboard onSelect={setSelectedStore} />;
 }

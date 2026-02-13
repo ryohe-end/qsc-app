@@ -419,10 +419,10 @@ export default function LoginPage() {
             </div>
           </form>
 
-          {/* ✅ 管理画面への導線（カード内の一番下） */}
+          {/* ✅ 管理画面への導線（修正済み：/admin/login へ） */}
           <div style={{ marginTop: 12, display: "grid", placeItems: "center" }}>
             <Link
-              href="/admin-entry"
+              href="/admin/login"
               style={{
                 fontSize: 12,
                 fontWeight: 900,
