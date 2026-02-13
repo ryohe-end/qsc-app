@@ -1,4 +1,3 @@
-// src/app/(app)/components/AppBottomNav.tsx
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
@@ -62,9 +61,10 @@ export default function AppBottomNav() {
   const navItems = useMemo(() => {
     const role = session?.role || "viewer";
 
-    const itemHome = { href: "/", label: "ホーム", Icon: Home };
-    const itemCheck = { href: "/check", label: "チェック", Icon: ClipboardCheck };
-    const itemResults = { href: "/results", label: "結果", Icon: BarChart2 };
+    // ✅ 修正: 全てのアイテムに showBadge を明示して型エラーを防ぐ
+    const itemHome = { href: "/", label: "ホーム", Icon: Home, showBadge: false };
+    const itemCheck = { href: "/check", label: "チェック", Icon: ClipboardCheck, showBadge: false };
+    const itemResults = { href: "/results", label: "結果", Icon: BarChart2, showBadge: false };
     const itemNg = { href: "/ng", label: "是正報告", Icon: AlertTriangle, showBadge: true };
 
     // 1. 店舗ユーザー (manager)
