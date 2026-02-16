@@ -495,26 +495,44 @@ export default function CheckRunPage() {
     });
   };
 
+  // 📸 写真追加フロー（修正版）
   const addPhotosToItem = async (secId: string, itemId: string, files: File[]) => {
     if (!files || files.length === 0) return;
-    const arr = files.slice(0, 30);
+    
+    // 一度に大量に処理すると重いので制限
+    const arr = files.slice(0, 5); 
     const added: Photo[] = [];
+
     for (const f of arr) {
       try {
         const original = await readFileAsDataUrl(f);
-        // 今回は簡易版としてeditorスキップも可だがそのまま
-        // const edited = await openPhotoEditor(original); 
-        // -> UX向上のため連続撮影時はEditorを挟まない方が良いが、仕様維持
-        const finalDataUrl = original; 
-        added.push({ id: uid("ph"), dataUrl: finalDataUrl });
+        
+        // ✅ 編集モーダルを呼び出す (awaitで完了を待つ)
+        const edited = await openPhotoEditor(original);
+        
+        // 編集画面で「保存」された場合のみ追加する
+        // (キャンセルされた場合は追加しない)
+        if (edited) {
+          added.push({ id: uid("ph"), dataUrl: edited });
+        }
       } catch (err) {
-        console.error(err);
+        console.error("Photo load error:", err);
       }
     }
+
     if (added.length === 0) return;
+
     setSections((prev) =>
       prev.map((s) =>
-        s.id !== secId ? s : { ...s, items: s.items.map((it) => it.id !== itemId ? it : { ...it, photos: (it.photos ?? []).concat(added) }) }
+        s.id !== secId
+          ? s
+          : {
+              ...s,
+              items: s.items.map((it) => {
+                if (it.id !== itemId) return it;
+                return { ...it, photos: (it.photos ?? []).concat(added) };
+              }),
+            }
       )
     );
   };
