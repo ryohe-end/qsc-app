@@ -35,8 +35,8 @@ export type QscStoreAssetBinding = {
  * DynamoDB item shapes
  */
 export type QscQuestionItem = QscQuestion & {
-  PK: "QUESTION";
-  SK: `QUESTION#${string}`;
+  PK: `QUESTION#${string}`;
+  SK: "METADATA";
   type: "QUESTION";
 };
 

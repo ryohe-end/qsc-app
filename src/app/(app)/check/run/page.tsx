@@ -193,6 +193,8 @@ export default function CheckRunPage() {
   useEffect(() => setMounted(true), []);
 
   const [sections, setSections] = useState<Section[]>(() => DEFAULT_SECTIONS);
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [loadingQuestions, setLoadingQuestions] = useState(true);
 
   // 初回データ読み込み
   useEffect(() => {
@@ -222,7 +224,32 @@ export default function CheckRunPage() {
       setSections(DEFAULT_SECTIONS);
     }
   }, [mounted, DRAFT_KEY]);
+  useEffect(() => {
+  async function loadQuestions() {
+    try {
+      const storeId = "S001"; // 仮。あとで選択店舗から取る
 
+      const res = await fetch(`/api/check/run-config?storeId=${storeId}`, {
+        cache: "no-store",
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json?.error || "取得失敗");
+      }
+
+      setQuestions(json.questions || []);
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message);
+    } finally {
+      setLoadingQuestions(false);
+    }
+  }
+
+  loadQuestions();
+}, []);
   // ✅ オートセーブ機能（2秒間操作がなければ自動で保存）
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {

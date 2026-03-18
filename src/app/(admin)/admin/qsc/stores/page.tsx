@@ -324,10 +324,15 @@ export default function AdminStoresPage() {
     setDraft({ ...draft, emails: next });
   };
 
-  const saveStore = () => {
-    if (!draft.name || !draft.clubCode) return alert("名称とコードは必須です");
+  const saveStore = async () => {
+  if (!draft.name || !draft.clubCode) {
+    alert("名称とコードは必須です");
+    return;
+  }
 
+  try {
     const validEmails = (draft.emails || []).filter((em) => em.trim() !== "");
+
     const next = {
       ...(draft as StoreRow),
       emails: validEmails,
@@ -335,26 +340,91 @@ export default function AdminStoresPage() {
       version: (draft.version || 0) + 1,
     };
 
+    const savedStore =
+      sheetMode === "create"
+        ? { ...next, storeId: `S${Date.now()}` }
+        : next;
+
+    // まず画面上の店舗データ更新
     if (sheetMode === "create") {
-      setRows([{ ...next, storeId: `S${Date.now()}` }, ...rows]);
+      setRows((prev) => [savedStore, ...prev]);
     } else {
-      setRows(rows.map((r) => (r.storeId === draft.storeId ? next : r)));
+      setRows((prev) =>
+        prev.map((r) => (r.storeId === savedStore.storeId ? savedStore : r))
+      );
+    }
+
+    // assetId が選ばれていれば STORE_ASSET を保存
+    if (savedStore.assetId) {
+      const res = await fetch("/api/admin/qsc/store-assets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          storeId: savedStore.storeId,
+          assetId: savedStore.assetId,
+          isActive: true,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(json?.error || "アセット割当の保存に失敗しました");
+      }
     }
 
     setSheetOpen(false);
-  };
+  } catch (e: any) {
+    console.error(e);
+    alert(e?.message || "保存に失敗しました");
+  }
+};
 
-  const applyBatchAsset = () => {
-    if (!batchAssetId) return;
+  const applyBatchAsset = async () => {
+  if (!batchAssetId) return;
 
-    setRows(
-      rows.map((r) =>
-        selectedIds.includes(r.storeId) ? { ...r, assetId: batchAssetId } : r
+  try {
+    const targetStoreIds = [...selectedIds];
+
+    // 画面上を先に更新
+    setRows((prev) =>
+      prev.map((r) =>
+        targetStoreIds.includes(r.storeId) ? { ...r, assetId: batchAssetId } : r
       )
     );
+
+    // 1件ずつ STORE_ASSET 保存
+    for (const storeId of targetStoreIds) {
+      const res = await fetch("/api/admin/qsc/store-assets", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          storeId,
+          assetId: batchAssetId,
+          isActive: true,
+        }),
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        throw new Error(
+          json?.error || `店舗 ${storeId} のアセット適用に失敗しました`
+        );
+      }
+    }
+
     setBatchModalOpen(false);
     setSelectedIds([]);
-  };
+  } catch (e: any) {
+    console.error(e);
+    alert(e?.message || "一括適用に失敗しました");
+  }
+};
 
   const deleteStore = (id: string) => {
     if (confirm("削除しますか？")) {
