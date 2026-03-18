@@ -1,0 +1,979 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q026"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q026"
+          },
+          "place": {
+            "S": "フロント"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "カシオPＣに目隠しシートが貼られているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q027"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q027"
+          },
+          "place": {
+            "S": "フロント"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "フロント内が整理整頓され、TOPSが取り入れられているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q028"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q028"
+          },
+          "place": {
+            "S": "フロント"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "サインの表面や上部、段差等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q029"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q029"
+          },
+          "place": {
+            "S": "フロント"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "入会･受付ブースの机やイスに汚れはないか、イスの脚等に埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q030"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q030"
+          },
+          "place": {
+            "S": "フロント"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "メガネケース内側や底に埃が溜まっていないか、メガネに手垢が付いていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q031"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q031"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "有酸素マシンの肌が触れる部分、足元･骨組み、マシン下、ドリンクホルダーに汚れ（汗など）や埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q032"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q032"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ストレングスマシンの肌が触れる部分、足元･骨組み、マシン下、ドリンクホルダーに汚れ（汗など）や埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q033"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q033"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "マシン前のテレビの表面･裏側･配線･リモコンなどに汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q034"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q034"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ゼンプロの肌の触れる部分、足元の骨組み、マシン下、ドリンクホルダーに汚れ/埃がないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q035"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q035"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "マシン拭きタオルに毛羽立ちや磨耗等がないか、ジムワイプは補充されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q036"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q036"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "マシンに劣化や破損はないか、マシンシートなどに亀裂や破れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q037"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q037"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "調整中マシンには規定POPで復旧予定、または調整対応日が記載されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q038"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q038"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "温湿度計は最低1箇所に設置してあるか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q039"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q039"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "室温は22～26℃以内に保たれているか（室温の目安は有酸素エリア 22～24℃､レジスタンス･ＦＷ 26℃前後､ストレッチエリア 26℃前後 / 湿度の目安は40～60％）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q040"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q040"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "蛍光灯/照明は切れていないか、間引きは適正か"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q041"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q041"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "蛍光灯/照明に埃や虫の死骸がないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q042"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q042"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "12"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "エアコンの羽･フィルター、換気扇等に埃は溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q043"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q043"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "13"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "エリア全体に不快な臭いではないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q044"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q044"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "14"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "清掃用具はフックで吊るしてあるか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q045"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q045"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "15"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ストレッチマシンに劣化や破損はないか、マシンシートなどに亀裂や破れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q046"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q046"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "16"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ストレッチマシン（ゆらぎ）の肌が触れる部分、足元･骨組み、マシン下、ドリンクホルダーに汚れ（汗など）や埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q047"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q047"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "17"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "お客様が使用する備品が床に直置きされていないか（マシンパットや予備のジムコールなど）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q048"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q048"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "18"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ヴァーチャルバイクの肌の触れる部分、足元の骨組み、マシン下、ドリンクホルダーに汚れ（汗など）や埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q049"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q049"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "19"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ヴァーチャルバイクに劣化や破損はないか、シートなどに亀裂や破れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q050"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q050"
+          },
+          "place": {
+            "S": "ジムエリア"
+          },
+          "no": {
+            "N": "20"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ヴァーチャルバイク モニターはしっかり映っているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    }
+  ]
+}

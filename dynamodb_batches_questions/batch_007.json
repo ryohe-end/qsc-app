@@ -1,0 +1,979 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q151"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q151"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "13"
+          },
+          "category": {
+            "S": "Ｃ"
+          },
+          "text": {
+            "S": "扇風機（ロッカールーム以外）の羽･カバー･ケーブル等、加湿空気清浄機の本体･フィルター等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q152"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q152"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "14"
+          },
+          "category": {
+            "S": "Ｃ"
+          },
+          "text": {
+            "S": "血圧計の腕パット、コード等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q153"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q153"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "15"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "アメニティは補充されているか、ティッシュカバーがかけられているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q154"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q154"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "16"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "チラシケース/チラシスタンドや棚などに劣化や破損はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q155"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q155"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "17"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "チラシケース/チラシスタンドや棚などに埃や汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q156"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q156"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "18"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ゴミ箱はフタ付きで、ゴミ袋が見えていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q157"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q157"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "19"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ゴミ箱のフタ等に汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q158"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q158"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "20"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "自動販売機上部やレバー部分に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q159"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q159"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "21"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "コンセントのプラグカバー、漏電キャップが付いているか、コードはまとめられているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q160"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q160"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "22"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "プラグ、コンセントカバー、配線に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q161"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q161"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "23"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "壁や扉等にテープ跡が残っていないか、壁紙は剥がれていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q162"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q162"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "24"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "館内掲示の表面やイーゼルに埃や汚れ、蜘蛛の巣はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q163"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q163"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "25"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ドア枠、窓枠、警報機、スイッチカバー等の段差に汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q164"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q164"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "26"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "館内サイン（ブランドロゴ/注意事項など）の表面や上部などに汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q165"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q165"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "27"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "避難口誘導灯は正常に作動しているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q166"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q166"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "28"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "新聞紙を留める部分等に劣化や破損はないか、テープ等で補強されていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q167"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q167"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "29"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "新聞･雑誌ラックに汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q168"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q168"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "30"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "雑誌に透明カバーがかけられているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q169"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q169"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "31"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "テーブルの表面、イスの座面等に汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q170"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q170"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "32"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "マッサージチェアの座面に亀裂や破れはないか、配線はまとめられているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q171"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q171"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "33"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "マッサージチェアの座面･ヘッド･隙間等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q172"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q172"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "34"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "壁掛け･天吊りテレビの表面、上部、裏配線等に汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q173"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q173"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "35"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "メガネケース内側や底に埃が溜まっていないか、メガネに手垢が付いていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q174"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q174"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "36"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "入会ブースの机やイスに汚れはないか、イスの脚や荷物カゴ等に埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q175"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q175"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "37"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "イベントや販促のディスプレイ（水素水ボトルやプロテインなど）や展示ブースに汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    }
+  ]
+}

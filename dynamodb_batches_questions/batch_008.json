@@ -1,0 +1,979 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q176"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q176"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "38"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "お客様用の救急箱が設置されているか、また定期的に補充･点検をしているか（絆創膏/消毒液/ガーゼ/包帯/三角巾/アイスパックやコールドスプレーは必須設置、ハサミや先端が鋭利なものの常設は✕）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q177"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q177"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "39"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "必須防災グッズがリストと共に設置されているか、使用推奨期限などが切れていないか、また定期的に点検をしているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q178"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q178"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "40"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "荷物棚の上部･内部に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q179"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q179"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "41"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "EMSスーツやレンタルタオル等の棚に埃や汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q180"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q180"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "42"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "休憩スペースのテレビ表面･上部･裏配線等に汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q181"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q181"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "43"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "会議室･ミーティングルームの机やイスに破損や劣化はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q182"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q182"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "44"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "会議室･ミーティングルームの机やイスに汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q183"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q183"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "45"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "会議室･ミーティングルームの床/壁に目立った破損箇所はない"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q184"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q184"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "46"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "会議室･ミーティングルームの壁/四隅/巾木の段差/に埃や髪の毛はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q185"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q185"
+          },
+          "place": {
+            "S": "ロッカー"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ロッカーの鍵･キーバンド･アクセサリートレイ等に破損はないか、スムーズに開くか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q186"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q186"
+          },
+          "place": {
+            "S": "ロッカー"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ロッカー上部･内側の溝･取っ手･アクセサリートレイ等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q187"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q187"
+          },
+          "place": {
+            "S": "ロッカー"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ロッカー内ハンガーは2本以上設置されているか（木製推奨）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q188"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q188"
+          },
+          "place": {
+            "S": "ロッカー"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "契約ロッカーの上部･内側の溝･取っ手に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q189"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q189"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "更衣室内全体に不快な臭いではないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q190"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q190"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "床/スノコ/壁に目立った破損箇所はない"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q191"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q191"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "壁/四隅/巾木の段差/に埃や髪の毛はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q192"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q192"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "温湿度計は最低1箇所に設置してあるか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q193"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q193"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "室温は25℃±1℃に保たれているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q194"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q194"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "室温はHOTスタジオと温度差を抑えた24～28℃に保たれているか（湿度の目安は40～60％）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q195"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q195"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "室温はプールサイドと温度差を抑えた24～28℃に保たれているか（湿度の目安は40～60％）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q196"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q196"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "エアコンの羽･フィルター、換気扇等に埃は溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q197"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q197"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ロッカールーム内の扇風機の羽･カバー･ケーブル等、加湿空気清浄機の本体･フィルター等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q198"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q198"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ドライヤーのフィルター、吹き出し口、カゴ内部に汚れや埃が溜まっていないか、"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q199"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q199"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "洗面台の鏡は上部段差に埃、鏡表面に手垢等の汚れがないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q200"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q200"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "12"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "洗面ボウルに水垢や汚れがないか、洗面台下･パイプに埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    }
+  ]
+}

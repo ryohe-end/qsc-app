@@ -1,0 +1,1279 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_298"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_298"
+          },
+          "clubCode": {
+            "S": "523"
+          },
+          "name": {
+            "S": "東三国"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_004"
+          },
+          "bizName": {
+            "S": "赤LITE"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_299"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_299"
+          },
+          "clubCode": {
+            "S": "358"
+          },
+          "name": {
+            "S": "東十条"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_300"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_300"
+          },
+          "clubCode": {
+            "S": "567"
+          },
+          "name": {
+            "S": "東淡路"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_301"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_301"
+          },
+          "clubCode": {
+            "S": "356"
+          },
+          "name": {
+            "S": "東武練馬"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_004"
+          },
+          "bizName": {
+            "S": "赤LITE"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_302"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_302"
+          },
+          "clubCode": {
+            "S": "342"
+          },
+          "name": {
+            "S": "読売ランド前"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_303"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_303"
+          },
+          "clubCode": {
+            "S": "105"
+          },
+          "name": {
+            "S": "苫小牧柳町"
+          },
+          "corpId": {
+            "S": "C_002"
+          },
+          "corpName": {
+            "S": "オカモト"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_002"
+          },
+          "bizName": {
+            "S": "赤SP LITE"
+          },
+          "areaId": {
+            "S": "A_001"
+          },
+          "areaName": {
+            "S": "NORTH"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_304"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_304"
+          },
+          "clubCode": {
+            "S": "814"
+          },
+          "name": {
+            "S": "那珂川"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_004"
+          },
+          "bizName": {
+            "S": "赤LITE"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_305"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_305"
+          },
+          "clubCode": {
+            "S": "554"
+          },
+          "name": {
+            "S": "灘岩屋"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_004"
+          },
+          "bizName": {
+            "S": "赤LITE"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_306"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_306"
+          },
+          "clubCode": {
+            "S": "329"
+          },
+          "name": {
+            "S": "南浦和"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_307"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_307"
+          },
+          "clubCode": {
+            "S": "384"
+          },
+          "name": {
+            "S": "南葛西"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_308"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_308"
+          },
+          "clubCode": {
+            "S": "507"
+          },
+          "name": {
+            "S": "南森町"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_309"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_309"
+          },
+          "clubCode": {
+            "S": "371"
+          },
+          "name": {
+            "S": "南青山"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_310"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_310"
+          },
+          "clubCode": {
+            "S": "362"
+          },
+          "name": {
+            "S": "南与野"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_311"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_311"
+          },
+          "clubCode": {
+            "S": "332"
+          },
+          "name": {
+            "S": "日暮里"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_312"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_312"
+          },
+          "clubCode": {
+            "S": "1308"
+          },
+          "name": {
+            "S": "乃木坂"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_313"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_313"
+          },
+          "clubCode": {
+            "S": "330"
+          },
+          "name": {
+            "S": "馬事公苑"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_314"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_314"
+          },
+          "clubCode": {
+            "S": "374"
+          },
+          "name": {
+            "S": "梅島"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_315"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_315"
+          },
+          "clubCode": {
+            "S": "812"
+          },
+          "name": {
+            "S": "博多駅南"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_004"
+          },
+          "bizName": {
+            "S": "赤LITE"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_316"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_316"
+          },
+          "clubCode": {
+            "S": "1111"
+          },
+          "name": {
+            "S": "函館海岸町"
+          },
+          "corpId": {
+            "S": "C_002"
+          },
+          "corpName": {
+            "S": "オカモト"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_002"
+          },
+          "bizName": {
+            "S": "赤SP LITE"
+          },
+          "areaId": {
+            "S": "A_001"
+          },
+          "areaName": {
+            "S": "NORTH"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_317"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_317"
+          },
+          "clubCode": {
+            "S": "218"
+          },
+          "name": {
+            "S": "八戸"
+          },
+          "corpId": {
+            "S": "C_018"
+          },
+          "corpName": {
+            "S": "マネジメント・ワン"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_002"
+          },
+          "bizName": {
+            "S": "赤SP LITE"
+          },
+          "areaId": {
+            "S": "A_005"
+          },
+          "areaName": {
+            "S": "FC(EAST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_318"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_318"
+          },
+          "clubCode": {
+            "S": "1302"
+          },
+          "name": {
+            "S": "板橋本町"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_319"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_319"
+          },
+          "clubCode": {
+            "S": "382"
+          },
+          "name": {
+            "S": "尾山台"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_004"
+          },
+          "bizName": {
+            "S": "赤LITE"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_320"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_320"
+          },
+          "clubCode": {
+            "S": "820"
+          },
+          "name": {
+            "S": "美野島"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_004"
+          },
+          "bizName": {
+            "S": "赤LITE"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_321"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_321"
+          },
+          "clubCode": {
+            "S": "586"
+          },
+          "name": {
+            "S": "百舌鳥八幡"
+          },
+          "corpId": {
+            "S": "C_014"
+          },
+          "corpName": {
+            "S": "ファイコム"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_002"
+          },
+          "bizName": {
+            "S": "赤SP LITE"
+          },
+          "areaId": {
+            "S": "A_007"
+          },
+          "areaName": {
+            "S": "FC(WEST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_322"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_322"
+          },
+          "clubCode": {
+            "S": "321"
+          },
+          "name": {
+            "S": "富士見台"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "brand": {
+            "S": "JOYFIT"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "bizName": {
+            "S": "赤"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    }
+  ]
+}

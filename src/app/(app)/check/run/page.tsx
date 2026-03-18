@@ -194,6 +194,7 @@ export default function CheckRunPage() {
 
   const [sections, setSections] = useState<Section[]>(() => DEFAULT_SECTIONS);
 
+  // 初回データ読み込み
   useEffect(() => {
     if (!mounted) return;
     try {
@@ -221,6 +222,23 @@ export default function CheckRunPage() {
       setSections(DEFAULT_SECTIONS);
     }
   }, [mounted, DRAFT_KEY]);
+
+  // ✅ オートセーブ機能（2秒間操作がなければ自動で保存）
+  const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    if (!mounted) return;
+    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(sections));
+      } catch (e) {
+        console.error("Autosave failed", e);
+      }
+    }, 2000);
+    return () => {
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [sections, DRAFT_KEY, mounted]);
 
   const [saving, setSaving] = useState(false);
   const [submitBusy, setSubmitBusy] = useState(false);
@@ -449,12 +467,10 @@ export default function CheckRunPage() {
               items: s.items.map((it) => {
                 if (it.id !== itemId) return it;
                 if (isHold) {
-                   // 保留理由：既に何かあれば改行して追記
                    const current = it.holdNote || "";
                    const next = current ? `${current}\n${text}` : text;
                    return { ...it, holdNote: next };
                 } else {
-                   // NGコメント：既に何かあれば改行して追記
                    const current = it.note || "";
                    const next = current ? `${current}\n${text}` : text;
                    return { ...it, note: next };
@@ -507,11 +523,10 @@ export default function CheckRunPage() {
       try {
         const original = await readFileAsDataUrl(f);
         
-        // ✅ 編集モーダルを呼び出す (awaitで完了を待つ)
+        // 編集モーダルを呼び出す (awaitで完了を待つ)
         const edited = await openPhotoEditor(original);
         
         // 編集画面で「保存」された場合のみ追加する
-        // (キャンセルされた場合は追加しない)
         if (edited) {
           added.push({ id: uid("ph"), dataUrl: edited });
         }
@@ -562,14 +577,6 @@ export default function CheckRunPage() {
     });
   };
 
-  const pulseGuide = (secId: string, itemId: string) => {
-    const k = itemKey(secId, itemId);
-    setGuideKey(k);
-    window.setTimeout(() => {
-      setGuideKey((cur) => (cur === k ? null : cur));
-    }, 900);
-  };
-
   const focusNote = (secId: string, itemId: string) => {
     const k = itemKey(secId, itemId);
     requestAnimationFrame(() => {
@@ -580,7 +587,6 @@ export default function CheckRunPage() {
         const target = Math.max(0, el.offsetTop - 84 - 6);
         scrollMainTo(target);
       }
-      pulseGuide(secId, itemId);
       setTimeout(() => {
         el.focus();
         // カーソルを末尾へ
@@ -600,7 +606,6 @@ export default function CheckRunPage() {
         const target = Math.max(0, el.offsetTop - 84 - 6);
         scrollMainTo(target);
       }
-      pulseGuide(secId, itemId);
       setTimeout(() => {
         el.focus();
         const len = el.value.length;
@@ -609,21 +614,23 @@ export default function CheckRunPage() {
     });
   };
 
-  // ✅ UX向上：振動＋NG時の自動フォーカス
+  // ✅ 統合された onChoose (フラッシュ演出 & オートフォーカス)
   const onChoose = (secId: string, itemId: string, state: CheckState) => {
-    vibrate(); // 触覚フィードバック
+    vibrate(10); // 触覚フィードバック
     setItemState(secId, itemId, state);
 
-    // NGなら自動でコメント欄へ
+    const k = itemKey(secId, itemId);
+
     if (state === 'ng') {
-      // 状態更新反映を待ってフォーカス
-      setTimeout(() => {
-        focusNote(secId, itemId);
-      }, 100);
+      // NGなら自動でコメント欄へフォーカス
+      setTimeout(() => focusNote(secId, itemId), 120);
     } else if (state === 'hold') {
-      setTimeout(() => {
-        focusHold(secId, itemId);
-      }, 100);
+      // 保留なら保留理由へフォーカス
+      setTimeout(() => focusHold(secId, itemId), 120);
+    } else if (state === 'ok') {
+      // ✅ OK時にカードを光らせる演出用のキーをセット
+      setGuideKey(`ok-flash-${k}`);
+      setTimeout(() => setGuideKey(null), 600); // 0.6秒後に解除
     }
   };
 
@@ -896,7 +903,7 @@ export default function CheckRunPage() {
 
   return (
     <div className={styles.qscCheckRunPage} style={{ ["--qscBottomH" as any]: `${bottomDockH}px` }}>
-      {/* スマホ枠はみ出し防止 */}
+      {/* スマホ枠はみ出し防止 & ✅ アニメーション定義の追加 */}
       <style>{`
         html, body { max-width: 100%; overflow-x: hidden; }
         body { margin: 0; }
@@ -911,6 +918,28 @@ export default function CheckRunPage() {
         .qscSheetLayer{ position: fixed; inset: 0; z-index: ${Z.sheet}; }
         .qscPhotoLayer{ position: fixed; inset: 0; z-index: ${Z.photoModal}; }
         [data-qsc-main]{ padding-bottom: calc(var(--qscBottomH, 0px) + env(safe-area-inset-bottom) + 16px); }
+
+        /* ✅ 追加: OKフラッシュ演出 */
+        .okFlash {
+          animation: flash-green 0.6s ease-out !important;
+        }
+        @keyframes flash-green {
+          0% { background-color: rgba(52, 199, 89, 0.2); box-shadow: 0 0 15px rgba(52, 199, 89, 0.4); }
+          100% { background-color: #ffffff; box-shadow: var(--shadow-sm); }
+        }
+
+        /* ✅ 追加: 完了ボタンのアニメーション */
+        .readyToSubmit {
+          animation: pulse-primary 2s infinite !important;
+          background-color: #007AFF !important;
+          box-shadow: 0 0 15px rgba(0, 122, 255, 0.4);
+          color: white !important;
+        }
+        @keyframes pulse-primary {
+          0% { transform: scale(1); }
+          50% { transform: scale(1.03); }
+          100% { transform: scale(1); }
+        }
       `}</style>
 
       {/* Top Bar */}
@@ -1081,13 +1110,19 @@ export default function CheckRunPage() {
                   const needsNote = it.state === "ng" && !trimText(it.note);
                   const showMissing = forceShowErrors && needsNote;
                   const k = itemKey(sec.id, it.id);
-                  const guideOn = guideKey === k;
 
                   return (
                     <div
                       key={it.id}
                       ref={(el) => { itemRefs.current[k] = el; }}
-                      className={`${styles.qscItemCard} ${styles.qscItemTint} qscCompactCard ${showMissing ? styles.itemError : ""}`}
+                      // ✅ 追加: guideKeyが一致したら「okFlash」クラスを付与
+                      className={`
+                        ${styles.qscItemCard} 
+                        ${styles.qscItemTint} 
+                        qscCompactCard 
+                        ${showMissing ? styles.itemError : ""} 
+                        ${guideKey === `ok-flash-${k}` ? "okFlash" : ""}
+                      `}
                       style={{ ["--secTint" as any]: th.tint, ["--secAccent" as any]: th.accent } as React.CSSProperties}
                     >
                       <div className={styles.qscItemTop}>
@@ -1165,7 +1200,7 @@ export default function CheckRunPage() {
                           <>
                             <textarea
                               ref={(el) => { noteRefs.current[k] = el; }}
-                              className={`${styles.qscNote} qscCompactNote ${showMissing ? styles.noteMissing : ""} ${guideOn ? styles.noteGuide : ""}`}
+                              className={`${styles.qscNote} qscCompactNote ${showMissing ? styles.noteMissing : ""}`}
                               value={it.note ?? ""}
                               onChange={(e) => setItemNote(sec.id, it.id, e.target.value)}
                               placeholder={it.state === "ng" ? "NG理由（必須）" : "コメントを入力"}
@@ -1270,7 +1305,13 @@ export default function CheckRunPage() {
                       <Trash2 size={18} />
                       <span style={{ whiteSpace: "nowrap" }}>破棄</span>
                     </button>
-                    <button type="button" className={`${styles.qscAction} ${styles.actionPrimary}`} onClick={submit} disabled={submitBusy} style={{ flex: 1 }}>
+                    {/* ✅ 追加: すべて埋まったら readyToSubmit クラスを追加してアニメーションさせる */}
+                    <button type="button" className={`
+                        ${styles.qscAction} 
+                        ${styles.actionPrimary} 
+                        ${progress.unset === 0 ? "readyToSubmit" : ""}
+                      `} 
+                      onClick={submit} disabled={submitBusy} style={{ flex: 1 }}>
                       <Send size={18} />
                       <span style={{ whiteSpace: "nowrap" }}>{submitBusy ? "送信中…" : "完了"}</span>
                     </button>

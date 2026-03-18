@@ -1,0 +1,1279 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_098"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_098"
+          },
+          "clubCode": {
+            "S": "233"
+          },
+          "name": {
+            "S": "FIT365東根"
+          },
+          "corpId": {
+            "S": "C_006"
+          },
+          "corpName": {
+            "S": "トレシスサンク"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_005"
+          },
+          "areaName": {
+            "S": "FC(EAST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_099"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_099"
+          },
+          "clubCode": {
+            "S": "1108"
+          },
+          "name": {
+            "S": "FIT365東札幌"
+          },
+          "corpId": {
+            "S": "C_002"
+          },
+          "corpName": {
+            "S": "オカモト"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_001"
+          },
+          "areaName": {
+            "S": "NORTH"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_100"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_100"
+          },
+          "clubCode": {
+            "S": "1522"
+          },
+          "name": {
+            "S": "FIT365東大阪荒本"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_101"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_101"
+          },
+          "clubCode": {
+            "S": "421"
+          },
+          "name": {
+            "S": "FIT365徳川明倫"
+          },
+          "corpId": {
+            "S": "C_005"
+          },
+          "corpName": {
+            "S": "ブックセンター名豊"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_007"
+          },
+          "areaName": {
+            "S": "FC(WEST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_102"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_102"
+          },
+          "clubCode": {
+            "S": "1362"
+          },
+          "name": {
+            "S": "FIT365栃木平柳"
+          },
+          "corpId": {
+            "S": "C_011"
+          },
+          "corpName": {
+            "S": "ケイ・ネクスト"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_005"
+          },
+          "areaName": {
+            "S": "FC(EAST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_103"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_103"
+          },
+          "clubCode": {
+            "S": "1523"
+          },
+          "name": {
+            "S": "FIT365奈良かしはら"
+          },
+          "corpId": {
+            "S": "C_014"
+          },
+          "corpName": {
+            "S": "ファイコム"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_007"
+          },
+          "areaName": {
+            "S": "FC(WEST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_104"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_104"
+          },
+          "clubCode": {
+            "S": "1514"
+          },
+          "name": {
+            "S": "FIT365奈良登美ヶ丘"
+          },
+          "corpId": {
+            "S": "C_017"
+          },
+          "corpName": {
+            "S": "伊藤佑"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_007"
+          },
+          "areaName": {
+            "S": "FC(WEST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_105"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_105"
+          },
+          "clubCode": {
+            "S": "905"
+          },
+          "name": {
+            "S": "FIT365那覇新都心"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_106"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_106"
+          },
+          "clubCode": {
+            "S": "583"
+          },
+          "name": {
+            "S": "FIT365南海堺東"
+          },
+          "corpId": {
+            "S": "C_014"
+          },
+          "corpName": {
+            "S": "ファイコム"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_007"
+          },
+          "areaName": {
+            "S": "FC(WEST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_107"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_107"
+          },
+          "clubCode": {
+            "S": "1103"
+          },
+          "name": {
+            "S": "FIT365日新町"
+          },
+          "corpId": {
+            "S": "C_002"
+          },
+          "corpName": {
+            "S": "オカモト"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_001"
+          },
+          "areaName": {
+            "S": "NORTH"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_108"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_108"
+          },
+          "clubCode": {
+            "S": "1331"
+          },
+          "name": {
+            "S": "FIT365入間ｻｲｵｽ"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_109"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_109"
+          },
+          "clubCode": {
+            "S": "1378"
+          },
+          "name": {
+            "S": "FIT365柏崎柳田"
+          },
+          "corpId": {
+            "S": "C_008"
+          },
+          "corpName": {
+            "S": "アークランズ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_005"
+          },
+          "areaName": {
+            "S": "FC(EAST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_110"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_110"
+          },
+          "clubCode": {
+            "S": "1353"
+          },
+          "name": {
+            "S": "FIT365柏松ヶ崎"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_111"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_111"
+          },
+          "clubCode": {
+            "S": "1384"
+          },
+          "name": {
+            "S": "FIT365白井16号"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_112"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_112"
+          },
+          "clubCode": {
+            "S": "241"
+          },
+          "name": {
+            "S": "FIT365八戸"
+          },
+          "corpId": {
+            "S": "C_018"
+          },
+          "corpName": {
+            "S": "マネジメント・ワン"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_005"
+          },
+          "areaName": {
+            "S": "FC(EAST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_113"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_113"
+          },
+          "clubCode": {
+            "S": "1382"
+          },
+          "name": {
+            "S": "FIT365八千代台"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_114"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_114"
+          },
+          "clubCode": {
+            "S": "375"
+          },
+          "name": {
+            "S": "FIT365八潮"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "areaName": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_115"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_115"
+          },
+          "clubCode": {
+            "S": "123"
+          },
+          "name": {
+            "S": "FIT365八幡通り"
+          },
+          "corpId": {
+            "S": "C_002"
+          },
+          "corpName": {
+            "S": "オカモト"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_001"
+          },
+          "areaName": {
+            "S": "NORTH"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_116"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_116"
+          },
+          "clubCode": {
+            "S": "1524"
+          },
+          "name": {
+            "S": "FIT365八尾旭ヶ丘"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_117"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_117"
+          },
+          "clubCode": {
+            "S": "1512"
+          },
+          "name": {
+            "S": "FIT365八尾老原"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_118"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_118"
+          },
+          "clubCode": {
+            "S": "1510"
+          },
+          "name": {
+            "S": "FIT365彦根"
+          },
+          "corpId": {
+            "S": "C_017"
+          },
+          "corpName": {
+            "S": "伊藤佑"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_007"
+          },
+          "areaName": {
+            "S": "FC(WEST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_119"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_119"
+          },
+          "clubCode": {
+            "S": "1525"
+          },
+          "name": {
+            "S": "FIT365姫路花田"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_120"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_120"
+          },
+          "clubCode": {
+            "S": "1518"
+          },
+          "name": {
+            "S": "FIT365姫路広畑"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "corpName": {
+            "S": "ヤマウチ"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "areaName": {
+            "S": "WEST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_121"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_121"
+          },
+          "clubCode": {
+            "S": "578"
+          },
+          "name": {
+            "S": "FIT365舞子"
+          },
+          "corpId": {
+            "S": "C_014"
+          },
+          "corpName": {
+            "S": "ファイコム"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_007"
+          },
+          "areaName": {
+            "S": "FC(WEST)"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "STORE"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "STORE#S_122"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "storeId": {
+            "S": "S_122"
+          },
+          "clubCode": {
+            "S": "425"
+          },
+          "name": {
+            "S": "FIT365福井新保"
+          },
+          "corpId": {
+            "S": "C_002"
+          },
+          "corpName": {
+            "S": "オカモト"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "brand": {
+            "S": "FIT365"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "bizName": {
+            "S": "FIT365"
+          },
+          "areaId": {
+            "S": "A_001"
+          },
+          "areaName": {
+            "S": "NORTH"
+          }
+        }
+      }
+    }
+  ]
+}

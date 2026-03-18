@@ -1,0 +1,979 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q201"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q201"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "13"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ハンドドライヤー（ジェットタオル）に赤カビ･水垢などの汚れはないか、フィルターに埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q202"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q202"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "14"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ハンドソープは補充されているか、JOYFITオリジナルボトルを設置しているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q203"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q203"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "15"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ハンドソープは補充されているか、業態に合ったボトルで設置しているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q204"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q204"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "16"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "アメニティは補充されているか、ティッシュカバーがかけられているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q205"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q205"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "17"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "清掃用具はフックで吊るしてあるか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q206"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q206"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "18"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "個室の床/スノコ/壁に目立った破損箇所はない"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q207"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q207"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "19"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "個室の壁/四隅/巾木の段差/スノコ下に埃や髪の毛はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q208"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q208"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "20"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "個室のコーキングの段差、棚、芳香剤等に汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q209"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q209"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "21"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "各所のドア･ドアサッシ･小窓の段差に汚れや埃が溜まっていない"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q210"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q210"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "22"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "イス、靴べら、体重計等に破損や劣化はない"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q211"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q211"
+          },
+          "place": {
+            "S": "更衣室/チェンジングルーム"
+          },
+          "no": {
+            "N": "23"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "イス、靴べら、体重計等に汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q212"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q212"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "脱衣所の床やマット、壁の境目や四隅などに埃や髪の毛などの汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q213"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q213"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "脱衣棚の上部や四隅などが汚れていないか、脱衣カゴ内部に汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q214"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q214"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "脱衣所扉の手垢、ドア枠や段差や扉の合わせ目などに埃やゴミが溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q215"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q215"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "脱衣所全体に不快な臭いではないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q216"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q216"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "脱衣所の換気扇、扇風機等に埃や汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q217"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q217"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "シャンプーボトルはJOYFITオリジナルの指定ボトルを使用しているか、補充されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q218"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q218"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "シャンプーボトルの底にぬめりはないか、ポンプ部分に黒かびや水垢はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q219"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q219"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "カラン部分にカビや水垢はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q220"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q220"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "洗い場の鏡段差、鏡表面に水垢や手垢などの汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q221"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q221"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "シャワールームのカラン部分にカビや水垢はないか、排水溝にぬめりはないか、黒かびは発生していないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q222"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q222"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "シャワーの水が出る時間は13秒±1以内か（もしくは15秒±1）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q223"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q223"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "12"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "お風呂床に目立った破損箇所はない"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q224"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q224"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "13"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "お風呂床に汚れやカビ、ぬめりはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q225"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q225"
+          },
+          "place": {
+            "S": "お風呂"
+          },
+          "no": {
+            "N": "14"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ドレインの排水部分に汚れやカビ、ヌメリはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    }
+  ]
+}

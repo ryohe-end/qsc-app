@@ -1,0 +1,940 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q276"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q276"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "指定のユニフォームを着用しているか、ルールに基づいてユニフォームを着用しているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q277"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q277"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "条件反射：すみません/入会したい/退会したい/会員です/求人広告見た"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q278"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q278"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "電話応対：第一声はラの音で、右手にペン･左手に受話器、ワンコール以内で取る"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q279"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q279"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "電話応対：第一声はラの音で、右手にペン･左手に受話器、ワンコール以内で取る または お客様や外部の方へ電話を掛ける際、先に名乗っているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q280"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q280"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "定期的に店舗内でのCS研修を実施しているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q281"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q281"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "出勤時にアピアランスルールに基づき、身だしなみチェックができているか、また守られているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q282"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q282"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "水素水サーバー内部にヌメリや赤カビや水垢、カルキ汚れ等はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q283"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q283"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "プロテインサーバー内部にヌメリや赤カビや水垢、カルキ汚れ等はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q284"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q284"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "タンニング/コラーゲンのライトは切れていないか、正常に使えるか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q285"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q285"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "タンニング/コラーゲンマシン上部の埃、内部のオイル染み等の汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q286"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q286"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "タンニング/コラーゲンゾーンのマシン裏、壁、床、脱衣用カゴ等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q287"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q287"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "オプションルーム内に埃や汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q288"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q288"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "オプションルーム内のエアコンの羽･フィルター、換気扇等に埃は溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q289"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q289"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "オプションサービス（Inbody、ボディープランナー、エステマシン、リフォーマーなど）の本体、棚･ラックなどに埃や汚れはないか。"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q290"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q290"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "プレミアムルーム内に埃や汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q291"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q291"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "プレミアムルーム内のエアコンの羽･フィルター、換気扇等に埃は溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q292"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q292"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "シャワールーム内の床･棚･扉･カラン･ゴムパッキン･排水溝･照明･換気口等に汚れが溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q293"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q293"
+          },
+          "place": {
+            "S": "オプションサービス"
+          },
+          "no": {
+            "N": "12"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "シャワーの水が出る時間は１３秒±１以内か（もしくは１５秒±１）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q294"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q294"
+          },
+          "place": {
+            "S": "観覧･休憩スペース"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "窓ガラスは1回/日以上、清掃されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q295"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q295"
+          },
+          "place": {
+            "S": "観覧･休憩スペース"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "自動販売機上部やレバー部分に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q296"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q296"
+          },
+          "place": {
+            "S": "観覧･休憩スペース"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "テーブルやイスに破損や劣化はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q297"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q297"
+          },
+          "place": {
+            "S": "観覧･休憩スペース"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "テーブルの表面、イスの座面等に汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q298"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q298"
+          },
+          "place": {
+            "S": "観覧･休憩スペース"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "床/壁に目立った破損箇所はない"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q299"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q299"
+          },
+          "place": {
+            "S": "観覧･休憩スペース"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "壁/四隅/巾木の段差/に埃や髪の毛はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    }
+  ]
+}

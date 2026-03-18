@@ -1,0 +1,604 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_003"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_003"
+          },
+          "name": {
+            "S": "ライフ白銅"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_001"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "name": {
+            "S": "ヤマウチ"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_004"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_004"
+          },
+          "name": {
+            "S": "ヤマサ興産"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_005"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_005"
+          },
+          "name": {
+            "S": "ブックセンター名豊"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_006"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_006"
+          },
+          "name": {
+            "S": "トレシスサンク"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_007"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_007"
+          },
+          "name": {
+            "S": "サンプランニングス"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_008"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_008"
+          },
+          "name": {
+            "S": "アークランズ"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_009"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_009"
+          },
+          "name": {
+            "S": "パジャスポーツ"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_010"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_010"
+          },
+          "name": {
+            "S": "PLACE"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_002"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_002"
+          },
+          "name": {
+            "S": "オカモト"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_011"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_011"
+          },
+          "name": {
+            "S": "ケイ・ネクスト"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_012"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_012"
+          },
+          "name": {
+            "S": "マイプレジャー"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_013"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_013"
+          },
+          "name": {
+            "S": "カゴハラゴルフ"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_014"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_014"
+          },
+          "name": {
+            "S": "ファイコム"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_015"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_015"
+          },
+          "name": {
+            "S": "天満屋フィットネス"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_016"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_016"
+          },
+          "name": {
+            "S": "H3"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_017"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_017"
+          },
+          "name": {
+            "S": "伊藤佑"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_018"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_018"
+          },
+          "name": {
+            "S": "マネジメント・ワン"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_019"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_019"
+          },
+          "name": {
+            "S": "マルカン"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_020"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_020"
+          },
+          "name": {
+            "S": "リラィアブル"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_021"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_021"
+          },
+          "name": {
+            "S": "シナノグループ"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_022"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_022"
+          },
+          "name": {
+            "S": "桂林"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_023"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_023"
+          },
+          "name": {
+            "S": "キックス・インターナショナル"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_024"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_024"
+          },
+          "name": {
+            "S": "マルシンベターライフ"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_025"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_025"
+          },
+          "name": {
+            "S": "ヴァーテックス"
+          }
+        }
+      }
+    }
+  ]
+}

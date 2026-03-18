@@ -1,0 +1,979 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q101"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q101"
+          },
+          "place": {
+            "S": "HOTスタジオ"
+          },
+          "no": {
+            "N": "14"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "蛍光灯/照明は切れていないか、間引きは適正か"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q102"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q102"
+          },
+          "place": {
+            "S": "HOTスタジオ"
+          },
+          "no": {
+            "N": "15"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "蛍光灯/照明内に埃や汚れ、虫の死骸がないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q103"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q103"
+          },
+          "place": {
+            "S": "HOTスタジオ"
+          },
+          "no": {
+            "N": "16"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "備品倉庫は整理整頓され、TOPＳが取り入れられているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q104"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q104"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "扉の手垢、ドア枠や段差に埃やゴミが溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q105"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q105"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "床・壁は早急に対応するべき破損はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q106"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q106"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "床と壁の境目や四隅等に埃や汗染み、ゴム汚れがないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q107"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q107"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "鏡の段差に埃、鏡表面に手垢等の汚れがないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q108"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q108"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "TRX/ストレッチマット/バランスボール等のツ/ルに穴や劣化や破損はないか、整理整頓されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q109"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q109"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "TRX/ストレッチマット/バランスボール等のツールに汚れや埃がないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q110"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q110"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "清掃用具はフックで吊るしてあるか（もしくは倉庫内に片付けられているか）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q111"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q111"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "蛍光灯/照明は切れていないか、間引きは適正か"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q112"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q112"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "蛍光灯/照明内に埃や汚れ、虫の死骸がないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q113"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q113"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "エアコンの羽･フィルター、換気扇等に埃は溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q114"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q114"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "備品倉庫は整理整頓され、TOPＳが取り入れられているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q115"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q115"
+          },
+          "place": {
+            "S": "セッションルーム"
+          },
+          "no": {
+            "N": "12"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "温湿度計は設置されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q116"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q116"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "扉の手垢、ドア枠や段差に埃やゴミが溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q117"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q117"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "プールサイドの床や壁に早急に対応するべき破損はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q118"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q118"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "プールサイドの床と壁の境目や四隅等に埃や汚れがないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q119"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q119"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ビート板/ヘルパー/ブイなどのツールに劣化や破損はないか、整理整頓されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q120"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q120"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "ビート板/ヘルパー/ブイなどのツールに汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q121"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q121"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "オーバーフローに汚れやゴミが溜まっていないか、カビやヌメリはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q122"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q122"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "サウナ床や壁に早急に対応するべき破損はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q123"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q123"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "サウナ･採暖室の扉やドア枠や段差に埃やゴミが溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q124"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q124"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "サウナ･採暖室の床や壁に早急に対応するべき破損はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q125"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q125"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "サウナ･採暖室の床と壁の境目や四隅等に埃や汚れがないか、汗染みなどで汚れていない"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    }
+  ]
+}

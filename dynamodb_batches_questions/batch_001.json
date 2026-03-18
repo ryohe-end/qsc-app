@@ -1,0 +1,979 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q001"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q001"
+          },
+          "place": {
+            "S": "館外"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "外壁/外灯/花壇/お客様動線などに破損箇所はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q002"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q002"
+          },
+          "place": {
+            "S": "館外"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "外観/店舗周辺/お客様の動線に汚れ（ゴミ･落ち葉･蜘蛛の巣)･雑草はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q003"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q003"
+          },
+          "place": {
+            "S": "館外"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "のぼり旗や土台に破損や劣化はないか土台が放置されていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q004"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q004"
+          },
+          "place": {
+            "S": "館外"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "のぼり旗や土台に汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q005"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q005"
+          },
+          "place": {
+            "S": "館外"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "駐車場/駐輪場にゴミ･雑草はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q006"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q006"
+          },
+          "place": {
+            "S": "館外"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "入り口前・店舗裏などお客様の目に付く場所に不要物･ゴミが放置されていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q007"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q007"
+          },
+          "place": {
+            "S": "館外"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "洗濯物を会員様の見えるところ、動線に干していないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q008"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q008"
+          },
+          "place": {
+            "S": "館外"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "館外掲示物（ブラックボードやたおれんくん）は整理整頓され、破れ等はないか、期限は切れいていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q009"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q009"
+          },
+          "place": {
+            "S": "館外"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "館外掲示物（ブラックボードやたおれんくん）の表面やイーゼルに埃や蜘蛛の巣などの汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q010"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q010"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "扉の手垢、ドア枠や自動ドアレールに埃やゴミはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q011"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q011"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "土間/風除室の四隅に埃や蜘蛛の巣が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q012"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q012"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "玄関マットが汚れて色が変わっていないか、砂が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q013"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q013"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "かさ立てのトレイや骨組みに汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q014"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q014"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "かさ立てに必要以上の傘が溜まっていないか（雨天時を除く）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q015"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q015"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ゲート/カード端末/APPビーコン/二次元コードに劣化はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q016"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q016"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "入口ゲート･カード端末･インターホン･SECOMセンサーに汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q017"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q017"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "天吊りモニター裏表に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q018"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q018"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "下足ロッカーの鍵が壊れていないか、スムーズに開くか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q019"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q019"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "下足ロッカーの上部や取っ手部分に埃、トレイに砂利が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q020"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q020"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "キオスク端末が正常に稼動しているか、掲載内容に誤りや期限切れがないか（誤字脱字も含む）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q021"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q021"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "12"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "キオスク端末の画面は指紋等で汚れていないか、端末裏は埃や落ち葉で汚れていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q022"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q022"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "13"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "下足入れに破損はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q023"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q023"
+          },
+          "place": {
+            "S": "エントランス"
+          },
+          "no": {
+            "N": "14"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "下足入れに埃や砂利が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q024"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q024"
+          },
+          "place": {
+            "S": "フロント"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "カウンターに不要物が置かれていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q025"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q025"
+          },
+          "place": {
+            "S": "フロント"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "レジの鍵が付いたまま、ドロアーが開いたままになっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    }
+  ]
+}

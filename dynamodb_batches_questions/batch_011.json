@@ -1,0 +1,979 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q251"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q251"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "業者一覧（連絡先）はスタッフの見えるところに掲示されているか、"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q252"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q252"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "エリア内の社員連絡先一覧はスタッフの見えるところに掲示されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q253"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q253"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ノベルティや備品の在庫をしっかり管理できているか、在庫数が見える化されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q254"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q254"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "マシンメンテナンス表を活用できているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q255"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q255"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "館内清掃チェック表は漏れなくチェック出来ているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q256"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q256"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "塩素チェック表は5～6回/日、漏れなくチェック出来ているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q257"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q257"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "塩素濃度は計測毎、基準内（0.4～1.0ml）を保たれているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q258"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q258"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "12"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "救命救急/消防訓練は2回/年以上、実施できているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q259"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q259"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "13"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "店舗スタッフMTは１回/月以上、実施できているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q260"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q260"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "14"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "会社の経営理念･事業理念などを唱和しているか、または確認しているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q261"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q261"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "15"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "洗濯機の外側･ホース･ドラムの内側･ゴミ取りネット等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q262"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q262"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "16"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "掃除機ヘッド、ブラシ等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q263"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q263"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "17"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "バックヤードは整理整頓され、TOPＳが取り入れられているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q264"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q264"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "18"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "共通デスクは整理整頓され、不要物が出しっぱなしになっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q265"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q265"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "19"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "PC画面･配線等に埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q266"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q266"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "20"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "神棚上部･神棚前･榊等に汚れや埃が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q267"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q267"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "21"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "カシオPCに目隠しシートが貼られているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q268"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q268"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "22"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "共有事項（業務･お問い合わせ･見学など）は共有されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q269"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q269"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "23"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "個人情報書類は鍵が付いた書棚等に保管されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q270"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q270"
+          },
+          "place": {
+            "S": "事務所"
+          },
+          "no": {
+            "N": "24"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "店舗ホームページには最新の情報が掲載されているか（ノースタッフデー、入会ＣＰなど）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q271"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q271"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "ジム担当はジム巡回をしているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q272"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q272"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "スタッフはフロント（レセプション）や事務所に必要以上に溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q273"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q273"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "お客様への言葉遣いは敬語を使っているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q274"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q274"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "スタッフ同士は丁寧語な言葉遣いで会話をしているか、あだ名で呼び合っていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q275"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q275"
+          },
+          "place": {
+            "S": "スタッフ"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "S"
+          },
+          "text": {
+            "S": "お客様へ挨拶が出来ているか、正対してたら◎"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    }
+  ]
+}

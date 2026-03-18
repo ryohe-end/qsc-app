@@ -1,0 +1,604 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_026"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_026"
+          },
+          "name": {
+            "S": "ゼネラルフィットネス"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_027"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_027"
+          },
+          "name": {
+            "S": "グッデイ"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_028"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_028"
+          },
+          "name": {
+            "S": "ISM"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_029"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_029"
+          },
+          "name": {
+            "S": "伊勢湾マリン開発"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "CORP"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "CORP#C_030"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "corpId": {
+            "S": "C_030"
+          },
+          "name": {
+            "S": "正和"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BRAND"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BRAND#B002"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "brandId": {
+            "S": "B002"
+          },
+          "name": {
+            "S": "FIT365"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BRAND"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BRAND#B001"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "brandId": {
+            "S": "B001"
+          },
+          "name": {
+            "S": "JOYFIT"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BRAND"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BRAND#B003"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "brandId": {
+            "S": "B003"
+          },
+          "name": {
+            "S": "指定管理"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BRAND"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BRAND#B004"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "brandId": {
+            "S": "B004"
+          },
+          "name": {
+            "S": "WF"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_001"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_001"
+          },
+          "name": {
+            "S": "FIT365"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_002"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_002"
+          },
+          "name": {
+            "S": "赤SP LITE"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_003"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_003"
+          },
+          "name": {
+            "S": "青"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_004"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_004"
+          },
+          "name": {
+            "S": "赤LITE"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_005"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_005"
+          },
+          "name": {
+            "S": "赤"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_006"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_006"
+          },
+          "name": {
+            "S": "緑"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_007"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_007"
+          },
+          "name": {
+            "S": "メディカル"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_008"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_008"
+          },
+          "name": {
+            "S": "赤SP"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_009"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_009"
+          },
+          "name": {
+            "S": "JOYFIT+"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_010"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_010"
+          },
+          "name": {
+            "S": "赤GH"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_011"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_011"
+          },
+          "name": {
+            "S": "青LITE"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "BIZ"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "BIZ#Z_012"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "bizId": {
+            "S": "Z_012"
+          },
+          "name": {
+            "S": "指定管理"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "AREA"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "AREA#A_001"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "areaId": {
+            "S": "A_001"
+          },
+          "name": {
+            "S": "NORTH"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "AREA"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "AREA#A_002"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "areaId": {
+            "S": "A_002"
+          },
+          "name": {
+            "S": "EAST"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "AREA"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "AREA#A_003"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "areaId": {
+            "S": "A_003"
+          },
+          "name": {
+            "S": "PSC"
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "type": {
+            "S": "AREA"
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "PK": {
+            "S": "AREA#A_004"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "areaId": {
+            "S": "A_004"
+          },
+          "name": {
+            "S": "WEST"
+          }
+        }
+      }
+    }
+  ]
+}

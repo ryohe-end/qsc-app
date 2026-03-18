@@ -1,0 +1,979 @@
+{
+  "QSC_MasterTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q126"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q126"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "プールサイドのジャグジーに早急に対応するべき破損はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q127"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q127"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "12"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "強制シャワー/シャワーブースのカラン部分にカビや水垢はないか、排水溝にぬめりはないか、黒かびは発生していないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q128"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q128"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "13"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "手洗い場のシンクやカランにカビや水垢はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q129"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q129"
+          },
+          "place": {
+            "S": "プール"
+          },
+          "no": {
+            "N": "14"
+          },
+          "category": {
+            "S": "C"
+          },
+          "text": {
+            "S": "脱水機の裏側･ホース等に汚れや埃が溜まっていないか、内側に水垢が溜まっていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q130"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q130"
+          },
+          "place": {
+            "S": "掲示物"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "規定に則った、拾得物の保管期間、最寄警察署が掲示されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q131"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q131"
+          },
+          "place": {
+            "S": "掲示物"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "インフォメーションボードの掲示物はサイズや高さが揃っているか、はみ出していないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q132"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q132"
+          },
+          "place": {
+            "S": "掲示物"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "館内の避難経路図・広域避難場所の案内が掲示されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q133"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q133"
+          },
+          "place": {
+            "S": "掲示物"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "掲示物の期限は切れていないか、テープは見えていないか、ラミネートは剥がれていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q134"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q134"
+          },
+          "place": {
+            "S": "掲示物"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ブランドの規定ロゴ・掲示用フレームのサイズ比率は適正か"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q135"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q135"
+          },
+          "place": {
+            "S": "掲示物"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "著作権に違反する掲示物はないか（アニメや漫画のキャラクターの手書きイラストもＮＧ）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q136"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q136"
+          },
+          "place": {
+            "S": "掲示物"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "ガラス面へのPOP類の掲示は両面で掲示されているか（裏面が透けた状態ではないか）"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q137"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q137"
+          },
+          "place": {
+            "S": "掲示物"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "館内掲示にダンボールや空き箱などが使われていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q138"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q138"
+          },
+          "place": {
+            "S": "掲示物"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "壁面ビジュアルやサインに重ねてPOP類を掲示していないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q139"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q139"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "1"
+          },
+          "category": {
+            "S": "Ｃ"
+          },
+          "text": {
+            "S": "冷水機の飲み口･排水部分に赤カビや水垢等の汚れはないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q140"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q140"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "2"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "有線放送のチャンネルは１～８、もしくは期間限定チャンネルに設定されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q141"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q141"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "3"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "お客様の声BOX･用紙･ボールペン、または二次元コードが設置されているか、ボールペンのインクが切れていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q142"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q142"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "4"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "48時間以内に規定フォーマットで返答されているか、投函日･返答日が記載されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q143"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q143"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "5"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "避難経路上に避難の妨げになるものが置かれていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q144"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q144"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "6"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "AED/消火器はカバーが掛けられた状態で設置されているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q145"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q145"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "7"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "消火器の期限は切れていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q146"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q146"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "8"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "消火器/消火栓、セコムボタン/ポータブルセキュリティなどの前に備品や棚などが置かれていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q147"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q147"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "9"
+          },
+          "category": {
+            "S": "Ｃ"
+          },
+          "text": {
+            "S": "AED、消火器、SECOM緊急ボタン、ポータブルセキュリティ、緊急電話、などに埃や蜘蛛の巣が付いていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q148"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q148"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "10"
+          },
+          "category": {
+            "S": "Ｃ"
+          },
+          "text": {
+            "S": "観葉植物の葉やお皿に汚れや埃が溜まっていないか、枯れていないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q149"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q149"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "11"
+          },
+          "category": {
+            "S": "Q"
+          },
+          "text": {
+            "S": "サイネージはしっかり映っているか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "QUESTION#Q150"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "type": {
+            "S": "QUESTION"
+          },
+          "questionId": {
+            "S": "Q150"
+          },
+          "place": {
+            "S": "館内"
+          },
+          "no": {
+            "N": "12"
+          },
+          "category": {
+            "S": "Ｃ"
+          },
+          "text": {
+            "S": "サイネージ表面･上部･裏配線等に汚れや埃はないか"
+          },
+          "weight": {
+            "N": "1"
+          },
+          "required": {
+            "BOOL": true
+          },
+          "isActive": {
+            "BOOL": true
+          }
+        }
+      }
+    }
+  ]
+}

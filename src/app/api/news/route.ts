@@ -1,14 +1,26 @@
-// src/app/api/news/route.ts
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { docClient } from "@/app/lib/dynamo";
+import { QueryCommand } from "@aws-sdk/lib-dynamodb";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  return NextResponse.json({ ok: true });
-}
+  try {
+    const command = new QueryCommand({
+      TableName: "QSC_LogTable",
+      KeyConditionExpression: "logType = :type",
+      ExpressionAttributeValues: {
+        ":type": "NEWS",
+      },
+      ScanIndexForward: false, // 最新順
+      Limit: 10,
+    });
 
-export async function POST(req: NextRequest) {
-  const body = await req.json().catch(() => ({}));
-  return NextResponse.json({ ok: true, body });
+    const { Items } = await docClient.send(command);
+    return NextResponse.json(Items || []);
+  } catch (error: any) {
+    console.error("DynamoDB Error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }

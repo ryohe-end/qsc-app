@@ -200,3 +200,276 @@
   .widgetRow { padding: 13px 14px; }
   .dateBig { font-size: 28px; }
 }
+.filterSummaryPanel {
+  position: sticky;
+  top: 8px;
+  z-index: 20;
+  backdrop-filter: blur(14px);
+}
+
+.filterSummaryTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.filterSummaryLeft {
+  min-width: 0;
+  flex: 1;
+}
+
+.filterSummaryTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 14px;
+  color: #111827;
+}
+
+.filterSummarySub {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.filterSummaryActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.primaryFilterBtn {
+  appearance: none;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #111827, #1f2937);
+  color: #fff;
+  font-weight: 800;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.18);
+}
+
+.ghostBtn {
+  appearance: none;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #fff;
+  color: #111827;
+  border-radius: 999px;
+  padding: 11px 13px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 700;
+}
+
+.filterCount {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 0 6px;
+}
+
+.activePills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.activePill {
+  appearance: none;
+  border: 1px solid rgba(59, 130, 246, 0.14);
+  background: linear-gradient(180deg, #eff6ff, #ffffff);
+  color: #1e3a8a;
+  border-radius: 999px;
+  padding: 8px 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.filterBlock + .filterBlock {
+  margin-top: 18px;
+}
+
+.filterBlockHead {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.filterBlockTitle {
+  font-size: 14px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.filterBlockHint {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.42);
+  border: 0;
+  z-index: 70;
+}
+
+.sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 80;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px);
+  border-radius: 22px 22px 0 0;
+  box-shadow: 0 -14px 36px rgba(15, 23, 42, 0.18);
+  max-height: min(86vh, 860px);
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.22s ease-out;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(18px);
+    opacity: 0.65;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sheetHandle {
+  width: 44px;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.12);
+  margin: 10px auto 4px;
+}
+
+.sheetHead {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px 10px;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.sheetTitle {
+  font-size: 17px;
+  line-height: 1.2;
+  font-weight: 900;
+  color: #111827;
+}
+
+.sheetSub {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.sheetClose {
+  appearance: none;
+  border: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: inline-grid;
+  place-items: center;
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.sheetBody {
+  overflow: auto;
+  padding: 14px 16px 18px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sheetFoot {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 10px;
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.sheetGhostBtn {
+  appearance: none;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: #fff;
+  color: #111827;
+  border-radius: 14px;
+  min-height: 48px;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.sheetApplyBtn {
+  appearance: none;
+  border: 0;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  border-radius: 14px;
+  min-height: 48px;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 12px 24px rgba(37, 99, 235, 0.22);
+}
+
+.sheetApplyCount {
+  display: inline-grid;
+  place-items: center;
+  min-width: 42px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+@media (min-width: 768px) {
+  .sheet {
+    left: 50%;
+    right: auto;
+    width: min(720px, calc(100vw - 32px));
+    transform: translateX(-50%);
+    border-radius: 24px;
+    bottom: 20px;
+    max-height: min(84vh, 820px);
+  }
+
+  .sheetFoot {
+    grid-template-columns: 140px 1fr;
+  }
+}
