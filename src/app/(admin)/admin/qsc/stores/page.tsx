@@ -26,7 +26,7 @@ type StoreRow = {
   storeId: string;
   clubCode: number;
   name: string;
-  brandName: BrandName;
+  brandName: BrandName | string;
   businessTypeName: string;
   companyName: string;
   corporateName: string;
@@ -46,37 +46,6 @@ type AssetRow = {
 
 const BRANDS: BrandName[] = ["JOYFIT", "FIT365"];
 const CORPORATES = ["株式会社オカモト", "株式会社ヤマウチ", "株式会社〇〇"];
-
-const MOCK: StoreRow[] = [
-  {
-    storeId: "S001",
-    clubCode: 306,
-    name: "札幌大通",
-    brandName: "JOYFIT",
-    businessTypeName: "JOYFIT24",
-    companyName: "第1カンパニー",
-    corporateName: "株式会社オカモト",
-    status: "active",
-    assetId: "A001",
-    emails: ["sapporo@test.com"],
-    updatedAt: new Date().toISOString(),
-    version: 1,
-  },
-  {
-    storeId: "S002",
-    clubCode: 565,
-    name: "新宿西口",
-    brandName: "FIT365",
-    businessTypeName: "FIT365",
-    companyName: "HQカンパニー",
-    corporateName: "株式会社〇〇",
-    status: "inactive",
-    assetId: undefined,
-    emails: ["shinjuku@test.com", "manager@test.com"],
-    updatedAt: new Date().toISOString(),
-    version: 2,
-  },
-];
 
 /** =========================
  * Sub-Components
@@ -122,10 +91,20 @@ function SelectBox({
   value,
   onChange,
   placeholder = "選択...",
-}: any) {
+  optionLabelMap,
+}: {
+  label: string;
+  options: string[];
+  value: string | string[];
+  onChange: (value: any) => void;
+  placeholder?: string;
+  optionLabelMap?: Record<string, string>;
+}) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const isMulti = Array.isArray(value);
+
+  const getLabel = (v: string) => optionLabelMap?.[v] ?? v;
 
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
@@ -142,6 +121,7 @@ function SelectBox({
       <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b", marginLeft: 4 }}>
         {label}
       </div>
+
       <div
         onClick={() => setOpen(!open)}
         style={{
@@ -160,7 +140,9 @@ function SelectBox({
         {!isMulti && !value && (
           <span style={{ color: "#94a3b8", fontSize: 14 }}>{placeholder}</span>
         )}
-        {!isMulti && value && <span style={{ fontSize: 14, fontWeight: 700 }}>{value}</span>}
+        {!isMulti && value && (
+          <span style={{ fontSize: 14, fontWeight: 700 }}>{getLabel(String(value))}</span>
+        )}
         {isMulti &&
           (value.length === 0 ? (
             <span style={{ color: "#cbd5e1", fontSize: 13 }}>すべて表示</span>
@@ -180,7 +162,7 @@ function SelectBox({
                   gap: 4,
                 }}
               >
-                {v}
+                {getLabel(v)}
                 <X
                   size={12}
                   onClick={(e) => {
@@ -210,7 +192,7 @@ function SelectBox({
             overflowY: "auto",
           }}
         >
-          {options.map((opt: string) => {
+          {options.map((opt) => {
             const isSel = isMulti ? (value as string[]).includes(opt) : value === opt;
             return (
               <div
@@ -237,7 +219,7 @@ function SelectBox({
                   justifyContent: "space-between",
                 }}
               >
-                {opt} {isSel && <Check size={14} />}
+                {getLabel(opt)} {isSel && <Check size={14} />}
               </div>
             );
           })}
@@ -251,11 +233,16 @@ function SelectBox({
  * Main Component
  * ========================= */
 export default function AdminStoresPage() {
-  const [rows, setRows] = useState<StoreRow[]>(MOCK);
+  const [rows, setRows] = useState<StoreRow[]>([]);
+  const [rowsLoading, setRowsLoading] = useState(true);
   const [assets, setAssets] = useState<AssetRow[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(true);
 
   const [q, setQ] = useState("");
+  const [filterBrand, setFilterBrand] = useState<string>("all");
+  const [filterCorporate, setFilterCorporate] = useState<string>("all");
+  const [filterAsset, setFilterAsset] = useState<string>("all");
+
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [batchModalOpen, setBatchModalOpen] = useState(false);
   const [batchAssetId, setBatchAssetId] = useState<string | undefined>(undefined);
@@ -263,6 +250,46 @@ export default function AdminStoresPage() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [sheetMode, setSheetMode] = useState<"create" | "edit">("create");
   const [draft, setDraft] = useState<Partial<StoreRow>>({ emails: [""] });
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadStores() {
+      try {
+        setRowsLoading(true);
+
+        const res = await fetch("/api/admin/qsc/stores", {
+          method: "GET",
+          cache: "no-store",
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json?.error || "店舗一覧の取得に失敗しました");
+        }
+
+        if (!cancelled) {
+          setRows(Array.isArray(json?.items) ? json.items : []);
+        }
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) {
+          setRows([]);
+        }
+      } finally {
+        if (!cancelled) {
+          setRowsLoading(false);
+        }
+      }
+    }
+
+    loadStores();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -277,6 +304,10 @@ export default function AdminStoresPage() {
         });
 
         const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json?.error || "アセット一覧の取得に失敗しました");
+        }
 
         if (!cancelled) {
           setAssets(Array.isArray(json?.items) ? json.items : []);
@@ -300,13 +331,50 @@ export default function AdminStoresPage() {
     };
   }, []);
 
+  const brandOptions = useMemo(() => {
+    return Array.from(new Set(rows.map((r) => String(r.brandName || "")).filter(Boolean))).sort(
+      (a, b) => a.localeCompare(b, "ja")
+    );
+  }, [rows]);
+
+  const corporateOptions = useMemo(() => {
+    return Array.from(
+      new Set(rows.map((r) => String(r.corporateName || "")).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b, "ja"));
+  }, [rows]);
+
   const filtered = useMemo(() => {
     return rows.filter((r) => {
       const matchQ =
-        !q || [r.name, String(r.clubCode)].some((f) => f.toLowerCase().includes(q.toLowerCase()));
-      return matchQ;
+        !q ||
+        [r.name, String(r.clubCode), r.brandName, r.corporateName, r.companyName]
+          .filter(Boolean)
+          .some((f) => String(f).toLowerCase().includes(q.toLowerCase()));
+
+      const matchBrand = filterBrand === "all" || r.brandName === filterBrand;
+      const matchCorporate =
+        filterCorporate === "all" || r.corporateName === filterCorporate;
+      const matchAsset =
+        filterAsset === "all" ||
+        (filterAsset === "assigned" && !!r.assetId) ||
+        (filterAsset === "unassigned" && !r.assetId);
+
+      return matchQ && matchBrand && matchCorporate && matchAsset;
     });
-  }, [rows, q]);
+  }, [rows, q, filterBrand, filterCorporate, filterAsset]);
+
+  const allFilteredSelected =
+    filtered.length > 0 && filtered.every((r) => selectedIds.includes(r.storeId));
+
+  const toggleSelectAllFiltered = () => {
+    const filteredIds = filtered.map((r) => r.storeId);
+
+    if (allFilteredSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !filteredIds.includes(id)));
+    } else {
+      setSelectedIds((prev) => Array.from(new Set([...prev, ...filteredIds])));
+    }
+  };
 
   const addEmailField = () => {
     setDraft({ ...draft, emails: [...(draft.emails || []), ""] });
@@ -325,106 +393,100 @@ export default function AdminStoresPage() {
   };
 
   const saveStore = async () => {
-  if (!draft.name || !draft.clubCode) {
-    alert("名称とコードは必須です");
-    return;
-  }
-
-  try {
-    const validEmails = (draft.emails || []).filter((em) => em.trim() !== "");
-
-    const next = {
-      ...(draft as StoreRow),
-      emails: validEmails,
-      updatedAt: new Date().toISOString(),
-      version: (draft.version || 0) + 1,
-    };
-
-    const savedStore =
-      sheetMode === "create"
-        ? { ...next, storeId: `S${Date.now()}` }
-        : next;
-
-    // まず画面上の店舗データ更新
-    if (sheetMode === "create") {
-      setRows((prev) => [savedStore, ...prev]);
-    } else {
-      setRows((prev) =>
-        prev.map((r) => (r.storeId === savedStore.storeId ? savedStore : r))
-      );
+    if (!draft.name || !draft.clubCode) {
+      alert("名称とコードは必須です");
+      return;
     }
 
-    // assetId が選ばれていれば STORE_ASSET を保存
-    if (savedStore.assetId) {
-      const res = await fetch("/api/admin/qsc/store-assets", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          storeId: savedStore.storeId,
-          assetId: savedStore.assetId,
-          isActive: true,
-        }),
-      });
+    try {
+      const validEmails = (draft.emails || []).filter((em) => em.trim() !== "");
 
-      const json = await res.json();
+      const next = {
+        ...(draft as StoreRow),
+        emails: validEmails,
+        updatedAt: new Date().toISOString(),
+        version: (draft.version || 0) + 1,
+      };
 
-      if (!res.ok) {
-        throw new Error(json?.error || "アセット割当の保存に失敗しました");
-      }
-    }
+      const savedStore =
+        sheetMode === "create" ? { ...next, storeId: `S${Date.now()}` } : next;
 
-    setSheetOpen(false);
-  } catch (e: any) {
-    console.error(e);
-    alert(e?.message || "保存に失敗しました");
-  }
-};
-
-  const applyBatchAsset = async () => {
-  if (!batchAssetId) return;
-
-  try {
-    const targetStoreIds = [...selectedIds];
-
-    // 画面上を先に更新
-    setRows((prev) =>
-      prev.map((r) =>
-        targetStoreIds.includes(r.storeId) ? { ...r, assetId: batchAssetId } : r
-      )
-    );
-
-    // 1件ずつ STORE_ASSET 保存
-    for (const storeId of targetStoreIds) {
-      const res = await fetch("/api/admin/qsc/store-assets", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          storeId,
-          assetId: batchAssetId,
-          isActive: true,
-        }),
-      });
-
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(
-          json?.error || `店舗 ${storeId} のアセット適用に失敗しました`
+      if (sheetMode === "create") {
+        setRows((prev) => [savedStore, ...prev]);
+      } else {
+        setRows((prev) =>
+          prev.map((r) => (r.storeId === savedStore.storeId ? savedStore : r))
         );
       }
-    }
 
-    setBatchModalOpen(false);
-    setSelectedIds([]);
-  } catch (e: any) {
-    console.error(e);
-    alert(e?.message || "一括適用に失敗しました");
-  }
-};
+      if (savedStore.assetId) {
+        const res = await fetch("/api/admin/qsc/store-assets", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            storeId: savedStore.storeId,
+            assetId: savedStore.assetId,
+            isActive: true,
+          }),
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json?.error || "アセット割当の保存に失敗しました");
+        }
+      }
+
+      setSheetOpen(false);
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "保存に失敗しました");
+    }
+  };
+
+  const applyBatchAsset = async () => {
+    if (!batchAssetId) return;
+
+    try {
+      const targetStoreIds = [...selectedIds];
+
+      setRows((prev) =>
+        prev.map((r) =>
+          targetStoreIds.includes(r.storeId) ? { ...r, assetId: batchAssetId } : r
+        )
+      );
+
+      for (const storeId of targetStoreIds) {
+        const res = await fetch("/api/admin/qsc/store-assets", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            storeId,
+            assetId: batchAssetId,
+            isActive: true,
+          }),
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(
+            json?.error || `店舗 ${storeId} のアセット適用に失敗しました`
+          );
+        }
+      }
+
+      setBatchModalOpen(false);
+      setSelectedIds([]);
+    } catch (e: any) {
+      console.error(e);
+      alert(e?.message || "一括適用に失敗しました");
+    }
+  };
 
   const deleteStore = (id: string) => {
     if (confirm("削除しますか？")) {
@@ -490,7 +552,12 @@ export default function AdminStoresPage() {
             <button
               onClick={() => {
                 setSheetMode("create");
-                setDraft({ brandName: "JOYFIT", status: "active", emails: [""], assetId: undefined });
+                setDraft({
+                  brandName: "JOYFIT",
+                  status: "active",
+                  emails: [""],
+                  assetId: undefined,
+                });
                 setSheetOpen(true);
               }}
               style={{
@@ -529,7 +596,7 @@ export default function AdminStoresPage() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="店舗名・コードで検索..."
+              placeholder="店舗名・コード・ブランド・法人で検索..."
               style={{
                 width: "100%",
                 height: 44,
@@ -542,89 +609,191 @@ export default function AdminStoresPage() {
               }}
             />
           </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr 1fr",
+              gap: 12,
+            }}
+          >
+            <SelectBox
+              label="ブランド"
+              options={["all", ...brandOptions]}
+              value={filterBrand}
+              onChange={setFilterBrand}
+              placeholder="すべて"
+              optionLabelMap={{ all: "すべて" }}
+            />
+
+            <SelectBox
+              label="法人"
+              options={["all", ...corporateOptions]}
+              value={filterCorporate}
+              onChange={setFilterCorporate}
+              placeholder="すべて"
+              optionLabelMap={{ all: "すべて" }}
+            />
+
+            <SelectBox
+              label="アセット"
+              options={["all", "assigned", "unassigned"]}
+              value={filterAsset}
+              onChange={setFilterAsset}
+              placeholder="すべて"
+              optionLabelMap={{
+                all: "すべて",
+                assigned: "設定あり",
+                unassigned: "未設定",
+              }}
+            />
+          </div>
+
+          <div
+            style={{
+              marginTop: 16,
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ fontSize: 13, fontWeight: 800, color: "#64748b" }}>
+              絞り込み結果: {filtered.length}件
+            </div>
+
+            <button
+              type="button"
+              onClick={toggleSelectAllFiltered}
+              disabled={filtered.length === 0}
+              style={{
+                height: 40,
+                padding: "0 16px",
+                borderRadius: 12,
+                border: "1px solid #c7d2fe",
+                background: allFilteredSelected ? "#4f46e5" : "#eef2ff",
+                color: allFilteredSelected ? "#fff" : "#4338ca",
+                fontWeight: 900,
+                cursor: filtered.length === 0 ? "default" : "pointer",
+                opacity: filtered.length === 0 ? 0.5 : 1,
+              }}
+            >
+              {allFilteredSelected ? "絞り込み結果の選択解除" : "絞り込み結果を全て選択"}
+            </button>
+          </div>
         </div>
 
         <div style={{ display: "grid", gap: 12, paddingBottom: 100 }}>
-          {filtered.map((r) => {
-            const isSelected = selectedIds.includes(r.storeId);
-            const asset = assets.find((a) => a.assetId === r.assetId);
+          {rowsLoading ? (
+            <div
+              style={{
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 24,
+                padding: "24px",
+                color: "#64748b",
+                fontWeight: 800,
+              }}
+            >
+              読み込み中...
+            </div>
+          ) : filtered.length === 0 ? (
+            <div
+              style={{
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+                borderRadius: 24,
+                padding: "24px",
+                color: "#64748b",
+                fontWeight: 800,
+              }}
+            >
+              該当する店舗がありません
+            </div>
+          ) : (
+            filtered.map((r) => {
+              const isSelected = selectedIds.includes(r.storeId);
+              const asset = assets.find((a) => a.assetId === r.assetId);
 
-            return (
-              <div
-                key={r.storeId}
-                onClick={() => {
-                  setSheetMode("edit");
-                  setDraft(r);
-                  setSheetOpen(true);
-                }}
-                style={{
-                  background: isSelected ? "#f5f3ff" : "#fff",
-                  border: `2px solid ${isSelected ? "#4f46e5" : "#e2e8f0"}`,
-                  borderRadius: 24,
-                  padding: "20px 24px",
-                  display: "grid",
-                  gridTemplateColumns: "auto 1fr auto",
-                  alignItems: "center",
-                  gap: 20,
-                  cursor: "pointer",
-                }}
-              >
+              return (
                 <div
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedIds(
-                      isSelected
-                        ? selectedIds.filter((id) => id !== r.storeId)
-                        : [...selectedIds, r.storeId]
-                    );
+                  key={r.storeId}
+                  onClick={() => {
+                    setSheetMode("edit");
+                    setDraft(r);
+                    setSheetOpen(true);
                   }}
                   style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 8,
-                    border: "2px solid #e2e8f0",
-                    background: isSelected ? "#4f46e5" : "#fff",
+                    background: isSelected ? "#f5f3ff" : "#fff",
+                    border: `2px solid ${isSelected ? "#4f46e5" : "#e2e8f0"}`,
+                    borderRadius: 24,
+                    padding: "20px 24px",
                     display: "grid",
-                    placeItems: "center",
-                    color: "#fff",
+                    gridTemplateColumns: "auto 1fr auto",
+                    alignItems: "center",
+                    gap: 20,
+                    cursor: "pointer",
                   }}
                 >
-                  {isSelected && <Check size={18} />}
-                </div>
-
-                <div style={{ display: "grid", gap: 4 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <h3 style={{ fontSize: 17, fontWeight: 900, margin: 0 }}>{r.name}</h3>
-                    <Chip tone="indigo">{r.brandName}</Chip>
-                    <Chip>Code:{r.clubCode}</Chip>
-                  </div>
-
                   <div
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedIds(
+                        isSelected
+                          ? selectedIds.filter((id) => id !== r.storeId)
+                          : [...selectedIds, r.storeId]
+                      );
+                    }}
                     style={{
-                      display: "flex",
-                      flexWrap: "wrap",
-                      gap: 12,
-                      fontSize: 12,
-                      color: "#94a3b8",
-                      fontWeight: 700,
+                      width: 28,
+                      height: 28,
+                      borderRadius: 8,
+                      border: "2px solid #e2e8f0",
+                      background: isSelected ? "#4f46e5" : "#fff",
+                      display: "grid",
+                      placeItems: "center",
+                      color: "#fff",
                     }}
                   >
-                    <span>{r.corporateName}</span>
-                    <span>•</span>
-                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <FileStack size={14} /> {asset?.name || "未設定"}
-                    </span>
-                    <span>•</span>
-                    <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                      <Mail size={14} /> {r.emails?.length || 0}件の連絡先
-                    </span>
+                    {isSelected && <Check size={18} />}
                   </div>
-                </div>
 
-                <Pencil size={18} style={{ color: "#cbd5e1" }} />
-              </div>
-            );
-          })}
+                  <div style={{ display: "grid", gap: 4 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+                      <h3 style={{ fontSize: 17, fontWeight: 900, margin: 0 }}>{r.name}</h3>
+                      <Chip tone="indigo">{r.brandName}</Chip>
+                      <Chip>Code:{r.clubCode}</Chip>
+                    </div>
+
+                    <div
+                      style={{
+                        display: "flex",
+                        flexWrap: "wrap",
+                        gap: 12,
+                        fontSize: 12,
+                        color: "#94a3b8",
+                        fontWeight: 700,
+                      }}
+                    >
+                      <span>{r.corporateName}</span>
+                      <span>•</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <FileStack size={14} /> {asset?.name || "未設定"}
+                      </span>
+                      <span>•</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                        <Mail size={14} /> {r.emails?.length || 0}件の連絡先
+                      </span>
+                    </div>
+                  </div>
+
+                  <Pencil size={18} style={{ color: "#cbd5e1" }} />
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 
@@ -646,7 +815,7 @@ export default function AdminStoresPage() {
           }}
         >
           <span style={{ color: "#fff", fontSize: 14, fontWeight: 800 }}>
-            {selectedIds.length}件選択中
+            {selectedIds.length}件選択中（現在の絞り込みのみ一括選択可）
           </span>
           <button
             onClick={() => setBatchModalOpen(true)}
@@ -835,14 +1004,14 @@ export default function AdminStoresPage() {
               <SelectBox
                 label="所属ブランド"
                 options={BRANDS}
-                value={draft.brandName}
+                value={String(draft.brandName || "")}
                 onChange={(v: any) => setDraft({ ...draft, brandName: v })}
               />
 
               <SelectBox
                 label="運営法人"
                 options={CORPORATES}
-                value={draft.corporateName}
+                value={String(draft.corporateName || "")}
                 onChange={(v: any) => setDraft({ ...draft, corporateName: v })}
               />
 

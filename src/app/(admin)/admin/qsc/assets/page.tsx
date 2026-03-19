@@ -111,19 +111,31 @@ function QuestionPickerModal({
 }) {
   const [q, setQ] = useState("");
 
-  const filtered = questions.filter((x) => {
-  if (!x.isActive) return false;
+  // 1. フィルタリング処理
+  const filtered = useMemo(() => {
+    return questions.filter((x) => {
+      if (!x.isActive) return false;
+      const keyword = q.trim().toLowerCase();
+      if (!keyword) return true;
+      return (
+        x.text.toLowerCase().includes(keyword) ||
+        x.place.toLowerCase().includes(keyword) ||
+        x.questionId.toLowerCase().includes(keyword) ||
+        x.category.toLowerCase().includes(keyword)
+      );
+    });
+  }, [questions, q]);
 
-  const keyword = q.trim().toLowerCase();
-  if (!keyword) return true;
-
-  return (
-    x.text.toLowerCase().includes(keyword) ||
-    x.place.toLowerCase().includes(keyword) ||
-    x.questionId.toLowerCase().includes(keyword) ||
-    x.category.toLowerCase().includes(keyword)
-  );
-});
+  // 2. エリア(place)ごとにグルーピング
+  const groupedQuestions = useMemo(() => {
+    const groups: Record<string, QscQuestion[]> = {};
+    filtered.forEach((qq) => {
+      const place = qq.place || "その他";
+      if (!groups[place]) groups[place] = [];
+      groups[place].push(qq);
+    });
+    return Object.entries(groups); // [["エントランス", [...] ], ["ジムエリア", [...] ]] 
+  }, [filtered]);
 
   if (!open) return null;
 
@@ -153,98 +165,100 @@ function QuestionPickerModal({
           boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
         }}
       >
-        <div
-          style={{
-            padding: "24px 32px",
-            borderBottom: "1px solid #f1f5f9",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-          }}
-        >
+        {/* ヘッダー部分はそのまま */}
+        <div style={{ padding: "24px 32px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
             <h2 style={{ fontSize: 20, fontWeight: 950, margin: 0 }}>設問ライブラリ</h2>
             <p style={{ fontSize: 13, fontWeight: 700, color: "#64748b", margin: 0 }}>
-              チェック項目を選択してください
+              エリアごとに設問を選択してください
             </p>
           </div>
-          <button
-            onClick={onClose}
-            style={{
-              border: "none",
-              background: "#f1f5f9",
-              borderRadius: 14,
-              width: 44,
-              height: 44,
-              cursor: "pointer",
-            }}
-          >
+          <button onClick={onClose} style={{ border: "none", background: "#f1f5f9", borderRadius: 14, width: 44, height: 44, cursor: "pointer" }}>
             <X size={24} />
           </button>
         </div>
 
-        <div
-          style={{
-            padding: "16px 32px",
-            background: "#f8fafc",
-            borderBottom: "1px solid #f1f5f9",
-          }}
-        >
+        {/* 検索バー */}
+        <div style={{ padding: "16px 32px", background: "#f8fafc", borderBottom: "1px solid #f1f5f9" }}>
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="設問文や場所で検索..."
-            style={{
-              width: "100%",
-              height: 48,
-              borderRadius: 16,
-              border: "1px solid #e2e8f0",
-              padding: "0 20px",
-              fontWeight: 800,
-              outline: "none",
-            }}
+            placeholder="設問文やエリア名で検索..."
+            style={{ width: "100%", height: 48, borderRadius: 16, border: "1px solid #e2e8f0", padding: "0 20px", fontWeight: 800, outline: "none" }}
           />
         </div>
 
-        <div
-          style={{
-            overflowY: "auto",
-            padding: "24px 32px",
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: 20,
-          }}
-        >
-          {filtered.map((qq) => {
-            const isPicked = pickedIds.includes(qq.questionId);
-            return (
+        {/* 3. エリア別のリスト表示 */}
+        <div style={{ overflowY: "auto", padding: "24px 32px" }}>
+          {groupedQuestions.map(([place, items]) => (
+            <div key={place} style={{ marginBottom: 40 }}>
               <div
-                key={qq.questionId}
-                onClick={() => onToggle(qq.questionId)}
                 style={{
-                  padding: 24,
-                  borderRadius: 28,
-                  border: "2px solid",
-                  borderColor: isPicked ? "#4f46e5" : "#f1f5f9",
-                  background: isPicked ? "#f5f3ff" : "#fff",
-                  cursor: "pointer",
-                  transition: "0.2s",
+                  fontSize: 14,
+                  fontWeight: 950,
+                  color: "#4f46e5",
+                  background: "#f5f3ff",
+                  padding: "8px 16px",
+                  borderRadius: 10,
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 16,
                 }}
               >
-                <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
-                  <CategoryChip category={qq.category} />
-                  <Chip tone="blue">{qq.place}</Chip>
-                  <Chip tone="muted">重み {qq.weight}</Chip>
-                  <Chip tone={qq.required ? "green" : "amber"}>
-                    {qq.required ? "必須" : "任意"}
-                  </Chip>
-                </div>
-                <div style={{ fontWeight: 850, fontSize: 15, lineHeight: 1.5 }}>
-                  {qq.text}
-                </div>
+                <MapPin size={16} />
+                {place}
+                <span style={{ opacity: 0.6, fontSize: 12 }}>({items.length})</span>
               </div>
-            );
-          })}
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+                  gap: 20,
+                }}
+              >
+                {items.map((qq) => {
+                  const isPicked = pickedIds.includes(qq.questionId);
+                  return (
+                    <div
+                      key={qq.questionId}
+                      onClick={() => onToggle(qq.questionId)}
+                      style={{
+                        padding: 24,
+                        borderRadius: 28,
+                        border: "2px solid",
+                        borderColor: isPicked ? "#4f46e5" : "#f1f5f9",
+                        background: isPicked ? "#f5f3ff" : "#fff",
+                        cursor: "pointer",
+                        transition: "0.2s",
+                        position: "relative",
+                        overflow: "hidden"
+                      }}
+                    >
+                      {isPicked && (
+                        <div style={{ position: "absolute", top: 12, right: 12, color: "#4f46e5" }}>
+                          <Plus size={20} style={{ transform: "rotate(45deg)" }} />
+                        </div>
+                      )}
+                      <div style={{ display: "flex", gap: 6, marginBottom: 12, flexWrap: "wrap" }}>
+                        <CategoryChip category={qq.category} />
+                        <Chip tone="muted">重み {qq.weight}</Chip>
+                      </div>
+                      <div style={{ fontWeight: 850, fontSize: 15, lineHeight: 1.5 }}>
+                        {qq.text}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
+          {groupedQuestions.length === 0 && (
+            <div style={{ textAlign: "center", padding: "60px 0", color: "#94a3b8", fontWeight: 800 }}>
+              該当する設問が見つかりません
+            </div>
+          )}
         </div>
       </div>
     </div>
