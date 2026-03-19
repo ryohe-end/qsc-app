@@ -58,16 +58,12 @@ export async function GET() {
       },
     });
   } catch (error) {
-    console.error("GET /api/check/stores failed:", error);
-
-    return NextResponse.json(
-      {
-        ok: false,
-        error: error instanceof Error ? error.message : "unknown error",
-        region: REGION,
-        tableName: TABLE_NAME,
-      },
-      { status: 500 }
-    );
-  }
+  console.error("GET /api/check/stores error:", error);
+  return NextResponse.json(
+    {
+      error: error instanceof Error ? error.message : "店舗一覧の取得に失敗しました。",
+    },
+    { status: 500 }
+  );
+}
 }
