@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import {
   DynamoDBClient,
   ScanCommand,
@@ -12,18 +12,27 @@ const TABLE_NAME = process.env.QSC_TABLE_NAME || "QSC_MasterTable";
 
 const client = new DynamoDBClient({ region: REGION });
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const storeId = req.nextUrl.searchParams.get("storeId")?.trim() || "";
+
     const res = await client.send(
       new ScanCommand({
         TableName: TABLE_NAME,
-        FilterExpression: "#type = :store",
+        FilterExpression: storeId
+          ? "#type = :store AND PK = :pk"
+          : "#type = :store",
         ExpressionAttributeNames: {
           "#type": "type",
         },
-        ExpressionAttributeValues: {
-          ":store": { S: "STORE" },
-        },
+        ExpressionAttributeValues: storeId
+          ? {
+              ":store": { S: "STORE" },
+              ":pk": { S: `STORE#${storeId}` },
+            }
+          : {
+              ":store": { S: "STORE" },
+            },
       })
     );
 
@@ -55,15 +64,21 @@ export async function GET() {
         region: REGION,
         tableName: TABLE_NAME,
         rawCount: items.length,
+        requestedStoreId: storeId || null,
       },
     });
   } catch (error) {
-  console.error("GET /api/check/stores error:", error);
-  return NextResponse.json(
-    {
-      error: error instanceof Error ? error.message : "店舗一覧の取得に失敗しました。",
-    },
-    { status: 500 }
-  );
-}
+    console.error("GET /api/check/stores error:", error);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error:
+          error instanceof Error
+            ? error.message
+            : "店舗一覧の取得に失敗しました。",
+      },
+      { status: 500 }
+    );
+  }
 }

@@ -175,14 +175,16 @@ export default function CheckRunPage() {
   const sp = useSearchParams();
 
   const companyId = sp.get("companyId") || "";
-  const bizId = sp.get("bizId") || "";
-  const brandId = sp.get("brandId") || "";
-  const storeId = sp.get("storeId") || "";
+const bizId = sp.get("bizId") || "";
+const brandId = sp.get("brandId") || "";
+const storeId = sp.get("storeId") || "";
 
-  const storeLabel = useMemo(() => {
-    if (!storeId) return "店舗未選択";
-    return `Store ${storeId}`;
-  }, [storeId]);
+const [storeName, setStoreName] = useState("");
+
+const storeLabel = useMemo(() => {
+  if (!storeId) return "店舗未選択";
+  return storeName || storeId;
+}, [storeId, storeName]);
 
   const DRAFT_KEY = useMemo(() => {
     const key = [companyId, bizId, brandId, storeId].filter(Boolean).join("_");
@@ -227,7 +229,10 @@ export default function CheckRunPage() {
   useEffect(() => {
   async function loadQuestions() {
     try {
-      const storeId = "S001"; // 仮。あとで選択店舗から取る
+      const storeId = sp.get("storeId") || "";
+      if (!storeId) {
+        throw new Error("storeId がありません");
+      }
 
       const res = await fetch(`/api/check/run-config?storeId=${storeId}`, {
         cache: "no-store",
@@ -239,17 +244,22 @@ export default function CheckRunPage() {
         throw new Error(json?.error || "取得失敗");
       }
 
-      setQuestions(json.questions || []);
+      setStoreName(String(json.storeName ?? "").trim());
+      setQuestions(Array.isArray(json.questions) ? json.questions : []);
+      setSections(Array.isArray(json.questions) ? json.questions : DEFAULT_SECTIONS);
     } catch (e: any) {
       console.error(e);
       alert(e.message);
+      setStoreName("");
+      setQuestions([]);
+      setSections(DEFAULT_SECTIONS);
     } finally {
       setLoadingQuestions(false);
     }
   }
 
   loadQuestions();
-}, []);
+}, [sp]);
   // ✅ オートセーブ機能（2秒間操作がなければ自動で保存）
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
