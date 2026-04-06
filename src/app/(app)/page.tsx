@@ -198,7 +198,7 @@ export default function HomePage() {
           
           // 店舗ユーザー用フィルタリング
           const found = rData.all?.find((d: any) => 
-            d.storeId === session?.storeId || d.email === session?.email
+            d.storeId === (session as any)?.storeId || d.email === session?.email
           );
           setMyScore(found || null);
         }
