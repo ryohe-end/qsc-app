@@ -1,0 +1,1229 @@
+{
+  "QSC_UserTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U051"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U051"
+          },
+          "name": {
+            "S": "FIT365イオンタウン松ヶ崎"
+          },
+          "email": {
+            "S": "fit365-aeonmatsugasaki@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "1353"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U052"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U052"
+          },
+          "name": {
+            "S": "FIT365白井"
+          },
+          "email": {
+            "S": "fit365shiroijurokugo@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "1384"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U053"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U053"
+          },
+          "name": {
+            "S": "JOYFIT24イオンタウン市川大和田"
+          },
+          "email": {
+            "S": "jf-ichikawaowada@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "1307"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U054"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U054"
+          },
+          "name": {
+            "S": "JOYFIT24イオンタウン新船橋"
+          },
+          "email": {
+            "S": "jf-shinfunabashi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "367"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U055"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U055"
+          },
+          "name": {
+            "S": "JOYFIT24ジムLITE船橋"
+          },
+          "email": {
+            "S": "joyfit-funabashi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "335"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U056"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U056"
+          },
+          "name": {
+            "S": "FIT365八千代台"
+          },
+          "email": {
+            "S": "fit365-yachiyodai@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "1382"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U057"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U057"
+          },
+          "name": {
+            "S": "FIT365イオン八街"
+          },
+          "email": {
+            "S": "fit365-aeonyachimata@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "1346"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U058"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U058"
+          },
+          "name": {
+            "S": "FIT365コープ葛飾白鳥"
+          },
+          "email": {
+            "S": "fit365-katushikashiratori@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "1372"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U059"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U059"
+          },
+          "name": {
+            "S": "JOYFIT24浅草橋"
+          },
+          "email": {
+            "S": "jf-asakusabashi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "381"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U060"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U060"
+          },
+          "name": {
+            "S": "JOYFIT24田原町"
+          },
+          "email": {
+            "S": "jf-tawaramachi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "380"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U061"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U061"
+          },
+          "name": {
+            "S": "JOYFIT24本所吾妻橋"
+          },
+          "email": {
+            "S": "honjyoazumabashi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "336"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U062"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U062"
+          },
+          "name": {
+            "S": "JOYFIT24錦糸町"
+          },
+          "email": {
+            "S": "jf24-kinshicho@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "361"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U063"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U063"
+          },
+          "name": {
+            "S": "JOYFIT24ジムLITE亀戸"
+          },
+          "email": {
+            "S": "jf-kameido@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "347"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U064"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U064"
+          },
+          "name": {
+            "S": "JOYFIT24門前仲町"
+          },
+          "email": {
+            "S": "jf-kibamonzennaka@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "1301"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U065"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U065"
+          },
+          "name": {
+            "S": "JOYFIT24南葛西"
+          },
+          "email": {
+            "S": "jf-minamikasai@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "384"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U066"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U066"
+          },
+          "name": {
+            "S": "JOYFIT24桜新町"
+          },
+          "email": {
+            "S": "jf-sakurashinmachi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "365"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U067"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U067"
+          },
+          "name": {
+            "S": "JOYFIT24ジムLITE上馬"
+          },
+          "email": {
+            "S": "jf24kamiuma@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "376"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U068"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U068"
+          },
+          "name": {
+            "S": "JOYFIT24ジムLITE青葉台"
+          },
+          "email": {
+            "S": "jf-aobadai@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "1325"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U069"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U069"
+          },
+          "name": {
+            "S": "JOYFIT24洗足"
+          },
+          "email": {
+            "S": "joyfit-senzoku@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "325"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U070"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U070"
+          },
+          "name": {
+            "S": "JOYFIT24目黒"
+          },
+          "email": {
+            "S": "jf24-meguro@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "370"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U071"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U071"
+          },
+          "name": {
+            "S": "FIT365稲城SANWA"
+          },
+          "email": {
+            "S": "fit365-inagisanwa@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "1343"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U072"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U072"
+          },
+          "name": {
+            "S": "JOYFIT24読売ランド前"
+          },
+          "email": {
+            "S": "jf-yomiuriland@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "342"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U073"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U073"
+          },
+          "name": {
+            "S": "JOYFIT24向ケ丘遊園"
+          },
+          "email": {
+            "S": "jf-mukaigaokayuen@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "360"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U074"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U074"
+          },
+          "name": {
+            "S": "JOYFIT24ジムLITE京王稲田堤"
+          },
+          "email": {
+            "S": "jf-inadazutsumi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "344"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U075"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U075"
+          },
+          "name": {
+            "S": "JOYFIT24LITE京王堀之内"
+          },
+          "email": {
+            "S": "jf-keiohorinouchi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "store"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": [
+              {
+                "S": "353"
+              }
+            ]
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    }
+  ]
+}

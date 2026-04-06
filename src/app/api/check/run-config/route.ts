@@ -3,7 +3,7 @@ import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
   GetCommand,
-  QueryCommand,
+  BatchGetCommand,
 } from "@aws-sdk/lib-dynamodb";
 
 export const dynamic = "force-dynamic";
@@ -15,6 +15,7 @@ const client = new DynamoDBClient({
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = process.env.QSC_TABLE_NAME || "QSC_MasterTable";
 
+// --- Types ---
 type RunQuestionItem = {
   id: string;
   label: string;
@@ -30,146 +31,106 @@ type RunSection = {
   items: RunQuestionItem[];
 };
 
+// --- Helpers ---
+async function tryGetFirst(keys: Array<{ PK: string; SK: string }>) {
+  for (const key of keys) {
+    const res = await docClient.send(new GetCommand({ TableName: TABLE_NAME, Key: key }));
+    if (res.Item) return res.Item;
+  }
+  return null;
+}
+
+// 🚀 高速化の要: 100件ずつ一気に取得する関数
+async function fetchQuestionsInBatches(questionIds: string[]) {
+  const chunks: string[][] = [];
+  for (let i = 0; i < questionIds.length; i += 100) {
+    chunks.push(questionIds.slice(i, i + 100));
+  }
+
+  const allFetchedItems: any[] = [];
+  const batchPromises = chunks.map(async (chunk) => {
+    // 取得したいキーのリストを作成
+    let keys = chunk.map((id) => ({ PK: `QUESTION#${id}`, SK: "METADATA" }));
+    
+    while (keys.length > 0) {
+      const res = await docClient.send(new BatchGetCommand({
+        RequestItems: { [TABLE_NAME]: { Keys: keys } },
+      }));
+      const items = res.Responses?.[TABLE_NAME] || [];
+      allFetchedItems.push(...items);
+
+      // 未処理のキーがあれば再試行
+      keys = (res.UnprocessedKeys?.[TABLE_NAME]?.Keys as any[]) || [];
+    }
+  });
+
+  await Promise.all(batchPromises);
+  return allFetchedItems;
+}
+
 export async function GET(req: NextRequest) {
   try {
     const storeId = req.nextUrl.searchParams.get("storeId")?.trim();
+    if (!storeId) return NextResponse.json({ error: "storeId が必要です。" }, { status: 400 });
 
-    if (!storeId) {
-      return NextResponse.json(
-        { error: "storeId が必要です。" },
-        { status: 400 }
-      );
-    }
+    // 0. 店舗メタデータの取得
+    const storeMeta = await tryGetFirst([
+      { PK: `STORE#${storeId}`, SK: "METADATA" },
+      { PK: `STORE#${storeId}`, SK: "STORE" },
+    ]);
+    if (!storeMeta) return NextResponse.json({ error: "店舗情報なし" }, { status: 404 });
 
-    // 0. 店舗メタデータ取得（店名表示用）
-    const storeMetaRes = await docClient.send(
-      new GetCommand({
-        TableName: TABLE_NAME,
-        Key: {
-          PK: `STORE#${storeId}`,
-          SK: "METADATA",
-        },
-      })
-    );
+    // 1. アセット割当の取得
+    const binding = await tryGetFirst([
+      { PK: `STORE#${storeId}`, SK: "ASSET" },
+      { PK: `STORE#${storeId}`, SK: "STORE_ASSET" },
+    ]);
+    const assetId = binding?.assetId || binding?.AssetId || "";
+    if (!assetId) return NextResponse.json({ error: "アセット未割当" }, { status: 404 });
 
-    const storeMeta = storeMetaRes.Item;
+    // 2. アセット本体から設問IDリストを取得
+    const asset = await tryGetFirst([
+      { PK: `ASSET#${assetId}`, SK: "METADATA" },
+      { PK: `ASSET#${assetId}`, SK: "ASSET" },
+    ]);
+    const questionIds = Array.isArray(asset?.questionIds) ? asset.questionIds : [];
+    if (questionIds.length === 0) return NextResponse.json({ questions: [] });
 
-    if (!storeMeta) {
-      return NextResponse.json(
-        { error: "店舗情報が見つかりません。" },
-        { status: 404 }
-      );
-    }
+    // 3. 🚀 設問データを一括取得（300件でも一瞬）
+    const rawQuestions = await fetchQuestionsInBatches(questionIds);
+    const qMap = new Map(rawQuestions.map(q => [q.PK.replace("QUESTION#", ""), q]));
 
-    // 1. 店舗に紐づくアセット取得
-    const bindingRes = await docClient.send(
-      new GetCommand({
-        TableName: TABLE_NAME,
-        Key: {
-          PK: `STORE#${storeId}`,
-          SK: "ASSET",
-        },
-      })
-    );
-
-    if (!bindingRes.Item) {
-      return NextResponse.json(
-        {
-          error: "この店舗にはアセットが割り当てられていません。",
-          storeId,
-          storeName: String(storeMeta.name ?? "").trim(),
-          companyName: String(storeMeta.corpName ?? "").trim(),
-          bizName: String(storeMeta.bizName ?? "").trim(),
-          brandName: String(storeMeta.brand ?? storeMeta.brandName ?? "").trim(),
-          areaName: String(storeMeta.areaName ?? "").trim(),
-          questions: [],
-        },
-        { status: 404 }
-      );
-    }
-
-    const binding = bindingRes.Item;
-    const assetId = String(binding.assetId ?? "").trim();
-
-    if (!assetId) {
-      return NextResponse.json(
-        {
-          error: "アセットIDが取得できませんでした。",
-          storeId,
-          storeName: String(storeMeta.name ?? "").trim(),
-          companyName: String(storeMeta.corpName ?? "").trim(),
-          bizName: String(storeMeta.bizName ?? "").trim(),
-          brandName: String(storeMeta.brand ?? storeMeta.brandName ?? "").trim(),
-          areaName: String(storeMeta.areaName ?? "").trim(),
-          questions: [],
-        },
-        { status: 404 }
-      );
-    }
-
-    // 2. GSI(StoreIdIndex)で店舗に紐づくデータ取得
-    const queryRes = await docClient.send(
-      new QueryCommand({
-        TableName: TABLE_NAME,
-        IndexName: "StoreIdIndex",
-        KeyConditionExpression: "storeId = :storeId",
-        ExpressionAttributeValues: {
-          ":storeId": storeId,
-        },
-      })
-    );
-
-    const rawItems = queryRes.Items || [];
-
-    // 3. QUESTION のみ抽出して有効なものだけ残す
-    const activeQuestions = rawItems
-      .filter((item: any) => String(item.PK ?? "").startsWith("QUESTION#"))
-      .filter((item: any) => item.isActive !== false);
-
-    // 4. area ごとにグルーピング
+    // 4. 元のID順序を維持しつつセクション分け
     const sectionsMap = new Map<string, RunSection>();
+    for (const id of questionIds) {
+      const q = qMap.get(id);
+      if (!q || q.isActive === false) continue;
 
-    activeQuestions.forEach((q: any) => {
-      const areaId = String(q.areaId ?? "sec_default");
-      const areaName = String(q.areaName ?? "その他");
+      const secId = String(q.place || q.areaId || "default");
+      const secTitle = String(q.placeName || q.areaName || q.place || "その他");
 
-      if (!sectionsMap.has(areaId)) {
-        sectionsMap.set(areaId, {
-          id: areaId,
-          title: areaName,
-          items: [],
-        });
+      if (!sectionsMap.has(secId)) {
+        sectionsMap.set(secId, { id: secId, title: secTitle, items: [] });
       }
 
-      sectionsMap.get(areaId)!.items.push({
-        id: String(q.questionId ?? String(q.PK ?? "").replace("QUESTION#", "")),
-        label: String(q.text ?? q.name ?? "名称未設定"),
+      sectionsMap.get(secId)!.items.push({
+        id,
+        label: String(q.text || q.name || "名称未設定"),
         state: "unset",
         note: "",
         holdNote: "",
         photos: [],
       });
-    });
-
-    const questions = Array.from(sectionsMap.values());
+    }
 
     return NextResponse.json({
       ok: true,
-      storeId,
-      storeName: String(storeMeta.name ?? "").trim(),
-      companyName: String(storeMeta.corpName ?? "").trim(),
-      bizName: String(storeMeta.bizName ?? "").trim(),
-      brandName: String(storeMeta.brand ?? storeMeta.brandName ?? "").trim(),
-      areaName: String(storeMeta.areaName ?? "").trim(),
+      storeName: String(storeMeta.name || ""),
       assetId,
-      questions,
+      questions: Array.from(sectionsMap.values()),
     });
-  } catch (e) {
-    console.error("GET /api/check/run-config error:", e);
-
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "取得失敗" },
-      { status: 500 }
-    );
+  } catch (e: any) {
+    console.error("GET error:", e);
+    return NextResponse.json({ error: e.message }, { status: 500 });
   }
 }

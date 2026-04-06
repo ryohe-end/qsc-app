@@ -1,36 +1,21 @@
 "use client";
 
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
   ChevronRight,
   CalendarDays,
-  Building2,
-  Layers3,
-  Tag,
-  Search,
-  Check,
-  Circle,
-  PauseCircle,
-  CheckCircle2,
   Store,
-  ClipboardCheck,
-  Sun,
-  Cloud,
-  CloudRain,
-  CloudSnow,
-  CloudFog,
-  Wind,
-  Thermometer,
-  MapPinned,
+  CheckCircle2,
+  PauseCircle,
   SlidersHorizontal,
   X,
   RotateCcw,
+  Sparkles,
+  Search,
 } from "lucide-react";
-
-import styles from "./CheckPage.module.css";
-import { useSession } from "@/app/(app)/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -53,20 +38,14 @@ type StoreRow = {
   status: StoreStatus;
 };
 
-type WeatherKind =
-  | "sunny"
-  | "cloudy"
-  | "rain"
-  | "snow"
-  | "fog"
-  | "wind"
-  | "unknown";
-
-type Tod = "morning" | "day" | "night";
-
-type OptionItem = {
-  id: string;
-  name: string;
+type ResultHistoryItem = {
+  pk: string;
+  sk: string;
+  resultId: string;
+  storeId: string;
+  storeName: string;
+  submittedAt: string;
+  status: string;
 };
 
 /* =========================
@@ -77,1002 +56,1209 @@ function uniqBy<T>(arr: T[], keyFn: (v: T) => string) {
   const out: T[] = [];
   for (const v of arr) {
     const k = keyFn(v);
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(v);
+    if (!seen.has(k)) {
+      seen.add(k);
+      out.push(v);
+    }
   }
   return out;
 }
 
 function todayParts() {
   const d = new Date();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  const yyyy = d.getFullYear();
-  const dow = ["日", "月", "火", "水", "木", "金", "土"][d.getDay()];
-  const quarter = Math.floor(d.getMonth() / 3) + 1;
-  return { mmdd: `${mm}/${dd}`, yyyy, dow, quarter };
+  return {
+    mmdd: `${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`,
+    yyyy: d.getFullYear(),
+    dow: ["日", "月", "火", "水", "木", "金", "土"][d.getDay()],
+    quarter: Math.floor(d.getMonth() / 3) + 1,
+  };
 }
 
-function statusLabel(s: StoreStatus) {
-  if (s === "draft") return "途中保存";
-  if (s === "done") return "完了";
-  return "未着手";
-}
+function formatResultDate(value?: string) {
+  if (!value) return "日時不明";
 
-function getTod(): Tod {
-  const h = new Date().getHours();
-  if (h >= 5 && h < 11) return "morning";
-  if (h >= 11 && h < 18) return "day";
-  return "night";
-}
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
 
-function mapWeatherCode(code: number | null | undefined): WeatherKind {
-  if (code == null) return "unknown";
-  if (code === 0) return "sunny";
-  if (code >= 1 && code <= 3) return "cloudy";
-  if (code === 45 || code === 48) return "fog";
-  if (code >= 51 && code <= 67) return "rain";
-  if (code >= 71 && code <= 77) return "snow";
-  if (code >= 80 && code <= 82) return "rain";
-  if (code === 85 || code === 86) return "snow";
-  if (code >= 95 && code <= 99) return "rain";
-  return "unknown";
-}
-
-function weatherLabel(kind: WeatherKind) {
-  if (kind === "sunny") return "晴れ";
-  if (kind === "cloudy") return "くもり";
-  if (kind === "rain") return "雨";
-  if (kind === "snow") return "雪";
-  if (kind === "fog") return "霧";
-  if (kind === "wind") return "強風";
-  return "天気取得中";
-}
-
-function WeatherIcon({ kind }: { kind: WeatherKind }) {
-  if (kind === "sunny") return <Sun size={18} />;
-  if (kind === "cloudy") return <Cloud size={18} />;
-  if (kind === "rain") return <CloudRain size={18} />;
-  if (kind === "snow") return <CloudSnow size={18} />;
-  if (kind === "fog") return <CloudFog size={18} />;
-  if (kind === "wind") return <Wind size={18} />;
-  return <Cloud size={18} style={{ opacity: 0.8 }} />;
-}
-
-function selectedNames(ids: string[], options: OptionItem[]) {
-  const map = new Map(options.map((o) => [o.id, o.name]));
-  return ids.map((id) => ({ id, name: map.get(id) ?? id }));
-}
-
-function countActiveFilters(params: {
-  companyId: string;
-  bizIds: string[];
-  brandIds: string[];
-  areaIds: string[];
-  statusFilter: StoreStatus[];
-  storeQuery: string;
-}) {
-  let c = 0;
-  if (params.companyId) c += 1;
-  c += params.bizIds.length;
-  c += params.brandIds.length;
-  c += params.areaIds.length;
-  c += params.statusFilter.length !== 2 ? params.statusFilter.length : 0;
-  if (params.storeQuery.trim()) c += 1;
-  return c;
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(d);
 }
 
 /* =========================
-   Components
-   ========================= */
-function StepBadge({ icon, label }: { icon: React.ReactNode; label: string }) {
-  return (
-    <div className="qsc-pill">
-      {icon}
-      <span>{label}</span>
-    </div>
-  );
-}
-
-function Chip({
-  active,
-  icon,
-  label,
-  onClick,
-  disabled,
-}: {
-  active: boolean;
-  icon: React.ReactNode;
-  label: string;
-  onClick: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <button
-      type="button"
-      className={`qsc-chip2 ${active ? "is-active" : ""}`}
-      onClick={onClick}
-      disabled={disabled}
-      aria-pressed={active}
-    >
-      <span className="qsc-chip2-ic">{icon}</span>
-      <span className="qsc-chip2-tx">{label}</span>
-      <span className={`qsc-chip2-ok ${active ? "is-on" : ""}`}>
-        <Check size={14} />
-      </span>
-    </button>
-  );
-}
-
-function CompanyPicker({
-  value,
-  options,
-  onChange,
-}: {
-  value: { id: string; name: string } | null;
-  options: { id: string; name: string }[];
-  onChange: (id: string) => void;
-}) {
-  return (
-    <div className={`${styles.nativeSelect} ${value ? styles.isSelected : ""}`}>
-      <div className={styles.nativeSelectUi} aria-hidden="true">
-        <span className={styles.nativeSelectLeft}>
-          <span className={styles.nativeSelectIcon}>
-            <Building2 size={18} />
-          </span>
-          <span className={styles.nativeSelectText}>
-            {value ? value.name : "企業名を選択"}
-          </span>
-        </span>
-
-        <span className={styles.nativeSelectRight}>
-          {value ? <span className={styles.companyLabel}>選択中</span> : null}
-          <ChevronRight size={18} />
-        </span>
-      </div>
-
-      <select
-        className={styles.nativeSelectEl}
-        value={value?.id ?? ""}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label="企業名を選択"
-      >
-        <option value="">（未選択）</option>
-        {options.map((o) => (
-          <option key={o.id} value={o.id}>
-            {o.name}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-}
-
-function FilterBlock({
-  title,
-  hint,
-  children,
-}: {
-  title: string;
-  hint?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section className={styles.filterBlock}>
-      <div className={styles.filterBlockHead}>
-        <div className={styles.filterBlockTitle}>{title}</div>
-        {hint ? <div className={styles.filterBlockHint}>{hint}</div> : null}
-      </div>
-      <div>{children}</div>
-    </section>
-  );
-}
-
-function ActivePill({
-  label,
-  onRemove,
-}: {
-  label: string;
-  onRemove: () => void;
-}) {
-  return (
-    <button type="button" className={styles.activePill} onClick={onRemove}>
-      <span>{label}</span>
-      <X size={14} />
-    </button>
-  );
-}
-
-/* =========================
-   Page Main
+   Main Component
    ========================= */
 export default function CheckPage() {
+  const router = useRouter();
   const { mmdd, yyyy, dow, quarter } = useMemo(() => todayParts(), []);
-  const { session } = useSession();
 
   const [storeMaster, setStoreMaster] = useState<StoreRow[]>([]);
+  const [doneStoreIds, setDoneStoreIds] = useState<string[]>([]);
+  const [draftStoreIds, setDraftStoreIds] = useState<string[]>([]);
   const [loadingStores, setLoadingStores] = useState(true);
-  const [storesError, setStoresError] = useState("");
 
-  const [tod, setTod] = useState<Tod>(() => getTod());
-  const [weatherKind, setWeatherKind] = useState<WeatherKind>("unknown");
-  const [tempC, setTempC] = useState<number | null>(null);
-
-  const widgetWrapRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadStores() {
-      try {
-        setLoadingStores(true);
-        setStoresError("");
-
-        const res = await fetch("/api/check/stores", {
-          method: "GET",
-          cache: "no-store",
-        });
-
-        if (!res.ok) {
-          throw new Error("failed to fetch stores");
-        }
-
-        const json = await res.json();
-        const items = Array.isArray(json?.items) ? json.items : [];
-
-        if (!cancelled) {
-          setStoreMaster(items);
-        }
-      } catch (e) {
-        console.error(e);
-        if (!cancelled) {
-          setStoreMaster([]);
-          setStoresError("店舗一覧の取得に失敗しました。");
-        }
-      } finally {
-        if (!cancelled) {
-          setLoadingStores(false);
-        }
-      }
-    }
-
-    loadStores();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    const t = window.setInterval(() => setTod(getTod()), 60 * 1000);
-    return () => window.clearInterval(t);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const fetchWeather = async (lat: number, lon: number) => {
-      try {
-        const url =
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` +
-          `&current_weather=true&timezone=Asia%2FTokyo`;
-        const res = await fetch(url, { cache: "no-store" });
-        if (!res.ok) throw new Error("weather fetch failed");
-        const json = await res.json();
-        const cw = json?.current_weather;
-        const code = typeof cw?.weathercode === "number" ? cw.weathercode : null;
-        const temp = typeof cw?.temperature === "number" ? cw.temperature : null;
-
-        if (cancelled) return;
-        setWeatherKind(mapWeatherCode(code));
-        setTempC(temp);
-      } catch {
-        if (cancelled) return;
-        setWeatherKind("unknown");
-        setTempC(null);
-      }
-    };
-
-    fetchWeather(35.681236, 139.767125);
-
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-        () => {},
-        { enableHighAccuracy: false, timeout: 2500, maximumAge: 10 * 60 * 1000 }
-      );
-    }
-
-    const timer = window.setInterval(() => {
-      fetchWeather(35.681236, 139.767125);
-    }, 10 * 60 * 1000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(timer);
-    };
-  }, []);
-
-  useEffect(() => {
-    const el = widgetWrapRef.current;
-    if (!el) return;
-
-    let raf = 0;
-    const onScroll = () => {
-      if (raf) return;
-      raf = window.requestAnimationFrame(() => {
-        raf = 0;
-        const rect = el.getBoundingClientRect();
-        const vh = window.innerHeight || 800;
-        const centerY = rect.top + rect.height / 2;
-        const t = (centerY - vh / 2) / (vh / 2);
-        const y = Math.max(-18, Math.min(18, t * 12));
-        const a = Math.max(0.92, Math.min(1, 1 - Math.abs(t) * 0.06));
-
-        el.style.setProperty("--qsc-parallaxY", `${y.toFixed(2)}px`);
-        el.style.setProperty("--qsc-parallaxA", `${a.toFixed(3)}`);
-      });
-    };
-
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-
-    return () => {
-      if (raf) cancelAnimationFrame(raf);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
-    };
-  }, []);
-
-  const [companyId, setCompanyId] = useState<string>("");
+  const [companyId, setCompanyId] = useState("");
   const [bizIds, setBizIds] = useState<string[]>([]);
   const [brandIds, setBrandIds] = useState<string[]>([]);
   const [areaIds, setAreaIds] = useState<string[]>([]);
-  const [statusFilter, setStatusFilter] = useState<StoreStatus[]>(["new", "draft"]);
+  const [statusFilters, setStatusFilters] = useState<StoreStatus[]>([]);
   const [storeQuery, setStoreQuery] = useState("");
-  const [selectedStoreId, setSelectedStoreId] = useState<string>("");
+
+  const [selectedStoreId, setSelectedStoreId] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [isDoneModalOpen, setIsDoneModalOpen] = useState(false);
+
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [resultHistory, setResultHistory] = useState<ResultHistoryItem[]>([]);
+
+  // 初期データ取得
+  useEffect(() => {
+    async function init() {
+      try {
+        setLoadingStores(true);
+
+        const [resM, resD] = await Promise.all([
+          fetch("/api/check/stores", { cache: "no-store" }),
+          fetch("/api/check/results/summary", { cache: "no-store" }),
+        ]);
+
+        if (!resM.ok) {
+          throw new Error(`stores API error: ${resM.status}`);
+        }
+        if (!resD.ok) {
+          throw new Error(`summary API error: ${resD.status}`);
+        }
+
+        const m = await resM.json();
+        const d = await resD.json();
+
+        setStoreMaster(Array.isArray(m.items) ? m.items : []);
+        setDoneStoreIds(Array.isArray(d.doneStoreIds) ? d.doneStoreIds : []);
+      } catch (error) {
+        console.error(error);
+        setStoreMaster([]);
+        setDoneStoreIds([]);
+      } finally {
+        setLoadingStores(false);
+      }
+    }
+
+    init();
+  }, []);
+
+  // localStorage の draft 読み込み
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const keys = Object.keys(localStorage)
+      .filter((k) => k.startsWith("qsc_draft_"))
+      .map((k) => k.replace("qsc_draft_", ""));
+
+    setDraftStoreIds(keys);
+  }, []);
+
+  const getDynamicStatus = (id: string): StoreStatus => {
+    if (doneStoreIds.includes(id)) return "done";
+    if (draftStoreIds.includes(id)) return "draft";
+    return "new";
+  };
 
   const companies = useMemo(() => {
-    const rows = uniqBy(storeMaster, (r) => r.companyId).map((r) => ({
+    return uniqBy(storeMaster, (r) => r.companyId).map((r) => ({
       id: r.companyId,
       name: r.companyName,
     }));
-    return rows.sort((a, b) => a.name.localeCompare(b.name, "ja"));
   }, [storeMaster]);
 
-  const selectedCompany = useMemo(
-    () => companies.find((c) => c.id === companyId) || null,
-    [companies, companyId]
-  );
-
-  const bizOptions = useMemo(() => {
-    const rows = storeMaster.filter((r) => !companyId || r.companyId === companyId);
-    const list = uniqBy(rows, (r) => r.bizId).map((r) => ({
-      id: r.bizId,
-      name: r.bizName,
-    }));
-    return list.sort((a, b) => a.name.localeCompare(b.name, "ja"));
+  const companyScopedRows = useMemo(() => {
+    return storeMaster.filter((r) => !companyId || r.companyId === companyId);
   }, [storeMaster, companyId]);
 
-  const brandOptions = useMemo(() => {
-    const rows = storeMaster.filter((r) => {
-      if (companyId && r.companyId !== companyId) return false;
-      if (bizIds.length && !bizIds.includes(r.bizId)) return false;
-      return true;
-    });
-    const list = uniqBy(rows, (r) => r.brandId).map((r) => ({
-      id: r.brandId,
-      name: r.brandName,
+  const bizOptions = useMemo(() => {
+    return uniqBy(companyScopedRows, (r) => r.bizId).map((r) => ({
+      bizId: r.bizId,
+      bizName: r.bizName,
     }));
-    return list.sort((a, b) => a.name.localeCompare(b.name, "ja"));
-  }, [storeMaster, companyId, bizIds]);
+  }, [companyScopedRows]);
+
+  const bizScopedRows = useMemo(() => {
+    return companyScopedRows.filter((r) => {
+      if (bizIds.length === 0) return true;
+      return bizIds.includes(r.bizId);
+    });
+  }, [companyScopedRows, bizIds]);
+
+  const brandOptions = useMemo(() => {
+    return uniqBy(bizScopedRows, (r) => r.brandId).map((r) => ({
+      brandId: r.brandId,
+      brandName: r.brandName,
+    }));
+  }, [bizScopedRows]);
+
+  const brandScopedRows = useMemo(() => {
+    return bizScopedRows.filter((r) => {
+      if (brandIds.length === 0) return true;
+      return brandIds.includes(r.brandId);
+    });
+  }, [bizScopedRows, brandIds]);
 
   const areaOptions = useMemo(() => {
-    const rows = storeMaster.filter((r) => {
-      if (companyId && r.companyId !== companyId) return false;
-      if (bizIds.length && !bizIds.includes(r.bizId)) return false;
-      if (brandIds.length && !brandIds.includes(r.brandId)) return false;
-      return true;
-    });
-
-    const list = uniqBy(rows, (r) => r.areaId).map((r) => ({
-      id: r.areaId,
-      name: r.areaName,
+    return uniqBy(brandScopedRows, (r) => r.areaId).map((r) => ({
+      areaId: r.areaId,
+      areaName: r.areaName,
     }));
-
-    return list.sort((a, b) => a.name.localeCompare(b.name, "ja"));
-  }, [storeMaster, companyId, bizIds, brandIds]);
+  }, [brandScopedRows]);
 
   const storeList = useMemo(() => {
     const k = storeQuery.trim().toLowerCase();
-    const assignedStoreId = session?.assignedStoreId;
-    const isRestricted =
-      session?.role === "auditor" || session?.role === "manager";
 
     return storeMaster
+      .map((s) => ({ ...s, status: getDynamicStatus(s.storeId) }))
       .filter((r) => {
-        if (isRestricted && assignedStoreId) {
-          if (r.storeId !== assignedStoreId) return false;
+        if (companyId && r.companyId !== companyId) return false;
+        if (bizIds.length > 0 && !bizIds.includes(r.bizId)) return false;
+        if (brandIds.length > 0 && !brandIds.includes(r.brandId)) return false;
+        if (areaIds.length > 0 && !areaIds.includes(r.areaId)) return false;
+        if (statusFilters.length > 0 && !statusFilters.includes(r.status)) return false;
+
+        if (k) {
+          const target = [
+            r.storeName,
+            r.storeId,
+            r.brandName,
+            r.areaName,
+            r.companyName,
+            r.bizName,
+          ]
+            .join(" ")
+            .toLowerCase();
+
+          if (!target.includes(k)) return false;
         }
 
-        if (companyId && r.companyId !== companyId) return false;
-        if (bizIds.length && !bizIds.includes(r.bizId)) return false;
-        if (brandIds.length && !brandIds.includes(r.brandId)) return false;
-        if (areaIds.length && !areaIds.includes(r.areaId)) return false;
-        if (!statusFilter.includes(r.status)) return false;
-        if (k && !r.storeName.toLowerCase().includes(k)) return false;
         return true;
       })
       .sort((a, b) => a.storeName.localeCompare(b.storeName, "ja"));
   }, [
     storeMaster,
+    doneStoreIds,
+    draftStoreIds,
     companyId,
     bizIds,
     brandIds,
     areaIds,
-    statusFilter,
+    statusFilters,
     storeQuery,
-    session,
   ]);
 
   const selectedStore = useMemo(() => {
-    const found = storeMaster.find((s) => s.storeId === selectedStoreId);
-    if (!found) return null;
-    const visible = storeList.some((s) => s.storeId === selectedStoreId);
-    if (!visible) return null;
-    if (found.status === "done") return null;
-    return found;
-  }, [selectedStoreId, storeList, storeMaster]);
+    return storeList.find((s) => s.storeId === selectedStoreId) || null;
+  }, [selectedStoreId, storeList]);
 
-  useEffect(() => {
-    const key = "qsc_check_selected_store";
-    if (!selectedStore) {
-      localStorage.removeItem(key);
-      return;
-    }
-
-    localStorage.setItem(
-      key,
-      JSON.stringify({
-        companyId: selectedStore.companyId,
-        bizId: selectedStore.bizId,
-        brandId: selectedStore.brandId,
-        areaId: selectedStore.areaId,
-        storeId: selectedStore.storeId,
-        storeName: selectedStore.storeName,
-        companyName: selectedStore.companyName,
-        brandName: selectedStore.brandName,
-        areaName: selectedStore.areaName,
-        ts: Date.now(),
-      })
+  const toggleMultiValue = (
+    value: string,
+    list: string[],
+    setList: React.Dispatch<React.SetStateAction<string[]>>
+  ) => {
+    setList((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
     );
-  }, [selectedStore]);
-
-  useEffect(() => {
-    document.body.style.overflow = isFilterOpen ? "hidden" : "";
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [isFilterOpen]);
-
-  const toggle = (arr: string[], id: string) =>
-    arr.includes(id) ? arr.filter((x) => x !== id) : [...arr, id];
-
-  const toggleStatus = (s: StoreStatus) =>
-    setStatusFilter((v) =>
-      v.includes(s) ? v.filter((x) => x !== s) : [...v, s]
-    );
-
-  const onCompanyChange = (id: string) => {
-    setCompanyId(id);
-    setBizIds([]);
-    setBrandIds([]);
-    setAreaIds([]);
-    setStoreQuery("");
-    setSelectedStoreId("");
   };
 
-  const clearAllFilters = () => {
+  const toggleStatus = (value: StoreStatus) => {
+    setStatusFilters((prev) =>
+      prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]
+    );
+  };
+
+  const resetFilters = () => {
     setCompanyId("");
     setBizIds([]);
     setBrandIds([]);
     setAreaIds([]);
-    setStatusFilter(["new", "draft"]);
+    setStatusFilters([]);
     setStoreQuery("");
-    setSelectedStoreId("");
   };
 
-  const activeFilterCount = countActiveFilters({
-    companyId,
-    bizIds,
-    brandIds,
-    areaIds,
-    statusFilter,
-    storeQuery,
-  });
+  async function openHistoryModal(storeId: string) {
+    try {
+      setLoadingHistory(true);
+      setResultHistory([]);
 
-  const bizSelected = selectedNames(bizIds, bizOptions);
-  const brandSelected = selectedNames(brandIds, brandOptions);
-  const areaSelected = selectedNames(areaIds, areaOptions);
+      const res = await fetch(
+        `/api/check/results/history?storeId=${encodeURIComponent(storeId)}`,
+        { cache: "no-store" }
+      );
+
+      if (!res.ok) {
+        throw new Error(`history API error: ${res.status}`);
+      }
+
+      const data = await res.json();
+      setResultHistory(Array.isArray(data.items) ? data.items : []);
+      setIsHistoryModalOpen(true);
+    } catch (error) {
+      console.error(error);
+      alert("過去の点検履歴の取得に失敗しました。");
+    } finally {
+      setLoadingHistory(false);
+    }
+  }
+
+  const onRunAction = async (mode: "new" | "edit") => {
+    if (!selectedStore) return;
+
+    if (mode === "new") {
+      setIsDoneModalOpen(false);
+
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(`qsc_draft_${selectedStore.storeId}`);
+        setDraftStoreIds((prev) =>
+          prev.filter((id) => id !== selectedStore.storeId)
+        );
+      }
+
+      router.push(`/check/run?storeId=${selectedStore.storeId}&mode=new`);
+      return;
+    }
+
+    setIsDoneModalOpen(false);
+    await openHistoryModal(selectedStore.storeId);
+  };
+
+  function onSelectHistory(item: ResultHistoryItem) {
+    setIsHistoryModalOpen(false);
+    router.push(
+      `/check/run?storeId=${encodeURIComponent(
+        item.storeId
+      )}&mode=edit&resultId=${encodeURIComponent(item.resultId)}`
+    );
+  }
+
+  const activeFilterCount =
+    (companyId ? 1 : 0) +
+    bizIds.length +
+    brandIds.length +
+    areaIds.length +
+    statusFilters.length +
+    (storeQuery.trim() ? 1 : 0);
 
   return (
-    <div className={styles.page}>
-      <div ref={widgetWrapRef} className={styles.widgetWrap} aria-label="日付と天気">
-        <div className={styles.widget} data-tod={tod} data-weather={weatherKind}>
-          <div className={styles.widgetGlow} aria-hidden="true" />
-          <div className={styles.widgetRow}>
-            <div className={styles.dateMain}>
-              <div className={styles.dateBig}>
-                <CalendarDays size={18} />
-                <span className={styles.dateBigTx}>{mmdd}</span>
-              </div>
-              <div className={styles.dateSub}>
-                <span className={styles.year}>{yyyy}</span>
-                <span className={styles.dateSubDot}>•</span>
-                <span className={styles.dow}>{dow}</span>
-              </div>
-            </div>
-            <div className={styles.qMain}>
-              <span className={styles.qPill}>
-                <span className={styles.qPillTx}>Q{quarter}</span>
-              </span>
-              <span className={styles.qLabel}>Quarter</span>
-            </div>
+    <div
+      style={{
+        background: "#f8fafc",
+        minHeight: "100vh",
+        fontFamily: "sans-serif",
+      }}
+    >
+      {/* Date Card */}
+      <div style={{ display: "flex", gap: "12px", padding: "20px 20px 10px" }}>
+        <div
+          style={{
+            flex: 1,
+            background: "#fff",
+            padding: "18px",
+            borderRadius: "24px",
+            border: "1px solid #e2e8f0",
+            boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              fontSize: "17px",
+              fontWeight: 900,
+              color: "#1e293b",
+            }}
+          >
+            <CalendarDays size={18} color="#6366f1" /> {mmdd}
           </div>
-        </div>
-
-        <div className={styles.widget} data-tod={tod} data-weather={weatherKind}>
-          <div className={styles.widgetGlow2} aria-hidden="true" />
-          <div className={styles.widgetRow}>
-            <div className={styles.weatherMain}>
-              <span className={styles.weatherIc}>
-                <WeatherIcon kind={weatherKind} />
-              </span>
-              <div className={styles.weatherText}>
-                <div className={styles.weatherLabel}>{weatherLabel(weatherKind)}</div>
-                <div className={styles.weatherHint}>
-                  {tod === "morning" ? "Morning" : tod === "day" ? "Daytime" : "Night"}
-                </div>
-              </div>
-            </div>
-            <div className={styles.tempPill}>
-              <Thermometer size={16} style={{ opacity: 0.85 }} />
-              <span className={styles.tempVal}>
-                {tempC == null ? "—" : `${Math.round(tempC)}°`}
-              </span>
-            </div>
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: 800,
+              color: "#94a3b8",
+              marginTop: "4px",
+            }}
+          >
+            {yyyy} • {dow} / Q{quarter}
           </div>
         </div>
       </div>
 
-      <header className="qsc-panel" aria-label="点検を開始">
-        <div className="qsc-panel-head" style={{ alignItems: "center" }}>
-          <StepBadge icon={<ClipboardCheck size={14} />} label="点検" />
-          <Link className="qsc-panel-link" href="/" aria-label="HOMEへ戻る">
-            <ChevronLeft size={16} style={{ verticalAlign: "-3px" }} /> 戻る
+      {/* Header */}
+      <header style={{ padding: "10px 24px 20px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <Link
+            href="/"
+            style={{
+              color: "#64748b",
+              textDecoration: "none",
+              fontSize: "14px",
+              fontWeight: 800,
+              display: "flex",
+              alignItems: "center",
+              gap: "4px",
+            }}
+          >
+            <ChevronLeft size={18} /> HOME
           </Link>
-        </div>
-
-        <div style={{ marginTop: 8 }}>
-          <h1 className="qsc-title qsc-titleCheck" style={{ margin: 0 }}>
-            店舗を選択して開始
-          </h1>
-
-          {session?.role === "auditor" ? (
-            <p className="qsc-sub qsc-subCheck" style={{ margin: "8px 0 0 0" }}>
-              担当店舗のみ表示されています。対象を選択して開始してください。
-            </p>
-          ) : (
-            <p className="qsc-sub qsc-subCheck" style={{ margin: "8px 0 0 0" }}>
-              店舗をタップで選択 → 右下の「＋」でスタート。
-            </p>
-          )}
-
-          <div className={styles.selectedLine} aria-live="polite">
-            {selectedStore ? (
-              <>
-                <span className={`${styles.dot} ${styles.dotOn}`} />
-                <span>
-                  選択中：<b>{selectedStore.storeName}</b>（
-                  {selectedStore.companyName} / {selectedStore.brandName} / {selectedStore.areaName}
-                  ）
-                </span>
-              </>
-            ) : (
-              <>
-                <span className={styles.dot} />
-                <span style={{ opacity: 0.6 }}>未選択</span>
-              </>
-            )}
-          </div>
-        </div>
-      </header>
-
-      <section className={`qsc-panel ${styles.filterSummaryPanel}`} aria-label="絞り込みサマリー">
-        <div className={styles.filterSummaryTop}>
-          <div className={styles.filterSummaryLeft}>
-            <div className={styles.filterSummaryTitle}>
-              <SlidersHorizontal size={16} />
-              <span>絞り込み</span>
-            </div>
-            <div className={styles.filterSummarySub}>
-              {companyId ? (
-                <>
-                  <b>{selectedCompany?.name}</b>
-                  <span>・ {storeList.length}件</span>
-                </>
-              ) : (
-                <span>企業名を選択して絞り込み</span>
-              )}
-            </div>
-          </div>
-
-          <div className={styles.filterSummaryActions}>
-            {activeFilterCount > 0 ? (
-              <button
-                type="button"
-                className={styles.ghostBtn}
-                onClick={clearAllFilters}
-              >
-                <RotateCcw size={14} />
-                <span>リセット</span>
-              </button>
-            ) : null}
-
-            <button
-              type="button"
-              className={styles.primaryFilterBtn}
-              onClick={() => setIsFilterOpen(true)}
-            >
-              <SlidersHorizontal size={16} />
-              <span>条件を選ぶ</span>
-              {activeFilterCount > 0 ? (
-                <span className={styles.filterCount}>{activeFilterCount}</span>
-              ) : null}
-            </button>
-          </div>
-        </div>
-
-        <div className={styles.activePills}>
-          {selectedCompany ? (
-            <ActivePill label={`企業: ${selectedCompany.name}`} onRemove={() => onCompanyChange("")} />
-          ) : null}
-
-          {bizSelected.map((b) => (
-            <ActivePill
-              key={`biz-${b.id}`}
-              label={`業態: ${b.name}`}
-              onRemove={() => {
-                setBizIds((v) => v.filter((id) => id !== b.id));
-                setBrandIds([]);
-                setAreaIds([]);
-                setSelectedStoreId("");
-              }}
-            />
-          ))}
-
-          {brandSelected.map((b) => (
-            <ActivePill
-              key={`brand-${b.id}`}
-              label={`ブランド: ${b.name}`}
-              onRemove={() => {
-                setBrandIds((v) => v.filter((id) => id !== b.id));
-                setAreaIds([]);
-                setSelectedStoreId("");
-              }}
-            />
-          ))}
-
-          {areaSelected.map((a) => (
-            <ActivePill
-              key={`area-${a.id}`}
-              label={`エリア: ${a.name}`}
-              onRemove={() => {
-                setAreaIds((v) => v.filter((id) => id !== a.id));
-                setSelectedStoreId("");
-              }}
-            />
-          ))}
-
-          {statusFilter.includes("new") ? null : (
-            <ActivePill label="未着手: OFF" onRemove={() => toggleStatus("new")} />
-          )}
-          {statusFilter.includes("draft") ? null : (
-            <ActivePill label="途中: OFF" onRemove={() => toggleStatus("draft")} />
-          )}
-          {statusFilter.includes("done") ? (
-            <ActivePill label="完了: ON" onRemove={() => toggleStatus("done")} />
-          ) : null}
-
-          {storeQuery.trim() ? (
-            <ActivePill label={`検索: ${storeQuery}`} onRemove={() => setStoreQuery("")} />
-          ) : null}
-        </div>
-      </section>
-
-      <section className="qsc-panel" aria-label="店舗一覧">
-        <div className="qsc-panel-head">
-          <StepBadge icon={<Store size={14} />} label="店舗一覧" />
-          <span className="qsc-swipehint">
-            {loadingStores ? "読込中..." : companyId ? `${storeList.length}件` : "—"}
+          <span
+            style={{
+              background: "#f1f5f9",
+              padding: "5px 12px",
+              borderRadius: "10px",
+              fontSize: "11px",
+              fontWeight: 950,
+              color: "#475569",
+            }}
+          >
+            AUDIT v2
           </span>
         </div>
 
+        <h1
+          style={{
+            fontSize: "28px",
+            fontWeight: 950,
+            color: "#1e293b",
+            marginTop: "16px",
+            letterSpacing: "-0.04em",
+          }}
+        >
+          店舗を選択
+        </h1>
+
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "8px" }}>
+          <div
+            style={{
+              width: "8px",
+              height: "8px",
+              borderRadius: "50%",
+              background: selectedStore ? "#10b981" : "#e2e8f0",
+            }}
+          />
+          <span
+            style={{
+              fontSize: "14px",
+              fontWeight: 700,
+              color: selectedStore ? "#1e293b" : "#94a3b8",
+            }}
+          >
+            {selectedStore ? `選択中: ${selectedStore.storeName}` : "対象をタップしてください"}
+          </span>
+        </div>
+      </header>
+
+      {/* Filter Summary Card */}
+      <section style={{ padding: "0 20px 20px" }}>
+        <div
+          style={{
+            background: "#1e293b",
+            borderRadius: "24px",
+            padding: "20px",
+            color: "#fff",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            boxShadow: "0 20px 25px -5px rgba(30, 41, 59, 0.2)",
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontSize: "11px",
+                fontWeight: 900,
+                color: "#94a3b8",
+                textTransform: "uppercase",
+              }}
+            >
+              Master List
+            </div>
+            <div style={{ fontSize: "16px", fontWeight: 800, marginTop: "2px" }}>
+              {storeList.length}店舗を表示中
+            </div>
+            {activeFilterCount > 0 && (
+              <div
+                style={{
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  color: "#cbd5e1",
+                  marginTop: "6px",
+                }}
+              >
+                フィルター適用中: {activeFilterCount}
+              </div>
+            )}
+          </div>
+
+          <button
+            onClick={() => setIsFilterOpen(true)}
+            style={{
+              background: "rgba(255,255,255,0.12)",
+              border: "1px solid rgba(255,255,255,0.2)",
+              color: "#fff",
+              padding: "12px 18px",
+              borderRadius: "14px",
+              fontSize: "13px",
+              fontWeight: 900,
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+            }}
+          >
+            <SlidersHorizontal size={16} /> 条件
+          </button>
+        </div>
+      </section>
+
+      {/* Search Box */}
+      <section style={{ padding: "0 20px 16px" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            height: "56px",
+            borderRadius: "18px",
+            border: "1px solid #e2e8f0",
+            background: "#fff",
+            padding: "0 16px",
+          }}
+        >
+          <Search size={18} color="#94a3b8" />
+          <input
+            value={storeQuery}
+            onChange={(e) => setStoreQuery(e.target.value)}
+            placeholder="店舗名で検索"
+            style={{
+              flex: 1,
+              border: "none",
+              background: "transparent",
+              outline: "none",
+              fontSize: "15px",
+              fontWeight: 700,
+              color: "#1e293b",
+            }}
+          />
+          {!!storeQuery && (
+            <button
+              onClick={() => setStoreQuery("")}
+              style={{
+                border: "none",
+                background: "transparent",
+                color: "#94a3b8",
+                fontSize: "13px",
+                fontWeight: 800,
+              }}
+            >
+              クリア
+            </button>
+          )}
+        </div>
+      </section>
+
+      {/* Store List */}
+      <section style={{ padding: "0 20px 140px" }}>
         {loadingStores ? (
-          <div className="qsc-empty">
-            <div className="qsc-emptyTitle">店舗一覧を読み込んでいます</div>
-            <div className="qsc-emptyBody">少しお待ちください。</div>
-          </div>
-        ) : storesError ? (
-          <div className="qsc-empty">
-            <div className="qsc-emptyTitle">取得に失敗しました</div>
-            <div className="qsc-emptyBody">{storesError}</div>
-          </div>
-        ) : !companyId ? (
-          <div className="qsc-empty">
-            <div className="qsc-emptyTitle">企業名を選択してください</div>
-            <div className="qsc-emptyBody">「条件を選ぶ」から企業名を選ぶと店舗一覧が表示されます。</div>
+          <div style={{ textAlign: "center", padding: "40px", fontWeight: 800, color: "#cbd5e1" }}>
+            Loading Master...
           </div>
         ) : storeList.length === 0 ? (
-          <div className="qsc-empty">
-            <div className="qsc-emptyTitle">該当する店舗がありません</div>
-            <div className="qsc-emptyBody">絞り込み条件を見直してください。</div>
+          <div
+            style={{
+              background: "#fff",
+              borderRadius: "24px",
+              border: "1px solid #e2e8f0",
+              padding: "32px 20px",
+              textAlign: "center",
+              color: "#94a3b8",
+              fontWeight: 800,
+            }}
+          >
+            条件に一致する店舗がありません
           </div>
         ) : (
-          <div className="qsc-storeCards" role="list">
-            {storeList.map((s) => {
-              const isDone = s.status === "done";
-              const isSelected = selectedStoreId === s.storeId;
-
-              return (
-                <button
-                  key={s.storeId}
-                  type="button"
-                  className={[
-                    "qsc-storeCard",
-                    `status-${s.status}`,
-                    isSelected ? "is-selected" : "",
-                  ].join(" ")}
-                  disabled={isDone}
-                  role="listitem"
-                  onClick={() => {
-                    if (isDone) return;
-                    setSelectedStoreId((cur) => (cur === s.storeId ? "" : s.storeId));
-                  }}
-                  aria-pressed={isSelected}
-                >
-                  <div className="qsc-storeCardLeft">
-                    <div className="qsc-storeTitle">{s.storeName}</div>
-                    <div className="qsc-storeMeta">
-                      <span className="qsc-storeMetaItem">
-                        <Building2 size={14} /> {s.companyName}
-                      </span>
-                      <span className="qsc-storeMetaItem">
-                        <Layers3 size={14} /> {s.bizName}
-                      </span>
-                      <span className="qsc-storeMetaItem">
-                        <Tag size={14} /> {s.brandName}
-                      </span>
-                      <span className="qsc-storeMetaItem">
-                        <MapPinned size={14} /> {s.areaName}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="qsc-storeCardRight">
-                    <span className={`qsc-statusPill status-${s.status}`}>
-                      {s.status === "new" ? <Circle size={14} /> : null}
-                      {s.status === "draft" ? <PauseCircle size={14} /> : null}
-                      {s.status === "done" ? <CheckCircle2 size={14} /> : null}
-                      {statusLabel(s.status)}
-                    </span>
-
-                    {isSelected ? (
-                      <span className="qsc-pickedMark" aria-hidden="true">
-                        <Check size={18} />
-                      </span>
+          <div style={{ display: "grid", gap: "12px" }}>
+            {storeList.map((s) => (
+              <button
+                key={s.storeId}
+                onClick={() => {
+                  setSelectedStoreId(s.storeId);
+                  if (s.status === "done") {
+                    setIsDoneModalOpen(true);
+                  }
+                }}
+                style={{
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "20px",
+                  background: "#fff",
+                  borderRadius: "24px",
+                  border: "1px solid",
+                  borderColor: selectedStoreId === s.storeId ? "#1e293b" : "#e2e8f0",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  transition: "0.2s",
+                }}
+              >
+                <div style={{ display: "flex", gap: "16px", alignItems: "center" }}>
+                  <div
+                    style={{
+                      width: "52px",
+                      height: "52px",
+                      borderRadius: "16px",
+                      background:
+                        s.status === "done"
+                          ? "#d1fae5"
+                          : s.status === "draft"
+                          ? "#ffedd5"
+                          : "#f8fafc",
+                      display: "grid",
+                      placeItems: "center",
+                      color:
+                        s.status === "done"
+                          ? "#10b981"
+                          : s.status === "draft"
+                          ? "#f59e0b"
+                          : "#cbd5e1",
+                    }}
+                  >
+                    {s.status === "done" ? (
+                      <CheckCircle2 size={26} />
+                    ) : s.status === "draft" ? (
+                      <PauseCircle size={26} />
                     ) : (
-                      <ChevronRight size={18} style={{ opacity: 0.75 }} />
+                      <Store size={26} />
                     )}
                   </div>
-                </button>
-              );
-            })}
+
+                  <div>
+                    <div style={{ fontSize: "17px", fontWeight: 900, color: "#1e293b" }}>
+                      {s.storeName}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "12px",
+                        fontWeight: 700,
+                        color: "#94a3b8",
+                        marginTop: "2px",
+                      }}
+                    >
+                      {s.companyName} • {s.bizName} • {s.brandName} • {s.areaName}
+                    </div>
+                  </div>
+                </div>
+
+                <ChevronRight size={18} color="#cbd5e1" />
+              </button>
+            ))}
           </div>
         )}
       </section>
 
+      {/* Action Modal */}
+      {isDoneModalOpen && selectedStore && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(10px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "flex-end",
+          }}
+          onClick={() => setIsDoneModalOpen(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "#fff",
+              borderRadius: "32px 32px 0 0",
+              padding: "32px 24px 48px",
+              animation: "slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ textAlign: "center", marginBottom: "32px" }}>
+              <div style={{ fontSize: "22px", fontWeight: 950, color: "#1e293b" }}>
+                {selectedStore.storeName}
+              </div>
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#64748b", marginTop: "8px" }}>
+                完了済みの店舗です。アクションを選択
+              </p>
+            </div>
+
+            <div style={{ display: "grid", gap: "12px" }}>
+              <button
+                onClick={() => onRunAction("edit")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  padding: "22px",
+                  borderRadius: "22px",
+                  border: "1px solid #e2e8f0",
+                  background: "#fff",
+                  textAlign: "left",
+                }}
+              >
+                <RotateCcw size={24} color="#6366f1" />
+                <div>
+                  <div style={{ fontSize: "16px", fontWeight: 900 }}>前回の内容を修正</div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>
+                    点検履歴から修正対象を選択
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onRunAction("new")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  padding: "22px",
+                  borderRadius: "22px",
+                  border: "1px solid #e2e8f0",
+                  background: "#fff",
+                  textAlign: "left",
+                }}
+              >
+                <Sparkles size={24} color="#f59e0b" />
+                <div>
+                  <div style={{ fontSize: "16px", fontWeight: 900 }}>新しく開始</div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>
+                    履歴を引き継がず新規作成
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setIsDoneModalOpen(false)}
+              style={{
+                width: "100%",
+                marginTop: "24px",
+                padding: "18px",
+                borderRadius: "16px",
+                border: "none",
+                background: "#f1f5f9",
+                color: "#64748b",
+                fontWeight: 800,
+              }}
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* History Modal */}
+      {isHistoryModalOpen && selectedStore && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(10px)",
+            zIndex: 1100,
+            display: "flex",
+            alignItems: "flex-end",
+          }}
+          onClick={() => setIsHistoryModalOpen(false)}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "#fff",
+              borderRadius: "32px 32px 0 0",
+              padding: "32px 24px 48px",
+              maxHeight: "80vh",
+              overflowY: "auto",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <div style={{ fontSize: "22px", fontWeight: 950, color: "#1e293b" }}>
+                {selectedStore.storeName}
+              </div>
+              <p
+                style={{
+                  fontSize: "14px",
+                  fontWeight: 700,
+                  color: "#64748b",
+                  marginTop: "8px",
+                }}
+              >
+                修正する点検日を選択してください
+              </p>
+            </div>
+
+            {loadingHistory ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "24px",
+                  color: "#94a3b8",
+                  fontWeight: 800,
+                }}
+              >
+                履歴を読み込み中...
+              </div>
+            ) : resultHistory.length === 0 ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "24px",
+                  color: "#94a3b8",
+                  fontWeight: 800,
+                  background: "#f8fafc",
+                  borderRadius: "20px",
+                  border: "1px solid #e2e8f0",
+                }}
+              >
+                修正できる過去結果がありません
+              </div>
+            ) : (
+              <div style={{ display: "grid", gap: "12px" }}>
+                {resultHistory.map((item) => (
+                  <button
+                    key={item.resultId}
+                    onClick={() => onSelectHistory(item)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: "12px",
+                      padding: "18px 20px",
+                      borderRadius: "20px",
+                      border: "1px solid #e2e8f0",
+                      background: "#fff",
+                      textAlign: "left",
+                    }}
+                  >
+                    <div>
+                      <div
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: 900,
+                          color: "#1e293b",
+                        }}
+                      >
+                        {formatResultDate(item.submittedAt)}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: "12px",
+                          fontWeight: 700,
+                          color: "#94a3b8",
+                          marginTop: "4px",
+                        }}
+                      >
+                        {item.status}
+                      </div>
+                    </div>
+                    <ChevronRight size={18} color="#cbd5e1" />
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <button
+              onClick={() => setIsHistoryModalOpen(false)}
+              style={{
+                width: "100%",
+                marginTop: "24px",
+                padding: "18px",
+                borderRadius: "16px",
+                border: "none",
+                background: "#f1f5f9",
+                color: "#64748b",
+                fontWeight: 800,
+              }}
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Filter Sheet */}
       {isFilterOpen && (
-        <>
-          <button
-            type="button"
-            className={styles.sheetBackdrop}
-            aria-label="閉じる"
+        <div style={{ position: "fixed", inset: 0, zIndex: 1100 }}>
+          <div
+            style={{ position: "absolute", inset: 0, background: "rgba(15, 23, 42, 0.4)" }}
             onClick={() => setIsFilterOpen(false)}
           />
+
           <div
-            className={styles.sheet}
-            role="dialog"
-            aria-modal="true"
-            aria-label="絞り込み条件"
+            style={{
+              position: "absolute",
+              bottom: 0,
+              left: 0,
+              right: 0,
+              background: "#fff",
+              borderRadius: "32px 32px 0 0",
+              padding: "24px 24px 40px",
+              maxHeight: "84vh",
+              overflowY: "auto",
+            }}
           >
-            <div className={styles.sheetHandle} />
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "24px",
+              }}
+            >
+              <div style={{ fontSize: "20px", fontWeight: 950 }}>絞り込み条件</div>
+              <button
+                onClick={() => setIsFilterOpen(false)}
+                style={{
+                  background: "#f1f5f9",
+                  border: "none",
+                  padding: "10px",
+                  borderRadius: "14px",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-            <div className={styles.sheetHead}>
+            <div style={{ display: "grid", gap: "28px" }}>
+              {/* 店舗検索 */}
               <div>
-                <div className={styles.sheetTitle}>絞り込み条件</div>
-                <div className={styles.sheetSub}>スマホ向けにまとめて選択できます</div>
-              </div>
-              <button
-                type="button"
-                className={styles.sheetClose}
-                onClick={() => setIsFilterOpen(false)}
-                aria-label="閉じる"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className={styles.sheetBody}>
-              <FilterBlock title="企業名" hint="最初にここを選択">
-                <CompanyPicker
-                  value={selectedCompany}
-                  options={companies}
-                  onChange={onCompanyChange}
-                />
-              </FilterBlock>
-
-              <FilterBlock title="業態" hint="複数選択可">
-                <div className={`qsc-chipScroll2 ${!companyId ? "is-disabled" : ""}`}>
-                  {bizOptions.map((b) => (
-                    <Chip
-                      key={b.id}
-                      active={bizIds.includes(b.id)}
-                      icon={<Layers3 size={16} />}
-                      label={b.name}
-                      disabled={!companyId}
-                      onClick={() => {
-                        if (!companyId) return;
-                        setBizIds((v) => toggle(v, b.id));
-                        setBrandIds([]);
-                        setAreaIds([]);
-                        setSelectedStoreId("");
-                      }}
-                    />
-                  ))}
-                  {companyId && bizOptions.length === 0 && (
-                    <div className="qsc-mutedLine">該当する業態がありません</div>
-                  )}
-                </div>
-              </FilterBlock>
-
-              <FilterBlock title="ブランド" hint="複数選択可">
-                <div className={`qsc-chipScroll2 ${!companyId ? "is-disabled" : ""}`}>
-                  {brandOptions.map((b) => (
-                    <Chip
-                      key={b.id}
-                      active={brandIds.includes(b.id)}
-                      icon={<Tag size={16} />}
-                      label={b.name}
-                      disabled={!companyId}
-                      onClick={() => {
-                        if (!companyId) return;
-                        setBrandIds((v) => toggle(v, b.id));
-                        setAreaIds([]);
-                        setSelectedStoreId("");
-                      }}
-                    />
-                  ))}
-                  {companyId && brandOptions.length === 0 && (
-                    <div className="qsc-mutedLine">該当するブランドがありません</div>
-                  )}
-                </div>
-              </FilterBlock>
-
-              <FilterBlock title="エリア" hint="複数選択可">
-                <div className={`qsc-chipScroll2 ${!companyId ? "is-disabled" : ""}`}>
-                  {areaOptions.map((a) => (
-                    <Chip
-                      key={a.id}
-                      active={areaIds.includes(a.id)}
-                      icon={<MapPinned size={16} />}
-                      label={a.name}
-                      disabled={!companyId}
-                      onClick={() => {
-                        if (!companyId) return;
-                        setAreaIds((v) => toggle(v, a.id));
-                        setSelectedStoreId("");
-                      }}
-                    />
-                  ))}
-                  {companyId && areaOptions.length === 0 && (
-                    <div className="qsc-mutedLine">該当するエリアがありません</div>
-                  )}
-                </div>
-              </FilterBlock>
-
-              <FilterBlock title="状態" hint="進捗で絞り込み">
-                <div className="qsc-chipScroll2">
-                  <Chip
-                    active={statusFilter.includes("new")}
-                    icon={<Circle size={16} />}
-                    label="未着手"
-                    onClick={() => {
-                      toggleStatus("new");
-                      setSelectedStoreId("");
-                    }}
-                  />
-                  <Chip
-                    active={statusFilter.includes("draft")}
-                    icon={<PauseCircle size={16} />}
-                    label="途中"
-                    onClick={() => {
-                      toggleStatus("draft");
-                      setSelectedStoreId("");
-                    }}
-                  />
-                  <Chip
-                    active={statusFilter.includes("done")}
-                    icon={<CheckCircle2 size={16} />}
-                    label="完了"
-                    onClick={() => {
-                      toggleStatus("done");
-                      setSelectedStoreId("");
-                    }}
-                  />
-                </div>
-              </FilterBlock>
-
-              <FilterBlock title="店舗検索" hint="店名で絞り込み">
-                <div className={`qsc-searchRow2 ${styles.searchRow}`}>
-                  <div className="qsc-searchIcon2">
-                    <Search size={16} />
-                  </div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 900,
+                    color: "#94a3b8",
+                    display: "block",
+                    marginBottom: "10px",
+                  }}
+                >
+                  店舗検索
+                </label>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    height: "56px",
+                    borderRadius: "16px",
+                    border: "1px solid #e2e8f0",
+                    background: "#f8fafc",
+                    padding: "0 16px",
+                  }}
+                >
+                  <Search size={18} color="#94a3b8" />
                   <input
-                    className="qsc-input"
-                    placeholder="店舗名で検索"
                     value={storeQuery}
-                    onChange={(e) => {
-                      setStoreQuery(e.target.value);
-                      setSelectedStoreId("");
+                    onChange={(e) => setStoreQuery(e.target.value)}
+                    placeholder="店舗名・店舗ID・ブランド・エリアで検索"
+                    style={{
+                      flex: 1,
+                      border: "none",
+                      background: "transparent",
+                      outline: "none",
+                      fontSize: "15px",
+                      fontWeight: 700,
+                      color: "#1e293b",
                     }}
-                    inputMode="search"
-                    disabled={!companyId}
                   />
                 </div>
-                {!companyId && (
-                  <div className="qsc-mutedLine" style={{ marginTop: 8 }}>
-                    ※ 先に企業名を選択してください
-                  </div>
-                )}
-              </FilterBlock>
+              </div>
+
+              {/* 企業 */}
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 900,
+                    color: "#94a3b8",
+                    display: "block",
+                    marginBottom: "10px",
+                  }}
+                >
+                  企業
+                </label>
+                <select
+                  value={companyId}
+                  onChange={(e) => {
+                    setCompanyId(e.target.value);
+                    setBizIds([]);
+                    setBrandIds([]);
+                    setAreaIds([]);
+                  }}
+                  style={{
+                    width: "100%",
+                    height: "56px",
+                    borderRadius: "16px",
+                    border: "1px solid #e2e8f0",
+                    background: "#f8fafc",
+                    padding: "0 16px",
+                    fontSize: "16px",
+                    fontWeight: 700,
+                    outline: "none",
+                  }}
+                >
+                  <option value="">すべて表示</option>
+                  {companies.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* 業態 */}
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 900,
+                    color: "#94a3b8",
+                    display: "block",
+                    marginBottom: "10px",
+                  }}
+                >
+                  業態
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                  {bizOptions.map((o) => (
+                    <button
+                      key={o.bizId}
+                      onClick={() => toggleMultiValue(o.bizId, bizIds, setBizIds)}
+                      style={{
+                        padding: "12px 18px",
+                        borderRadius: "14px",
+                        border: "1px solid",
+                        borderColor: bizIds.includes(o.bizId) ? "#1e293b" : "#e2e8f0",
+                        background: bizIds.includes(o.bizId) ? "#1e293b" : "#fff",
+                        color: bizIds.includes(o.bizId) ? "#fff" : "#64748b",
+                        fontSize: "14px",
+                        fontWeight: 800,
+                      }}
+                    >
+                      {o.bizName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ブランド */}
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 900,
+                    color: "#94a3b8",
+                    display: "block",
+                    marginBottom: "10px",
+                  }}
+                >
+                  ブランド
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                  {brandOptions.map((o) => (
+                    <button
+                      key={o.brandId}
+                      onClick={() => toggleMultiValue(o.brandId, brandIds, setBrandIds)}
+                      style={{
+                        padding: "12px 18px",
+                        borderRadius: "14px",
+                        border: "1px solid",
+                        borderColor: brandIds.includes(o.brandId) ? "#1e293b" : "#e2e8f0",
+                        background: brandIds.includes(o.brandId) ? "#1e293b" : "#fff",
+                        color: brandIds.includes(o.brandId) ? "#fff" : "#64748b",
+                        fontSize: "14px",
+                        fontWeight: 800,
+                      }}
+                    >
+                      {o.brandName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* エリア */}
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 900,
+                    color: "#94a3b8",
+                    display: "block",
+                    marginBottom: "10px",
+                  }}
+                >
+                  エリア
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                  {areaOptions.map((o) => (
+                    <button
+                      key={o.areaId}
+                      onClick={() => toggleMultiValue(o.areaId, areaIds, setAreaIds)}
+                      style={{
+                        padding: "12px 18px",
+                        borderRadius: "14px",
+                        border: "1px solid",
+                        borderColor: areaIds.includes(o.areaId) ? "#1e293b" : "#e2e8f0",
+                        background: areaIds.includes(o.areaId) ? "#1e293b" : "#fff",
+                        color: areaIds.includes(o.areaId) ? "#fff" : "#64748b",
+                        fontSize: "14px",
+                        fontWeight: 800,
+                      }}
+                    >
+                      {o.areaName}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ステータス */}
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 900,
+                    color: "#94a3b8",
+                    display: "block",
+                    marginBottom: "10px",
+                  }}
+                >
+                  ステータス
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                  {[
+                    { value: "new" as StoreStatus, label: "未着手" },
+                    { value: "draft" as StoreStatus, label: "途中保存" },
+                    { value: "done" as StoreStatus, label: "完了" },
+                  ].map((o) => (
+                    <button
+                      key={o.value}
+                      onClick={() => toggleStatus(o.value)}
+                      style={{
+                        padding: "12px 18px",
+                        borderRadius: "14px",
+                        border: "1px solid",
+                        borderColor: statusFilters.includes(o.value) ? "#1e293b" : "#e2e8f0",
+                        background: statusFilters.includes(o.value) ? "#1e293b" : "#fff",
+                        color: statusFilters.includes(o.value) ? "#fff" : "#64748b",
+                        fontSize: "14px",
+                        fontWeight: 800,
+                      }}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
 
-            <div className={styles.sheetFoot}>
+            <div style={{ display: "grid", gap: "12px", marginTop: "40px" }}>
               <button
-                type="button"
-                className={styles.sheetGhostBtn}
-                onClick={clearAllFilters}
+                onClick={() => setIsFilterOpen(false)}
+                style={{
+                  width: "100%",
+                  height: "64px",
+                  background: "#1e293b",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: "20px",
+                  fontSize: "17px",
+                  fontWeight: 950,
+                }}
               >
-                <RotateCcw size={15} />
-                <span>リセット</span>
+                適用する
               </button>
 
               <button
-                type="button"
-                className={styles.sheetApplyBtn}
-                onClick={() => setIsFilterOpen(false)}
+                onClick={resetFilters}
+                style={{
+                  width: "100%",
+                  height: "56px",
+                  background: "#f1f5f9",
+                  color: "#64748b",
+                  border: "none",
+                  borderRadius: "18px",
+                  fontSize: "15px",
+                  fontWeight: 900,
+                }}
               >
-                <span>この条件で表示</span>
-                <span className={styles.sheetApplyCount}>{storeList.length}件</span>
+                条件をリセット
               </button>
             </div>
           </div>
-        </>
+        </div>
       )}
+
+      {/* Floating Action Button */}
+      {selectedStore && !isDoneModalOpen && !isHistoryModalOpen && (
+        <div
+          style={{
+            position: "fixed",
+            bottom: "32px",
+            left: 0,
+            right: 0,
+            padding: "0 24px",
+            zIndex: 900,
+          }}
+        >
+          <button
+            onClick={() =>
+              onRunAction(getDynamicStatus(selectedStore.storeId) === "draft" ? "edit" : "new")
+            }
+            style={{
+              width: "100%",
+              height: "72px",
+              background: "#1e293b",
+              color: "#fff",
+              border: "none",
+              borderRadius: "24px",
+              fontSize: "19px",
+              fontWeight: 950,
+              boxShadow: "0 15px 35px rgba(0,0,0,0.35)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: "12px",
+            }}
+          >
+            {getDynamicStatus(selectedStore.storeId) === "draft" ? (
+              <>
+                <PauseCircle size={22} color="#f59e0b" /> 再開する
+              </>
+            ) : (
+              <>
+                <Sparkles size={22} color="#f59e0b" /> 点検開始
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
+      <style jsx global>{`
+        @keyframes slideUp {
+          from {
+            transform: translateY(100%);
+          }
+          to {
+            transform: translateY(0);
+          }
+        }
+      `}</style>
     </div>
   );
 }

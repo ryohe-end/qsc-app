@@ -1,0 +1,1129 @@
+{
+  "QSC_UserTable": [
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U201"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U201"
+          },
+          "name": {
+            "S": "小林詩織"
+          },
+          "email": {
+            "S": "s-kobayashi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U202"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U202"
+          },
+          "name": {
+            "S": "有川誠"
+          },
+          "email": {
+            "S": "m-arikawa@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U203"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U203"
+          },
+          "name": {
+            "S": "川島慎也"
+          },
+          "email": {
+            "S": "sh-kawashima@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U204"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U204"
+          },
+          "name": {
+            "S": "竹澤実生"
+          },
+          "email": {
+            "S": "m-takezawa@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U205"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U205"
+          },
+          "name": {
+            "S": "立石凌也"
+          },
+          "email": {
+            "S": "r-tateishi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U206"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U206"
+          },
+          "name": {
+            "S": "佐藤留里江"
+          },
+          "email": {
+            "S": "rurie-sato@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U207"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U207"
+          },
+          "name": {
+            "S": "中野紗希"
+          },
+          "email": {
+            "S": "saki-nakano@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U208"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U208"
+          },
+          "name": {
+            "S": "菊地星馬"
+          },
+          "email": {
+            "S": "seima-kikuchi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U209"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U209"
+          },
+          "name": {
+            "S": "佐藤彩花"
+          },
+          "email": {
+            "S": "ayaka-sato@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U210"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U210"
+          },
+          "name": {
+            "S": "検見崎渉太"
+          },
+          "email": {
+            "S": "s-kenmisaki@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U211"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U211"
+          },
+          "name": {
+            "S": "矢田崇"
+          },
+          "email": {
+            "S": "ta-yada@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U212"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U212"
+          },
+          "name": {
+            "S": "角田征哉"
+          },
+          "email": {
+            "S": "s-kakuta@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U213"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U213"
+          },
+          "name": {
+            "S": "髙木直輝"
+          },
+          "email": {
+            "S": "n-takagi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U214"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U214"
+          },
+          "name": {
+            "S": "櫛田勘吾"
+          },
+          "email": {
+            "S": "k-kushida@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U215"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U215"
+          },
+          "name": {
+            "S": "宮内康汰"
+          },
+          "email": {
+            "S": "k-miyauchi@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U216"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U216"
+          },
+          "name": {
+            "S": "大川智穂"
+          },
+          "email": {
+            "S": "c-ookawa@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U217"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U217"
+          },
+          "name": {
+            "S": "遠藤翔平"
+          },
+          "email": {
+            "S": "s-endo@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U218"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U218"
+          },
+          "name": {
+            "S": "篠田国明"
+          },
+          "email": {
+            "S": "kuniaki-shinoda@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U219"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U219"
+          },
+          "name": {
+            "S": "武者直裕"
+          },
+          "email": {
+            "S": "n-musya@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U220"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U220"
+          },
+          "name": {
+            "S": "和田裕夢"
+          },
+          "email": {
+            "S": "h-wada@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U221"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U221"
+          },
+          "name": {
+            "S": "鈴木洋介"
+          },
+          "email": {
+            "S": "yousuke-suzuki@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U222"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U222"
+          },
+          "name": {
+            "S": "渡邊将樹"
+          },
+          "email": {
+            "S": "masaki-watanabe@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U223"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U223"
+          },
+          "name": {
+            "S": "薄葉圭汰"
+          },
+          "email": {
+            "S": "k-usuba@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U224"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U224"
+          },
+          "name": {
+            "S": "高野竜馬"
+          },
+          "email": {
+            "S": "r-takano@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    },
+    {
+      "PutRequest": {
+        "Item": {
+          "PK": {
+            "S": "USER#U225"
+          },
+          "SK": {
+            "S": "METADATA"
+          },
+          "userId": {
+            "S": "U225"
+          },
+          "name": {
+            "S": "小野塚千穂"
+          },
+          "email": {
+            "S": "c-onoduka@okamoto-group.co.jp"
+          },
+          "password": {
+            "S": "6491"
+          },
+          "role": {
+            "S": "inspector"
+          },
+          "corpId": {
+            "S": "C_001"
+          },
+          "status": {
+            "S": "active"
+          },
+          "clubCodes": {
+            "L": []
+          },
+          "isActive": {
+            "BOOL": true
+          },
+          "createdAt": {
+            "S": "2024-04-01T00:00:00Z"
+          },
+          "updatedAt": {
+            "S": ""
+          }
+        }
+      }
+    }
+  ]
+}

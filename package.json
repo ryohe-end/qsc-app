@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1011.0",
+    "@aws-sdk/client-s3": "^3.1023.0",
     "@aws-sdk/lib-dynamodb": "^3.1011.0",
     "@aws-sdk/util-dynamodb": "^3.996.2",
+    "@sendgrid/mail": "^8.1.6",
     "google-auth-library": "^10.5.0",
     "lucide-react": "^0.563.0",
     "next": "16.1.4",

@@ -13,11 +13,26 @@ import {
   Sparkles,
   ClipboardCheck,
   TrendingUp,
+  LogOut, // ログアウトアイコン追加
 } from "lucide-react";
+
+// ✅ セッション管理用の関数をインポート
+import { useSession, logoutMock } from "@/app/(app)/lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export default function AdminHomePage() {
+  // ✅ セッション情報を取得
+  const { session } = useSession();
+
+  // ✅ ログアウト処理
+  const handleLogout = () => {
+    if (confirm("ログアウトしますか？")) {
+      logoutMock();
+      window.location.href = "/admin/login"; // 強制遷移
+    }
+  };
+
   return (
     <main
       style={{
@@ -32,18 +47,51 @@ export default function AdminHomePage() {
         {/* Header Section */}
         <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ width: 56, height: 56, background: "#1e293b", borderRadius: 20, display: "grid", placeItems: "center", color: "#fff", boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" }}>
+            <div style={{ 
+              width: 56, height: 56, background: "#1e293b", borderRadius: 20, 
+              display: "grid", placeItems: "center", color: "#fff", 
+              boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1)" 
+            }}>
               <Shield size={28} />
             </div>
             <div>
               <h1 style={{ fontSize: 24, fontWeight: 950, margin: 0, letterSpacing: "-0.04em", display: "flex", alignItems: "center", gap: 10 }}>
                 Admin Console <Sparkles size={20} style={{ color: "#f59e0b" }} />
               </h1>
-              <p style={{ fontSize: 14, fontWeight: 700, color: "#64748b", margin: "2px 0 0" }}>システム管理・QSC基準の設定</p>
+              {/* ✅ ログイン中の名前を表示 */}
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#64748b", margin: "2px 0 0" }}>
+                こんにちは、<span style={{ color: "#1e293b" }}>{session?.name || "管理者"}</span> 様
+              </p>
             </div>
           </div>
-          <div style={{ fontSize: 12, fontWeight: 800, color: "#94a3b8", textAlign: "right" }}>
-            v2.4.0<br/>Final Stable
+
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            {/* ✅ ログアウトボタンを追加 */}
+            <button
+              onClick={handleLogout}
+              style={{
+                background: "#fff",
+                border: "1px solid #e2e8f0",
+                padding: "8px 16px",
+                borderRadius: 12,
+                fontSize: 13,
+                fontWeight: 800,
+                color: "#ef4444",
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                cursor: "pointer",
+                transition: "0.2s",
+                boxShadow: "0 4px 6px -1px rgba(0,0,0,0.05)"
+              }}
+              className="logout-hover"
+            >
+              <LogOut size={16} /> ログアウト
+            </button>
+
+            <div style={{ fontSize: 12, fontWeight: 800, color: "#94a3b8", textAlign: "right", lineHeight: 1.2 }}>
+              v2.4.0<br/>Final Stable
+            </div>
           </div>
         </header>
 
@@ -116,7 +164,6 @@ export default function AdminHomePage() {
           {/* Group 4: Communication & System */}
           <div>
              <h2 style={{ fontSize: 13, fontWeight: 900, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 16, marginLeft: 8 }}>System & Support</h2>
-             {/* カラム数を他と合わせて2に変更（要素が1つなので左寄せになります） */}
              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
                 <AdminTile
                   href="/admin/news"
@@ -139,6 +186,11 @@ export default function AdminHomePage() {
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;800;900&display=swap');
         body { background-color: #f8fafc; margin: 0; }
+        .logout-hover:hover {
+          background: #fef2f2 !important;
+          border-color: #fca5a5 !important;
+          transform: translateY(-1px);
+        }
       `}</style>
     </main>
   );

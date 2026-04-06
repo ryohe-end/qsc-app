@@ -473,3 +473,13 @@
     grid-template-columns: 140px 1fr;
   }
 }
+/* モーダルのスライドアニメーション */
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* 状態別の左線（インラインスタイルで動かない場合の保険） */
+.status-done { border-left: 6px solid #10b981 !important; }
+.status-draft { border-left: 6px solid #f59e0b !important; }
+.status-new { border-left: 6px solid #e2e8f0 !important; }

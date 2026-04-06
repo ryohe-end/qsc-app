@@ -1,19 +1,17 @@
 "use client";
 
-import React, { useState, useRef, useMemo } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { 
-  ChevronLeft, 
-  Camera, 
-  Trash2, 
+import {
+  ChevronLeft,
+  Camera,
+  Trash2,
   Clock,
-  Send,
   CheckCircle,
-  MessageSquare,
-  Check,
   Building2,
   ChevronRight,
-  AlertCircle
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import styles from "./NgPage.module.css";
 import { useSession } from "@/app/(app)/lib/auth";
@@ -25,6 +23,7 @@ export const dynamic = "force-dynamic";
    ========================================= */
 type NgIssue = {
   id: string;
+  sectionIndex: number;
   category: string;
   question: string;
   inspectorNote: string;
@@ -33,345 +32,614 @@ type NgIssue = {
   afterPhoto?: string;
   comment: string;
   isSubmitting?: boolean;
+  resultPk: string;
+  resultSk: string;
+  correctionStatus: string;
+};
+
+type NgStore = {
+  id?: string;
+  storeId?: string;
+  PK?: string;
+  name?: string;
+  storeName?: string;
+  pending?: number;
 };
 
 /* =========================================
-   Mock Data
+   1. Store Detail View
    ========================================= */
-const ADMIN_STORES = [
-  { id: "S001", name: "JOYFIT 札幌大通", pending: 2, urgent: 1 },
-  { id: "S002", name: "JOYFIT 仙台駅前", pending: 5, urgent: 0 },
-  { id: "S003", name: "JOYFIT 新宿西口", pending: 1, urgent: 1 },
-  { id: "S004", name: "JOYFIT 名古屋栄", pending: 3, urgent: 0 },
-  { id: "S005", name: "JOYFIT 梅田", pending: 0, urgent: 0 },
-];
-
-function getMockIssues(storeId: string): NgIssue[] {
-  // デモ用：店舗IDによって出し分け（S005は完了済みとする）
-  if (storeId === "S005") return [];
-
-  return [
-    {
-      id: "IS-001",
-      category: "Cleanliness",
-      question: "入口周辺にゴミ・吸い殻・汚れはないか",
-      inspectorNote: "自動ドアの溝に砂利が溜まっています。清掃をお願いします。",
-      deadline: "2026/02/15",
-      beforePhoto: "https://images.unsplash.com/photo-1590247813693-5541d1c609fd?w=400",
-      comment: ""
-    },
-    {
-      id: "IS-002",
-      category: "Service",
-      question: "掲示物が期限切れになっていないか",
-      inspectorNote: "キャンペーン案内が先月末のままです。貼り替えを至急実施してください。",
-      deadline: "2026/02/13",
-      beforePhoto: "https://images.unsplash.com/photo-1586769852836-bc069f19e1b6?w=400",
-      comment: ""
-    }
-  ];
-}
-
-/* =========================================
-   Components
-   ========================================= */
-
-/**
- * 店舗向け詳細ビュー（是正報告の実画面）
- */
-function StoreNgView({ 
-  storeName, 
-  storeId, 
-  onBack 
-}: { 
-  storeName: string; 
+function StoreNgView({
+  storeName,
+  storeId,
+  onBack,
+}: {
+  storeName: string;
   storeId: string;
-  onBack?: () => void; 
+  onBack?: () => void;
 }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [activeIssueId, setActiveIssueId] = useState<string | null>(null);
-  const [isBatchSubmitting, setIsBatchSubmitting] = useState(false);
-  
-  // 初期データロード
-  const [issues, setIssues] = useState<NgIssue[]>(() => getMockIssues(storeId));
+  const [issues, setIssues] = useState<NgIssue[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handlePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>, issueId: string) => {
+  useEffect(() => {
+    async function loadData() {
+      if (!storeId || storeId === "undefined" || storeId === "null") {
+        console.error("❌ storeId不正:", storeId);
+        setIssues([]);
+        setError("店舗IDが取得できませんでした。");
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        setError(null);
+
+        const cleanId = String(storeId).replace(/^STORE#/, "");
+        console.log("StoreNgView storeId =", storeId);
+        console.log("cleanId =", cleanId);
+
+        const res = await fetch(
+          `/api/check/results/ng-list?storeId=${encodeURIComponent(cleanId)}&t=${Date.now()}`,
+          { cache: "no-store" }
+        );
+
+        if (!res.ok) {
+          throw new Error(`エラー: ${res.status}`);
+        }
+
+        const json = await res.json();
+        console.log("フロントで受信したNGデータ:", json);
+
+        if (Array.isArray(json)) {
+          setIssues(json);
+        } else if (Array.isArray(json?.items)) {
+          setIssues(json.items);
+        } else {
+          setIssues([]);
+        }
+      } catch (err) {
+        console.error("データ取得失敗:", err);
+        setError("データの読み込みに失敗しました。");
+        setIssues([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadData();
+  }, [storeId]);
+
+  const handlePhotoSelect = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    issueId: string
+  ) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onload = () => {
       const dataUrl = reader.result as string;
-      setIssues(prev => prev.map(iss => 
-        iss.id === issueId ? { ...iss, afterPhoto: dataUrl } : iss
-      ));
+      setIssues((prev) =>
+        prev.map((iss) =>
+          iss.id === issueId ? { ...iss, afterPhoto: dataUrl } : iss
+        )
+      );
     };
     reader.readAsDataURL(file);
   };
 
-  const handleCommentChange = (issueId: string, text: string) => {
-    setIssues(prev => prev.map(iss => 
-      iss.id === issueId ? { ...iss, comment: text } : iss
-    ));
-  };
-
   const handleSingleSubmit = async (issueId: string) => {
-    setIssues(prev => prev.map(iss => iss.id === issueId ? { ...iss, isSubmitting: true } : iss));
-    await new Promise(r => setTimeout(r, 800));
-    alert("この項目の報告を送信しました。");
-    setIssues(prev => prev.filter(iss => iss.id !== issueId));
+    const target = issues.find((iss) => iss.id === issueId);
+    if (!target) return;
+
+    setIssues((prev) =>
+      prev.map((iss) =>
+        iss.id === issueId ? { ...iss, isSubmitting: true } : iss
+      )
+    );
+
+    try {
+      const res = await fetch("/api/check/results/update", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pk: target.resultPk,
+          sk: target.resultSk,
+          sectionIndex: target.sectionIndex,
+          itemIndex: target.id,
+          correction: target.comment,
+          status: "done",
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("更新失敗");
+      }
+
+      alert("報告を送信しました");
+      setIssues((prev) => prev.filter((iss) => iss.id !== issueId));
+    } catch (err) {
+      console.error("送信失敗:", err);
+      alert("送信に失敗しました");
+      setIssues((prev) =>
+        prev.map((iss) =>
+          iss.id === issueId ? { ...iss, isSubmitting: false } : iss
+        )
+      );
+    }
   };
 
-  const handleBatchSubmit = async () => {
-    const targets = issues.filter(iss => !!iss.afterPhoto);
-    if (targets.length === 0) return;
-    setIsBatchSubmitting(true);
-    await new Promise(r => setTimeout(r, 1500));
-    alert(`${targets.length}件の是正報告をまとめて送信しました。`);
-    setIssues(prev => prev.filter(iss => !iss.afterPhoto));
-    setIsBatchSubmitting(false);
-  };
+  if (loading) {
+    return (
+      <div
+        className={styles.container}
+        style={{ textAlign: "center", padding: "100px" }}
+      >
+        <Loader2 className="animate-spin" size={32} />
+        <p>取得中...</p>
+      </div>
+    );
+  }
 
-  const batchCount = issues.filter(iss => !!iss.afterPhoto).length;
-  const canBatchSubmit = batchCount > 0 && !isBatchSubmitting;
+  if (error) {
+    return (
+      <div
+        className={styles.container}
+        style={{ textAlign: "center", padding: "100px" }}
+      >
+        <AlertCircle color="red" size={48} style={{ margin: "0 auto" }} />
+        <p>{error}</p>
+        {onBack ? (
+          <button onClick={onBack} className="qsc-btn qsc-btn-secondary">
+            戻る
+          </button>
+        ) : (
+          <button onClick={() => window.location.reload()}>再試行</button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
       <div className={styles.scrollArea}>
-        
-        {/* Navigation */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ marginBottom: "20px" }}>
           {onBack ? (
-            <button 
-              onClick={onBack} 
-              className="qsc-btn qsc-btn-secondary" 
-              style={{ height: 36, padding: "0 12px", gap: 6, fontSize: 12 }}
-            >
-               <ChevronLeft size={16} /> 店舗一覧に戻る
+            <button onClick={onBack} className="qsc-btn qsc-btn-secondary">
+              <ChevronLeft size={16} /> 戻る
             </button>
           ) : (
-            <Link href="/" className="qsc-btn qsc-btn-secondary" style={{ height: 36, padding: "0 12px", gap: 6, fontSize: 12 }}>
-               <ChevronLeft size={16} /> ホーム
+            <Link href="/" className="qsc-btn qsc-btn-secondary">
+              <ChevronLeft size={16} /> ホーム
             </Link>
           )}
         </div>
 
         <div className={styles.header}>
-          <h1 className={styles.title}>{storeName} 是正報告</h1>
-          <p className={styles.sub}>対応した項目の写真を撮り、報告してください。</p>
+          <h1 className={styles.title}>{storeName}</h1>
+          <p className={styles.sub}>未対応の指摘事項: {issues.length}件</p>
         </div>
 
         {issues.length === 0 ? (
           <div className={styles.empty}>
-            <CheckCircle size={64} strokeWidth={1} style={{ marginBottom: 16, color: '#34c759' }} />
-            <p style={{ fontWeight: 800 }}>対応が必要な不備はありません</p>
+            <CheckCircle
+              size={64}
+              color="#10b981"
+              strokeWidth={1}
+              style={{ marginBottom: 16 }}
+            />
+            <p style={{ fontWeight: "bold" }}>
+              現在、対応が必要な指摘はありません
+            </p>
           </div>
         ) : (
           issues.map((issue) => (
-            <section key={issue.id} className={styles.card}>
+            <section
+              key={`${issue.resultPk}-${issue.resultSk}-${issue.id}`}
+              className={styles.card}
+            >
               <div className={styles.cardHead}>
                 <span className={styles.category}>{issue.category}</span>
                 <span className={styles.deadline}>
-                  <Clock size={12} /> {issue.deadline}
+                  <Clock size={12} /> {issue.deadline}まで
                 </span>
               </div>
 
-              <div className={styles.questionText}>{issue.question}</div>
-              
-              <div className={styles.inspectorNote}>
-                {issue.inspectorNote}
+              <div
+                style={{
+                  margin: "12px 0",
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  color: "#1e293b",
+                }}
+              >
+                {issue.question}
               </div>
 
-              <div className={styles.photoCompare}>
-                <div className={styles.photoBox}>
-                  <div className={styles.photoLabel}>指摘時 (Before)</div>
-                  <div className={styles.imgWrapper}>
-                    <img src={issue.beforePhoto} className={styles.img} alt="Before" />
-                  </div>
+              <div
+                style={{
+                  background: "#fff1f2",
+                  padding: "12px",
+                  borderRadius: "8px",
+                  borderLeft: "4px solid #ef4444",
+                  marginBottom: "16px",
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: "12px",
+                    color: "#ef4444",
+                    fontWeight: "bold",
+                    marginBottom: "4px",
+                  }}
+                >
+                  店舗への指摘内容:
+                </div>
+                <div style={{ fontSize: "14px", color: "#7f1d1d" }}>
+                  {issue.inspectorNote || "（コメントなし）"}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "12px",
+                }}
+              >
+                <div>
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      color: "#64748b",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    指摘時の写真
+                  </p>
+                  <img
+                    src={issue.beforePhoto || "/no-image.png"}
+                    style={{
+                      width: "100%",
+                      height: "140px",
+                      objectFit: "cover",
+                      borderRadius: "8px",
+                      border: "1px solid #e2e8f0",
+                    }}
+                    alt="Before"
+                  />
                 </div>
 
-                <div className={styles.photoBox}>
-                  <div className={styles.photoLabel}>改善後 (After)</div>
-                  <div className={styles.imgWrapper}>
+                <div>
+                  <p
+                    style={{
+                      fontSize: "11px",
+                      color: "#64748b",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    改善後の写真 (After)
+                  </p>
+                  <div
+                    style={{
+                      border: "2px dashed #cbd5e1",
+                      height: "140px",
+                      borderRadius: "8px",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                      background: "#f8fafc",
+                    }}
+                  >
                     {issue.afterPhoto ? (
-                      <>
-                        <img src={issue.afterPhoto} className={styles.img} alt="After" />
-                        <button 
-                          className="qsc-btn" 
-                          style={{ position:"absolute", top:4, right:4, width:32, height:32, padding:0, borderRadius:8, background:"rgba(255,59,48,0.9)", border:"none", color:"#fff", zIndex: 10 }}
-                          onClick={() => setIssues(prev => prev.map(iss => iss.id === issue.id ? { ...iss, afterPhoto: undefined } : iss))}
+                      <div
+                        style={{
+                          position: "relative",
+                          width: "100%",
+                          height: "100%",
+                        }}
+                      >
+                        <img
+                          src={issue.afterPhoto}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                          alt="After"
+                        />
+                        <button
+                          onClick={() =>
+                            setIssues((prev) =>
+                              prev.map((iss) =>
+                                iss.id === issue.id
+                                  ? { ...iss, afterPhoto: undefined }
+                                  : iss
+                              )
+                            )
+                          }
+                          style={{
+                            position: "absolute",
+                            top: 5,
+                            right: 5,
+                            background: "rgba(0,0,0,0.5)",
+                            border: "none",
+                            borderRadius: "4px",
+                            padding: "4px",
+                            color: "white",
+                          }}
                         >
                           <Trash2 size={14} />
                         </button>
-                      </>
+                      </div>
                     ) : (
-                      <button 
-                        className={styles.uploadBtn} 
+                      <button
                         onClick={() => {
                           setActiveIssueId(issue.id);
                           fileInputRef.current?.click();
                         }}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          cursor: "pointer",
+                          display: "flex",
+                          flexDirection: "column",
+                          alignItems: "center",
+                          gap: "8px",
+                        }}
                       >
-                        <Camera size={24} />
-                        <span style={{ fontSize: 10, fontWeight: 900 }}>撮影</span>
+                        <Camera size={32} color="#94a3b8" />
+                        <span style={{ fontSize: "12px", color: "#94a3b8" }}>
+                          撮影する
+                        </span>
                       </button>
                     )}
                   </div>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gap: 6 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, fontWeight: 900, opacity: 0.5 }}>
-                  <MessageSquare size={12} /> 実施コメント
-                </div>
-                <textarea 
+              <div style={{ marginTop: "16px" }}>
+                <p
+                  style={{
+                    fontSize: "12px",
+                    color: "#64748b",
+                    marginBottom: "6px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  実施した改善対策:
+                </p>
+                <textarea
                   className={styles.commentArea}
-                  placeholder="実施した対策を入力（任意）"
-                  rows={2}
+                  placeholder="例：清掃を実施しました。備品を交換しました。"
                   value={issue.comment}
-                  onChange={(e) => handleCommentChange(issue.id, e.target.value)}
+                  onChange={(e) =>
+                    setIssues((prev) =>
+                      prev.map((iss) =>
+                        iss.id === issue.id
+                          ? { ...iss, comment: e.target.value }
+                          : iss
+                      )
+                    )
+                  }
+                  style={{
+                    width: "100%",
+                    minHeight: "80px",
+                    padding: "10px",
+                    borderRadius: "8px",
+                    border: "1px solid #e2e8f0",
+                    fontSize: "14px",
+                  }}
                 />
               </div>
 
-              <div className={styles.actions}>
-                <button 
-                  className={styles.submitSingleBtn}
-                  disabled={!issue.afterPhoto || issue.isSubmitting || isBatchSubmitting}
-                  onClick={() => handleSingleSubmit(issue.id)}
-                >
-                  {issue.isSubmitting ? (
-                    <span className="qsc-spinner" style={{ width: 14, height: 14, borderWidth: 2 }} />
-                  ) : (
-                    <>
-                      <Check size={16} />
-                      <span>この項目のみ報告</span>
-                    </>
-                  )}
-                </button>
-              </div>
+              <button
+                className={styles.submitSingleBtn}
+                disabled={issue.isSubmitting || !issue.comment}
+                onClick={() => handleSingleSubmit(issue.id)}
+                style={{
+                  width: "100%",
+                  marginTop: "12px",
+                  padding: "14px",
+                  borderRadius: "12px",
+                  fontWeight: "bold",
+                  fontSize: "16px",
+                  background:
+                    issue.isSubmitting || !issue.comment ? "#cbd5e1" : "#2563eb",
+                  color: "white",
+                  border: "none",
+                  cursor:
+                    issue.isSubmitting || !issue.comment
+                      ? "not-allowed"
+                      : "pointer",
+                }}
+              >
+                {issue.isSubmitting ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : (
+                  "改善報告を送信する"
+                )}
+              </button>
             </section>
           ))
         )}
       </div>
 
-      {batchCount >= 2 && (
-        <div className={styles.bottomBar}>
-          <button 
-            className={styles.submitAllBtn} 
-            disabled={!canBatchSubmit}
-            onClick={handleBatchSubmit}
-          >
-            {isBatchSubmitting ? (
-              <span className="qsc-spinner" style={{ width: 18, height: 18, borderWidth: 2 }} />
-            ) : (
-              <>
-                <Send size={20} />
-                <span>選択中の {batchCount} 件をまとめて送信</span>
-              </>
-            )}
-          </button>
-        </div>
-      )}
-
-      <input 
-        type="file" accept="image/*" capture="environment"
-        ref={fileInputRef} style={{ display: 'none' }}
+      <input
+        type="file"
+        accept="image/*"
+        capture="environment"
+        ref={fileInputRef}
+        style={{ display: "none" }}
         onChange={(e) => activeIssueId && handlePhotoSelect(e, activeIssueId)}
       />
     </div>
   );
 }
 
-/**
- * 管理者・監査員向けダッシュボード（店舗一覧）
- */
-function AdminNgDashboard({ 
-  onSelect 
-}: { 
-  onSelect: (store: typeof ADMIN_STORES[0]) => void 
+/* =========================================
+   2. Admin Dashboard
+   ========================================= */
+function AdminNgDashboard({
+  onSelect,
+}: {
+  onSelect: (store: { id: string; name: string }) => void;
 }) {
+  const [stores, setStores] = useState<NgStore[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadStores() {
+      try {
+        const res = await fetch("/api/check/results/ng-stores", {
+          cache: "no-store",
+        });
+        const json = await res.json();
+        console.log("ng-stores response =", json);
+        setStores(Array.isArray(json) ? json : []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadStores();
+  }, []);
+
+  if (loading) {
+    return (
+      <div
+        className={styles.container}
+        style={{ textAlign: "center", padding: "100px" }}
+      >
+        <Loader2 className="animate-spin" size={32} />
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
-      <div className={styles.scrollArea}>
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <Link href="/" className="qsc-btn qsc-btn-secondary" style={{ height: 36, padding: "0 12px", gap: 6, fontSize: 12 }}>
-             <ChevronLeft size={16} /> ホーム
-          </Link>
-        </div>
+      <div className={styles.header}>
+        <h1 className={styles.title}>是正状況一覧</h1>
+        <p className={styles.sub}>指摘が残っている店舗を選択してください</p>
+      </div>
 
-        <div className={styles.header}>
-          <h1 className={styles.title}>是正状況一覧</h1>
-          <p className={styles.sub}>是正報告が必要な店舗の一覧です。</p>
-        </div>
-
-        {ADMIN_STORES.map((store) => (
+      {stores.length === 0 ? (
+        <div className={styles.empty}>現在、是正待ちの店舗はありません</div>
+      ) : (
+        stores.map((store, i) => (
           <button
-            key={store.id}
-            onClick={() => onSelect(store)}
+            key={store.id || store.storeId || store.PK || i}
+            onClick={() => {
+              const resolvedId =
+                store.storeId ??
+                store.id ??
+                (typeof store.PK === "string"
+                  ? store.PK.replace(/^STORE#/, "")
+                  : undefined);
+
+              const resolvedName = store.name ?? store.storeName ?? "店舗";
+
+              console.log("selected store raw =", store);
+              console.log("resolvedId =", resolvedId);
+
+              if (!resolvedId) {
+                alert("storeIdが取れていません");
+                return;
+              }
+
+              onSelect({
+                id: resolvedId,
+                name: resolvedName,
+              });
+            }}
             className={styles.card}
-            style={{ 
-              width: "100%", padding: "16px 20px", textAlign: "left", cursor: "pointer", 
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12
+            style={{
+              width: "100%",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              padding: "20px",
+              marginBottom: "12px",
+              textAlign: "left",
+              background: "white",
+              border: "1px solid #e2e8f0",
+              borderRadius: "16px",
             }}
           >
-            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 40, height: 40, background: "#f1f5f9", borderRadius: 12, display: "grid", placeItems: "center", color: "#64748b" }}>
-                <Building2 size={20} />
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+              <div
+                style={{
+                  background: "#f1f5f9",
+                  padding: "12px",
+                  borderRadius: "12px",
+                }}
+              >
+                <Building2 color="#64748b" />
               </div>
               <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#1e293b" }}>{store.name}</div>
-                <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700, display: "flex", gap: 8, marginTop: 4 }}>
-                  {store.pending > 0 ? (
-                    <span style={{ color: "#ef4444" }}>未対応 {store.pending}件</span>
-                  ) : (
-                    <span style={{ color: "#16a34a" }}>対応完了</span>
-                  )}
-                  {store.urgent > 0 && (
-                    <span style={{ color: "#d97706", display: "flex", alignItems: "center", gap: 2 }}>
-                      <AlertCircle size={12} /> 緊急 {store.urgent}
-                    </span>
-                  )}
+                <div style={{ fontWeight: "800", fontSize: "18px" }}>
+                  {store.name ?? store.storeName ?? "店舗名未設定"}
+                </div>
+                <div
+                  style={{
+                    color: "#ef4444",
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    marginTop: "4px",
+                  }}
+                >
+                  未対応: {store.pending ?? 0}件
                 </div>
               </div>
             </div>
-            <ChevronRight size={18} color="#cbd5e1" />
+            <ChevronRight color="#cbd5e1" />
           </button>
-        ))}
-      </div>
+        ))
+      )}
     </div>
   );
 }
 
 /* =========================================
-   Main Page Component
+   MAIN ENTRY
    ========================================= */
 export default function NgPage() {
   const { session, loading } = useSession();
-  const [selectedStore, setSelectedStore] = useState<typeof ADMIN_STORES[0] | null>(null);
+  const [selectedStore, setSelectedStore] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
 
   if (loading) return null;
 
   const role = session?.role || "viewer";
-  const isManager = role === "manager";
+  const storeIdFromSession = session?.assignedStoreId || session?.storeId;
 
-  // ① 店舗ユーザー: 自店舗の詳細を即時表示
-  if (isManager) {
-    const storeDisplayName = session?.name ? session.name.split(" ")[0] : "自店舗";
-    // 自店舗ID（本来はセッションから取得）
-    const myStoreId = session?.assignedStoreId || "MY_STORE";
-    return <StoreNgView storeName={storeDisplayName} storeId={myStoreId} />;
-  }
-
-  // ② 管理者・その他: ドリルダウン表示
-  if (selectedStore) {
+  if (role === "manager" && storeIdFromSession) {
     return (
-      <StoreNgView 
-        storeName={selectedStore.name} 
-        storeId={selectedStore.id} 
-        onBack={() => setSelectedStore(null)} 
+      <StoreNgView
+        storeName={session?.name || "自店舗"}
+        storeId={String(storeIdFromSession)}
       />
     );
   }
 
-  // デフォルト: 管理者用ダッシュボード
+  if (selectedStore) {
+    return (
+      <StoreNgView
+        storeName={selectedStore.name}
+        storeId={selectedStore.id}
+        onBack={() => setSelectedStore(null)}
+      />
+    );
+  }
+
   return <AdminNgDashboard onSelect={setSelectedStore} />;
 }

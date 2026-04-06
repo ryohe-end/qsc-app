@@ -9,6 +9,7 @@ import Link from "next/link";
 import {
   ChevronLeft,
   Menu,
+  Loader2,
   X,
   Store,
   Building2,
@@ -174,12 +175,17 @@ export default function CheckRunPage() {
   const router = useRouter();
   const sp = useSearchParams();
 
-  const companyId = sp.get("companyId") || "";
+const companyId = sp.get("companyId") || "";
 const bizId = sp.get("bizId") || "";
 const brandId = sp.get("brandId") || "";
 const storeId = sp.get("storeId") || "";
+const mode = sp.get("mode") || "new";
 
 const [storeName, setStoreName] = useState("");
+const [assetId, setAssetId] = useState("");
+const [inspectionDate, setInspectionDate] = useState<string>(
+  new Date().toLocaleDateString("sv-SE") // "YYYY-MM-DD" 形式で取得
+);
 
 const storeLabel = useMemo(() => {
   if (!storeId) return "店舗未選択";
@@ -187,9 +193,11 @@ const storeLabel = useMemo(() => {
 }, [storeId, storeName]);
 
   const DRAFT_KEY = useMemo(() => {
-    const key = [companyId, bizId, brandId, storeId].filter(Boolean).join("_");
-    return `qsc_check_draft_${key || "unknown"}`;
-  }, [companyId, bizId, brandId, storeId]);
+  const key = [companyId, bizId, brandId, storeId, assetId]
+    .filter(Boolean)
+    .join("_");
+  return `qsc_check_draft_${key || "unknown"}`;
+}, [companyId, bizId, brandId, storeId, assetId]);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -200,66 +208,84 @@ const storeLabel = useMemo(() => {
 
   // 初回データ読み込み
   useEffect(() => {
-    if (!mounted) return;
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (!raw) {
-        setSections(DEFAULT_SECTIONS);
-        return;
-      }
-      const parsed = JSON.parse(raw) as Section[];
-      if (!Array.isArray(parsed)) {
-        setSections(DEFAULT_SECTIONS);
-        return;
-      }
-      const patched = parsed.map((s) => ({
-        ...s,
-        items: (s.items || []).map((it) => ({
-          ...it,
-          note: typeof it.note === "string" ? it.note : "",
-          holdNote: typeof (it as any).holdNote === "string" ? (it as any).holdNote : "",
-          photos: Array.isArray(it.photos) ? it.photos : [],
-        })),
-      }));
-      setSections(patched);
-    } catch {
-      setSections(DEFAULT_SECTIONS);
+  if (!mounted) return;
+  if (!assetId) return;
+  if (mode === "new") return;
+
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+
+    if (!raw) {
+      return;
     }
-  }, [mounted, DRAFT_KEY]);
-  useEffect(() => {
-  async function loadQuestions() {
-    try {
-      const storeId = sp.get("storeId") || "";
-      if (!storeId) {
-        throw new Error("storeId がありません");
-      }
 
-      const res = await fetch(`/api/check/run-config?storeId=${storeId}`, {
-        cache: "no-store",
-      });
+    const parsed = JSON.parse(raw) as Section[];
 
-      const json = await res.json();
-
-      if (!res.ok) {
-        throw new Error(json?.error || "取得失敗");
-      }
-
-      setStoreName(String(json.storeName ?? "").trim());
-      setQuestions(Array.isArray(json.questions) ? json.questions : []);
-      setSections(Array.isArray(json.questions) ? json.questions : DEFAULT_SECTIONS);
-    } catch (e: any) {
-      console.error(e);
-      alert(e.message);
-      setStoreName("");
-      setQuestions([]);
-      setSections(DEFAULT_SECTIONS);
-    } finally {
-      setLoadingQuestions(false);
+    if (!Array.isArray(parsed)) {
+      return;
     }
+
+    const patched = parsed.map((s) => ({
+      ...s,
+      items: (s.items || []).map((it) => ({
+        ...it,
+        note: typeof it.note === "string" ? it.note : "",
+        holdNote:
+          typeof (it as any).holdNote === "string"
+            ? (it as any).holdNote
+            : "",
+        photos: Array.isArray(it.photos) ? it.photos : [],
+      })),
+    }));
+
+    setSections(patched);
+  } catch (e) {
+    console.error("draft load failed", e);
   }
+}, [mounted, assetId, DRAFT_KEY]);
+  useEffect(() => {
+    async function loadQuestions() {
+      try {
+        if (!storeId) return; // storeIdがない時は何もしない
 
-  loadQuestions();
-}, [sp]);
+        setLoadingQuestions(true); // ★ ここで「準備中」画面を開始
+
+        const res = await fetch(`/api/check/run-config?storeId=${storeId}`, {
+          cache: "no-store",
+        });
+
+        const json = await res.json();
+
+        if (!res.ok) {
+          throw new Error(json?.error || "取得失敗");
+        }
+
+        // APIから受け取ったデータを各変数にセット
+        const nextStoreName = String(json.storeName ?? "").trim();
+        const nextAssetId = String(json.assetId ?? "").trim();
+        const nextQuestions =
+          Array.isArray(json.questions) && json.questions.length > 0
+            ? json.questions
+            : DEFAULT_SECTIONS;
+
+        setStoreName(nextStoreName);
+        setAssetId(nextAssetId); // ★ ここで 339 などのコードが入る
+        setQuestions(nextQuestions);
+        setSections(nextQuestions);
+
+      } catch (e: any) {
+        console.error(e);
+        alert(e.message);
+      } finally {
+        // ★ ここが最重要！ 成功しても失敗しても「準備中」画面を終わらせる
+        setLoadingQuestions(false); 
+      }
+    }
+
+    if (mounted) {
+      loadQuestions();
+    }
+  }, [mounted, storeId]); // assetIdを監視から外す（これがグレー画面の原因でした）
   // ✅ オートセーブ機能（2秒間操作がなければ自動で保存）
   const saveTimerRef = useRef<NodeJS.Timeout | null>(null);
   useEffect(() => {
@@ -785,21 +811,44 @@ const storeLabel = useMemo(() => {
   }
 
   const submitCore = async (sendMail: boolean) => {
-    setForceShowErrors(true);
-    if (hasMissingRequiredNotes) {
-      scrollToFirstMissingRequired();
-      return;
-    }
-    setSubmitBusy(true);
-    try {
-      if (sendMail) await sendCompletionMailStub();
-      localStorage.setItem(`${DRAFT_KEY}_submittedAt`, new Date().toISOString());
-      await new Promise((r) => setTimeout(r, 280));
-      router.push("/check");
-    } finally {
-      setSubmitBusy(false);
-    }
-  };
+  // 連打防止
+  if (submitBusy) return; 
+
+  try {
+    setSubmitBusy(true); // 送信中状態にする
+
+    const payload = {
+      companyId,
+      bizId,
+      brandId,
+      storeId,
+      storeName,
+      userName: "点検 太郎", 
+      inspectionDate, // カレンダーで選んだ日
+      sendMail,
+      sections,
+    };
+
+    const res = await fetch("/api/check/submit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "送信に失敗しました");
+
+    // 成功時
+    alert(`点検完了！ スコア: ${data.summary.percentage}%`);
+    router.push(`/check/results/${data.resultId}`);
+
+  } catch (e: any) {
+    console.error(e);
+    alert(e.message);
+  } finally {
+    setSubmitBusy(false); // 終わったらボタンを元に戻す
+  }
+};
 
   const openCompleteMailSheet = () => {
     setSheet({
@@ -937,7 +986,21 @@ const storeLabel = useMemo(() => {
   const bottomDockCollapsedH = 72;
   const bottomDockExpandedH = 260;
   const bottomDockH = bottomCollapsed ? bottomDockCollapsedH : bottomDockExpandedH;
-
+  
+  if (loadingQuestions) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', backgroundColor: '#f8f9fa', gap: '16px' }}>
+        <Loader2 size={48} className="animate-spin" style={{ color: '#007AFF' }} />
+        <p style={{ fontSize: '16px', fontWeight: '600', color: '#444' }}>点検項目を準備しています...</p>
+        <style>{`
+          .animate-spin { animation: spin 1s linear infinite; }
+          @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        `}</style>
+      </div>
+    );
+  }
+    
+  
   return (
     <div className={styles.qscCheckRunPage} style={{ ["--qscBottomH" as any]: `${bottomDockH}px` }}>
       {/* スマホ枠はみ出し防止 & ✅ アニメーション定義の追加 */}
@@ -1342,16 +1405,29 @@ const storeLabel = useMemo(() => {
                       <Trash2 size={18} />
                       <span style={{ whiteSpace: "nowrap" }}>破棄</span>
                     </button>
-                    {/* ✅ 追加: すべて埋まったら readyToSubmit クラスを追加してアニメーションさせる */}
-                    <button type="button" className={`
-                        ${styles.qscAction} 
-                        ${styles.actionPrimary} 
-                        ${progress.unset === 0 ? "readyToSubmit" : ""}
-                      `} 
-                      onClick={submit} disabled={submitBusy} style={{ flex: 1 }}>
-                      <Send size={18} />
-                      <span style={{ whiteSpace: "nowrap" }}>{submitBusy ? "送信中…" : "完了"}</span>
-                    </button>
+                    <button 
+                     type="button" 
+                     className={`
+                      ${styles.qscAction} 
+                      ${styles.actionPrimary} 
+                      ${progress.unset === 0 ? "readyToSubmit" : ""}
+                      ${submitBusy ? styles.disabled : ""} 
+                   `} 
+                     onClick={() => submitCore(true)} // ★ 先ほど作った送信関数を呼ぶ
+                     disabled={submitBusy} 
+                     style={{ flex: 1, opacity: submitBusy ? 0.6 : 1 }}
+                  >
+                    {submitBusy ? (
+                       <Loader2 size={18} className="animate-spin" /> // 送信中のアイコン
+                    ) : (
+                       <Send size={18} />
+                    )}
+                    <span style={{ whiteSpace: "nowrap" }}>
+                    {submitBusy ? "送信中…" : "完了してメール送信"}
+                  </span>
+                  </button>
+
+
                   </div>
                   {forceShowErrors && hasMissingRequiredNotes && (
                     <button type="button" onClick={scrollToFirstMissingRequired} style={{ marginTop: 10, width: "100%", display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "10px 12px", borderRadius: 14, border: "1px solid rgba(255,59,48,0.22)", background: "rgba(255,59,48,0.10)", fontWeight: 900 }}>
