@@ -584,7 +584,8 @@ export default function AdminStoresPage() {
         brandName: brandLabelMap[draft.brandId || ""] || draft.brandName || "",
       };
 
-      const res = await fetch("/api/admin/qsc/stores", {
+      // 1. 店舗本体を保存
+      const storeRes = await fetch("/api/admin/qsc/stores", {
         method: sheetMode === "create" ? "POST" : "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -592,22 +593,48 @@ export default function AdminStoresPage() {
         body: JSON.stringify(payload),
       });
 
-      const json = await assertOk(
-        res,
+      const storeJson = await assertOk(
+        storeRes,
         sheetMode === "create"
           ? "店舗の新規登録に失敗しました"
           : "店舗の更新に失敗しました"
       );
 
-      const returnedItem = (json as any)?.item || {};
+      const returnedItem = (storeJson as any)?.item || {};
       const savedStore: StoreRow = {
         ...payload,
         ...returnedItem,
       };
 
+      const savedStoreId = savedStore.storeId || payload.storeId;
+
+      // 2. アセットが選択されている場合は紐付け保存
+      if (payload.assetId) {
+        const assetRes = await fetch("/api/admin/qsc/store-assets", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            storeId: savedStoreId,
+            assetId: payload.assetId,
+            isActive: true,
+          }),
+        });
+
+        await assertOk(assetRes, "アセット紐付けの保存に失敗しました");
+      }
+
+      // 3. 画面反映
       setRows((prev) => {
-        if (sheetMode === "create") return [savedStore, ...prev];
-        return prev.map((r) => (r.storeId === savedStore.storeId ? savedStore : r));
+        if (sheetMode === "create") {
+          return [{ ...savedStore, assetId: payload.assetId }, ...prev];
+        }
+        return prev.map((r) =>
+          r.storeId === savedStore.storeId
+            ? { ...savedStore, assetId: payload.assetId }
+            : r
+        );
       });
 
       await reloadStores();
@@ -1403,9 +1430,13 @@ export default function AdminStoresPage() {
                     fontWeight: 900,
                     cursor: saving || deleting ? "default" : "pointer",
                     opacity: saving || deleting ? 0.6 : 1,
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
                   }}
                 >
-                  {saving ? "保存中..." : "保存"}
+                  {saving && <Loader2 size={16} className="animate-spin" />}
+                  保存する
                 </button>
               </div>
             </div>
@@ -1418,80 +1449,84 @@ export default function AdminStoresPage() {
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 130,
-            background: "rgba(15,23,42,0.4)",
-            backdropFilter: "blur(4px)",
+            zIndex: 200,
+            background: "rgba(15,23,42,0.6)",
+            backdropFilter: "blur(8px)",
             display: "grid",
             placeItems: "center",
-            padding: 24,
+            padding: 16,
           }}
         >
           <div
             style={{
-              width: "100%",
-              maxWidth: 520,
               background: "#fff",
+              width: 400,
+              maxWidth: "calc(100vw - 32px)",
+              maxHeight: "calc(100vh - 48px)",
               borderRadius: 24,
-              border: "1px solid #e2e8f0",
-              padding: 24,
+              padding: "32px",
               display: "grid",
+              gridTemplateRows: "auto 1fr auto",
               gap: 20,
+              overflow: "hidden",
             }}
           >
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <h3 style={{ margin: 0, fontWeight: 950 }}>アセット一括適用</h3>
-              <X style={{ cursor: "pointer" }} onClick={() => setBatchModalOpen(false)} />
+            <h3 style={{ margin: 0, textAlign: "center", fontWeight: 950 }}>
+              アセットを一括適用
+            </h3>
+
+            <div style={{ overflowY: "auto" }}>
+              <SelectBox
+                label="適用アセット"
+                options={assets.map((a) => a.assetId)}
+                value={batchAssetId}
+                onChange={setBatchAssetId}
+                placeholder={assetsLoading ? "読み込み中..." : "選択..."}
+                optionLabelMap={assetLabelMap}
+              />
             </div>
 
-            <div style={{ fontSize: 13, color: "#64748b", fontWeight: 700 }}>
-              選択中の {selectedIds.length} 店舗にアセットを適用します。
-            </div>
-
-            <SelectBox
-              label="適用アセット"
-              options={assets.map((a) => a.assetId)}
-              value={batchAssetId}
-              onChange={setBatchAssetId}
-              placeholder={assetsLoading ? "読み込み中..." : "選択..."}
-              optionLabelMap={assetLabelMap}
-            />
-
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+            <div style={{ display: "flex", gap: 12 }}>
               <button
-                type="button"
-                onClick={() => setBatchModalOpen(false)}
+                onClick={() => {
+                  if (batchSaving) return;
+                  setBatchModalOpen(false);
+                }}
                 disabled={batchSaving}
                 style={{
-                  height: 44,
-                  padding: "0 16px",
+                  flex: 1,
+                  height: 48,
                   borderRadius: 12,
                   border: "1px solid #e2e8f0",
                   background: "#fff",
-                  fontWeight: 900,
+                  fontWeight: 800,
                   cursor: batchSaving ? "default" : "pointer",
-                  opacity: batchSaving ? 0.6 : 1,
+                  opacity: batchSaving ? 0.7 : 1,
                 }}
               >
                 キャンセル
               </button>
-
               <button
-                type="button"
                 onClick={applyBatchAsset}
                 disabled={batchSaving}
                 style={{
-                  height: 44,
-                  padding: "0 16px",
+                  flex: 1,
+                  height: 48,
                   borderRadius: 12,
                   border: "none",
                   background: "#4f46e5",
                   color: "#fff",
                   fontWeight: 900,
                   cursor: batchSaving ? "default" : "pointer",
-                  opacity: batchSaving ? 0.6 : 1,
+                  opacity: batchSaving ? 0.7 : 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
                 }}
               >
-                {batchSaving ? "適用中..." : "適用する"}
+                {batchSaving && <Loader2 size={16} className="animate-spin" />}
+                適用する
               </button>
             </div>
           </div>
