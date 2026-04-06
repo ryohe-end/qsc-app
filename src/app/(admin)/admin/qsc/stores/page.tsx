@@ -15,14 +15,14 @@ import {
   ChevronRight,
   Mail,
   Loader2,
-  Building2,
-  Tags,
 } from "lucide-react";
 
 /** =========================
  * Types
  * ========================= */
 type StoreStatus = "active" | "inactive" | "archived";
+type FilterAssetType = "all" | "assigned" | "unassigned";
+type FilterMailType = "all" | "hasMail" | "noMail";
 
 type StoreRow = {
   storeId: string;
@@ -287,9 +287,12 @@ export default function AdminStoresPage() {
   const [assetsLoading, setAssetsLoading] = useState(true);
 
   const [q, setQ] = useState("");
+  const [filterBusinessType, setFilterBusinessType] = useState<string>("all");
   const [filterBrand, setFilterBrand] = useState<string>("all");
   const [filterCorporate, setFilterCorporate] = useState<string>("all");
-  const [filterAsset, setFilterAsset] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterAsset, setFilterAsset] = useState<FilterAssetType>("all");
+  const [filterMail, setFilterMail] = useState<FilterMailType>("all");
 
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [batchModalOpen, setBatchModalOpen] = useState(false);
@@ -380,6 +383,12 @@ export default function AdminStoresPage() {
     return Object.fromEntries(entries);
   }, [rows]);
 
+  const businessTypeOptions = useMemo(() => {
+    return Array.from(
+      new Set(rows.map((r) => String(r.businessTypeName || "")).filter(Boolean))
+    ).sort((a, b) => a.localeCompare(b, "ja"));
+  }, [rows]);
+
   const brandOptions = useMemo(() => {
     return Array.from(
       new Set(rows.map((r) => String(r.brandName || "")).filter(Boolean))
@@ -406,6 +415,9 @@ export default function AdminStoresPage() {
 
   const filtered = useMemo(() => {
     return rows.filter((r) => {
+      const emails = normalizeEmails(r.emails || []);
+      const hasMail = emails.length > 0;
+
       const matchQ =
         !q ||
         [
@@ -415,22 +427,52 @@ export default function AdminStoresPage() {
           r.corporateName,
           r.companyName,
           r.businessTypeName,
+          r.status,
           ...(r.emails || []),
         ]
           .filter(Boolean)
           .some((f) => String(f).toLowerCase().includes(q.toLowerCase()));
 
+      const matchBusinessType =
+        filterBusinessType === "all" || r.businessTypeName === filterBusinessType;
+
       const matchBrand = filterBrand === "all" || r.brandName === filterBrand;
+
       const matchCorporate =
         filterCorporate === "all" || r.corporateName === filterCorporate;
+
+      const matchStatus = filterStatus === "all" || r.status === filterStatus;
+
       const matchAsset =
         filterAsset === "all" ||
         (filterAsset === "assigned" && !!r.assetId) ||
         (filterAsset === "unassigned" && !r.assetId);
 
-      return matchQ && matchBrand && matchCorporate && matchAsset;
+      const matchMail =
+        filterMail === "all" ||
+        (filterMail === "hasMail" && hasMail) ||
+        (filterMail === "noMail" && !hasMail);
+
+      return (
+        matchQ &&
+        matchBusinessType &&
+        matchBrand &&
+        matchCorporate &&
+        matchStatus &&
+        matchAsset &&
+        matchMail
+      );
     });
-  }, [rows, q, filterBrand, filterCorporate, filterAsset]);
+  }, [
+    rows,
+    q,
+    filterBusinessType,
+    filterBrand,
+    filterCorporate,
+    filterStatus,
+    filterAsset,
+    filterMail,
+  ]);
 
   const allFilteredSelected =
     filtered.length > 0 && filtered.every((r) => selectedIds.includes(r.storeId));
@@ -654,6 +696,16 @@ export default function AdminStoresPage() {
     }
   };
 
+  const resetFilters = () => {
+    setQ("");
+    setFilterBusinessType("all");
+    setFilterBrand("all");
+    setFilterCorporate("all");
+    setFilterStatus("all");
+    setFilterAsset("all");
+    setFilterMail("all");
+  };
+
   return (
     <main
       style={{
@@ -746,7 +798,7 @@ export default function AdminStoresPage() {
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="店舗名・コード・ブランド・法人・メールで検索..."
+              placeholder="店舗名・コード・業態・ブランド・法人・ステータス・メールで検索..."
               style={{
                 width: "100%",
                 height: 44,
@@ -764,10 +816,19 @@ export default function AdminStoresPage() {
             style={{
               marginTop: 16,
               display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr",
+              gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
               gap: 12,
             }}
           >
+            <SelectBox
+              label="業態"
+              options={["all", ...businessTypeOptions]}
+              value={filterBusinessType}
+              onChange={setFilterBusinessType}
+              placeholder="すべて"
+              optionLabelMap={{ all: "すべて" }}
+            />
+
             <SelectBox
               label="ブランド"
               options={["all", ...brandOptions]}
@@ -787,6 +848,20 @@ export default function AdminStoresPage() {
             />
 
             <SelectBox
+              label="ステータス"
+              options={["all", "active", "inactive", "archived"]}
+              value={filterStatus}
+              onChange={setFilterStatus}
+              placeholder="すべて"
+              optionLabelMap={{
+                all: "すべて",
+                active: "稼働中",
+                inactive: "停止中",
+                archived: "アーカイブ",
+              }}
+            />
+
+            <SelectBox
               label="アセット"
               options={["all", "assigned", "unassigned"]}
               value={filterAsset}
@@ -796,6 +871,19 @@ export default function AdminStoresPage() {
                 all: "すべて",
                 assigned: "設定あり",
                 unassigned: "未設定",
+              }}
+            />
+
+            <SelectBox
+              label="通知先メール"
+              options={["all", "hasMail", "noMail"]}
+              value={filterMail}
+              onChange={setFilterMail}
+              placeholder="すべて"
+              optionLabelMap={{
+                all: "すべて",
+                hasMail: "設定あり",
+                noMail: "未設定",
               }}
             />
           </div>
@@ -814,24 +902,43 @@ export default function AdminStoresPage() {
               絞り込み結果: {filtered.length}件
             </div>
 
-            <button
-              type="button"
-              onClick={toggleSelectAllFiltered}
-              disabled={filtered.length === 0}
-              style={{
-                height: 40,
-                padding: "0 16px",
-                borderRadius: 12,
-                border: "1px solid #c7d2fe",
-                background: allFilteredSelected ? "#4f46e5" : "#eef2ff",
-                color: allFilteredSelected ? "#fff" : "#4338ca",
-                fontWeight: 900,
-                cursor: filtered.length === 0 ? "default" : "pointer",
-                opacity: filtered.length === 0 ? 0.5 : 1,
-              }}
-            >
-              {allFilteredSelected ? "絞り込み結果の選択解除" : "絞り込み結果を全て選択"}
-            </button>
+            <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={resetFilters}
+                style={{
+                  height: 40,
+                  padding: "0 16px",
+                  borderRadius: 12,
+                  border: "1px solid #e2e8f0",
+                  background: "#fff",
+                  color: "#475569",
+                  fontWeight: 900,
+                  cursor: "pointer",
+                }}
+              >
+                フィルターをクリア
+              </button>
+
+              <button
+                type="button"
+                onClick={toggleSelectAllFiltered}
+                disabled={filtered.length === 0}
+                style={{
+                  height: 40,
+                  padding: "0 16px",
+                  borderRadius: 12,
+                  border: "1px solid #c7d2fe",
+                  background: allFilteredSelected ? "#4f46e5" : "#eef2ff",
+                  color: allFilteredSelected ? "#fff" : "#4338ca",
+                  fontWeight: 900,
+                  cursor: filtered.length === 0 ? "default" : "pointer",
+                  opacity: filtered.length === 0 ? 0.5 : 1,
+                }}
+              >
+                {allFilteredSelected ? "絞り込み結果の選択解除" : "絞り込み結果を全て選択"}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -914,7 +1021,23 @@ export default function AdminStoresPage() {
                     <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
                       <h3 style={{ fontSize: 17, fontWeight: 900, margin: 0 }}>{r.name}</h3>
                       <Chip tone="indigo">{r.brandName || "未設定"}</Chip>
+                      <Chip>{r.businessTypeName || "業態未設定"}</Chip>
                       <Chip>Code:{r.clubCode}</Chip>
+                      <Chip
+                        tone={
+                          r.status === "active"
+                            ? "green"
+                            : r.status === "inactive"
+                            ? "red"
+                            : "muted"
+                        }
+                      >
+                        {r.status === "active"
+                          ? "稼働中"
+                          : r.status === "inactive"
+                          ? "停止中"
+                          : "アーカイブ"}
+                      </Chip>
                     </div>
 
                     <div
@@ -934,7 +1057,7 @@ export default function AdminStoresPage() {
                       </span>
                       <span>•</span>
                       <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                        <Mail size={14} /> {r.emails?.length || 0}件の連絡先
+                        <Mail size={14} /> {normalizeEmails(r.emails || []).length}件の連絡先
                       </span>
                     </div>
                   </div>
@@ -1116,212 +1239,175 @@ export default function AdminStoresPage() {
                 optionLabelMap={brandLabelMap}
               />
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: 12,
-                }}
-              >
-                <div
+              <div style={{ display: "grid", gap: 8 }}>
+                <label style={{ fontSize: 12, fontWeight: 900 }}>業態</label>
+                <input
+                  value={draft.businessTypeName || ""}
+                  onChange={(e) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      businessTypeName: e.target.value,
+                    }))
+                  }
                   style={{
-                    border: "1px solid #e2e8f0",
+                    height: 46,
                     borderRadius: 12,
-                    padding: "12px",
-                    background: "#f8fafc",
-                    display: "grid",
-                    gap: 4,
-                  }}
-                >
-                  <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800 }}>
-                    運営法人ID
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800 }}>
-                    <Building2 size={14} />
-                    {draft.corpId || "未選択"}
-                  </div>
-                </div>
-
-                <div
-                  style={{
                     border: "1px solid #e2e8f0",
-                    borderRadius: 12,
-                    padding: "12px",
-                    background: "#f8fafc",
-                    display: "grid",
-                    gap: 4,
+                    padding: "0 12px",
+                    fontWeight: 800,
                   }}
-                >
-                  <div style={{ fontSize: 11, color: "#64748b", fontWeight: 800 }}>
-                    ブランドID
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, fontWeight: 800 }}>
-                    <Tags size={14} />
-                    {draft.brandId || "未選択"}
-                  </div>
-                </div>
+                />
               </div>
 
-              <div style={{ display: "grid", gap: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <label style={{ fontSize: 12, fontWeight: 900 }}>通知先メールアドレス</label>
+              <SelectBox
+                label="ステータス"
+                options={["active", "inactive", "archived"]}
+                value={draft.status}
+                onChange={(v: StoreStatus) =>
+                  setDraft((prev) => ({
+                    ...prev,
+                    status: v,
+                  }))
+                }
+                placeholder="ステータスを選択..."
+                optionLabelMap={{
+                  active: "稼働中",
+                  inactive: "停止中",
+                  archived: "アーカイブ",
+                }}
+              />
+
+              <div style={{ display: "grid", gap: 8 }}>
+                <label style={{ fontSize: 12, fontWeight: 900 }}>通知先メール</label>
+                <div style={{ display: "grid", gap: 8 }}>
+                  {draft.emails.map((email, index) => (
+                    <div
+                      key={index}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr auto",
+                        gap: 8,
+                        alignItems: "center",
+                      }}
+                    >
+                      <input
+                        value={email}
+                        onChange={(e) => updateEmail(index, e.target.value)}
+                        placeholder="mail@example.com"
+                        style={{
+                          height: 46,
+                          borderRadius: 12,
+                          border: "1px solid #e2e8f0",
+                          padding: "0 12px",
+                          fontWeight: 700,
+                        }}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeEmailField(index)}
+                        style={{
+                          width: 46,
+                          height: 46,
+                          borderRadius: 12,
+                          border: "1px solid #e2e8f0",
+                          background: "#fff",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+
                   <button
                     type="button"
                     onClick={addEmailField}
                     style={{
-                      background: "#eff6ff",
-                      color: "#2563eb",
-                      border: "1px solid #dbeafe",
-                      borderRadius: 8,
-                      padding: "4px 8px",
-                      fontSize: 11,
+                      height: 42,
+                      borderRadius: 12,
+                      border: "1px dashed #cbd5e1",
+                      background: "#fff",
                       fontWeight: 800,
                       cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 4,
                     }}
                   >
-                    <Plus size={14} /> 追加
+                    + メールを追加
                   </button>
                 </div>
-
-                <div style={{ display: "grid", gap: 8 }}>
-                  {draft.emails.map((email, idx) => {
-                    const trimmed = email.trim();
-                    const showError = trimmed !== "" && !isValidEmail(trimmed);
-
-                    return (
-                      <div key={idx} style={{ display: "grid", gap: 6 }}>
-                        <div style={{ display: "flex", gap: 8 }}>
-                          <div style={{ position: "relative", flex: 1 }}>
-                            <Mail
-                              size={16}
-                              style={{ position: "absolute", left: 12, top: 15, color: "#94a3b8" }}
-                            />
-                            <input
-                              type="email"
-                              value={email}
-                              onChange={(e) => updateEmail(idx, e.target.value)}
-                              placeholder="store@example.com"
-                              style={{
-                                width: "100%",
-                                height: 46,
-                                borderRadius: 12,
-                                border: `1px solid ${showError ? "#fecaca" : "#e2e8f0"}`,
-                                paddingLeft: 38,
-                                paddingRight: 12,
-                                fontWeight: 700,
-                                fontSize: 14,
-                              }}
-                            />
-                          </div>
-
-                          <button
-                            type="button"
-                            onClick={() => removeEmailField(idx)}
-                            disabled={draft.emails.length === 1 && idx === 0}
-                            style={{
-                              width: 46,
-                              height: 46,
-                              borderRadius: 12,
-                              border: "1px solid #fee2e2",
-                              background: "#fef2f2",
-                              color: "#ef4444",
-                              display: "grid",
-                              placeItems: "center",
-                              cursor: "pointer",
-                              opacity: draft.emails.length === 1 && idx === 0 ? 0.5 : 1,
-                            }}
-                          >
-                            <Trash2 size={18} />
-                          </button>
-                        </div>
-
-                        {showError && (
-                          <div style={{ fontSize: 12, color: "#dc2626", fontWeight: 700 }}>
-                            メールアドレスの形式が正しくありません
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
               </div>
-
-              {sheetMode === "edit" && (
-                <button
-                  type="button"
-                  onClick={() => deleteStore(draft.storeId)}
-                  disabled={deleting}
-                  style={{
-                    background: "#fef2f2",
-                    color: "#ef4444",
-                    border: "1px solid #fee2e2",
-                    padding: "12px",
-                    borderRadius: 12,
-                    fontWeight: 800,
-                    cursor: deleting ? "default" : "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    gap: 8,
-                    marginTop: 12,
-                    opacity: deleting ? 0.7 : 1,
-                  }}
-                >
-                  {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                  店舗を削除
-                </button>
-              )}
             </div>
 
             <div
               style={{
                 padding: "24px",
-                background: "#f8fafc",
                 borderTop: "1px solid #f1f5f9",
                 display: "flex",
+                justifyContent: "space-between",
                 gap: 12,
               }}
             >
-              <button
-                onClick={() => closeSheet()}
-                disabled={saving || deleting}
-                style={{
-                  flex: 1,
-                  height: 50,
-                  borderRadius: 12,
-                  border: "1px solid #e2e8f0",
-                  background: "#fff",
-                  fontWeight: 800,
-                  cursor: saving || deleting ? "default" : "pointer",
-                  opacity: saving || deleting ? 0.7 : 1,
-                }}
-              >
-                キャンセル
-              </button>
-              <button
-                onClick={saveStore}
-                disabled={saving || deleting}
-                style={{
-                  flex: 2,
-                  height: 50,
-                  borderRadius: 12,
-                  background: "#1e293b",
-                  color: "#fff",
-                  fontWeight: 900,
-                  cursor: saving || deleting ? "default" : "pointer",
-                  opacity: saving || deleting ? 0.7 : 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
-                }}
-              >
-                {saving && <Loader2 size={16} className="animate-spin" />}
-                保存する
-              </button>
+              <div>
+                {sheetMode === "edit" && (
+                  <button
+                    type="button"
+                    onClick={() => deleteStore(draft.storeId)}
+                    disabled={deleting || saving}
+                    style={{
+                      height: 46,
+                      padding: "0 18px",
+                      borderRadius: 12,
+                      border: "1px solid #fecaca",
+                      background: "#fff1f2",
+                      color: "#be123c",
+                      fontWeight: 900,
+                      cursor: deleting || saving ? "default" : "pointer",
+                      opacity: deleting || saving ? 0.6 : 1,
+                    }}
+                  >
+                    {deleting ? "削除中..." : "削除"}
+                  </button>
+                )}
+              </div>
+
+              <div style={{ display: "flex", gap: 8 }}>
+                <button
+                  type="button"
+                  onClick={() => closeSheet()}
+                  disabled={saving || deleting}
+                  style={{
+                    height: 46,
+                    padding: "0 18px",
+                    borderRadius: 12,
+                    border: "1px solid #e2e8f0",
+                    background: "#fff",
+                    color: "#334155",
+                    fontWeight: 900,
+                    cursor: saving || deleting ? "default" : "pointer",
+                    opacity: saving || deleting ? 0.6 : 1,
+                  }}
+                >
+                  キャンセル
+                </button>
+
+                <button
+                  type="button"
+                  onClick={saveStore}
+                  disabled={saving || deleting}
+                  style={{
+                    height: 46,
+                    padding: "0 18px",
+                    borderRadius: 12,
+                    border: "none",
+                    background: "#1e293b",
+                    color: "#fff",
+                    fontWeight: 900,
+                    cursor: saving || deleting ? "default" : "pointer",
+                    opacity: saving || deleting ? 0.6 : 1,
+                  }}
+                >
+                  {saving ? "保存中..." : "保存"}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1332,115 +1418,80 @@ export default function AdminStoresPage() {
           style={{
             position: "fixed",
             inset: 0,
-            zIndex: 200,
-            background: "rgba(15,23,42,0.6)",
-            backdropFilter: "blur(8px)",
+            zIndex: 130,
+            background: "rgba(15,23,42,0.4)",
+            backdropFilter: "blur(4px)",
             display: "grid",
             placeItems: "center",
-            padding: 16,
+            padding: 24,
           }}
         >
           <div
             style={{
+              width: "100%",
+              maxWidth: 520,
               background: "#fff",
-              width: 400,
-              maxWidth: "calc(100vw - 32px)",
-              maxHeight: "calc(100vh - 48px)",
               borderRadius: 24,
-              padding: "32px",
+              border: "1px solid #e2e8f0",
+              padding: 24,
               display: "grid",
-              gridTemplateRows: "auto 1fr auto",
               gap: 20,
-              overflow: "hidden",
             }}
           >
-            <h3 style={{ margin: 0, textAlign: "center", fontWeight: 950 }}>
-              アセットを一括適用
-            </h3>
-
-            <div
-              style={{
-                display: "grid",
-                gap: 10,
-                overflowY: "auto",
-                minHeight: 0,
-                paddingRight: 4,
-              }}
-            >
-              {assets.map((a) => (
-                <button
-                  key={a.assetId}
-                  onClick={() => setBatchAssetId(a.assetId)}
-                  style={{
-                    padding: "16px",
-                    borderRadius: 12,
-                    border: "2px solid",
-                    borderColor: batchAssetId === a.assetId ? "#4f46e5" : "#f1f5f9",
-                    background: batchAssetId === a.assetId ? "#f5f3ff" : "#fff",
-                    textAlign: "left",
-                    cursor: "pointer",
-                    fontWeight: 800,
-                  }}
-                >
-                  {a.name}
-                </button>
-              ))}
-
-              {!assetsLoading && assets.length === 0 && (
-                <div
-                  style={{
-                    padding: 16,
-                    borderRadius: 12,
-                    background: "#f8fafc",
-                    color: "#94a3b8",
-                    fontWeight: 700,
-                    textAlign: "center",
-                  }}
-                >
-                  アセットがありません
-                </div>
-              )}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <h3 style={{ margin: 0, fontWeight: 950 }}>アセット一括適用</h3>
+              <X style={{ cursor: "pointer" }} onClick={() => setBatchModalOpen(false)} />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div style={{ fontSize: 13, color: "#64748b", fontWeight: 700 }}>
+              選択中の {selectedIds.length} 店舗にアセットを適用します。
+            </div>
+
+            <SelectBox
+              label="適用アセット"
+              options={assets.map((a) => a.assetId)}
+              value={batchAssetId}
+              onChange={setBatchAssetId}
+              placeholder={assetsLoading ? "読み込み中..." : "選択..."}
+              optionLabelMap={assetLabelMap}
+            />
+
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
               <button
-                onClick={() => {
-                  if (batchSaving) return;
-                  setBatchModalOpen(false);
-                  setBatchAssetId("");
-                }}
+                type="button"
+                onClick={() => setBatchModalOpen(false)}
                 disabled={batchSaving}
                 style={{
-                  height: 46,
+                  height: 44,
+                  padding: "0 16px",
                   borderRadius: 12,
                   border: "1px solid #e2e8f0",
                   background: "#fff",
-                  fontWeight: 800,
+                  fontWeight: 900,
                   cursor: batchSaving ? "default" : "pointer",
-                  opacity: batchSaving ? 0.7 : 1,
+                  opacity: batchSaving ? 0.6 : 1,
                 }}
               >
-                戻る
+                キャンセル
               </button>
+
               <button
+                type="button"
                 onClick={applyBatchAsset}
                 disabled={batchSaving}
                 style={{
-                  height: 46,
+                  height: 44,
+                  padding: "0 16px",
                   borderRadius: 12,
+                  border: "none",
                   background: "#4f46e5",
                   color: "#fff",
                   fontWeight: 900,
                   cursor: batchSaving ? "default" : "pointer",
-                  opacity: batchSaving ? 0.7 : 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 8,
+                  opacity: batchSaving ? 0.6 : 1,
                 }}
               >
-                {batchSaving && <Loader2 size={16} className="animate-spin" />}
-                適用する
+                {batchSaving ? "適用中..." : "適用する"}
               </button>
             </div>
           </div>

@@ -89,6 +89,10 @@ function formatResultDate(value?: string) {
   }).format(d);
 }
 
+function normalizeStoreId(id?: string) {
+  return String(id ?? "").replace(/^STORE#/, "");
+}
+
 /* =========================
    Main Component
    ========================= */
@@ -118,38 +122,49 @@ export default function CheckPage() {
 
   // 初期データ取得
   useEffect(() => {
-    async function init() {
-      try {
-        setLoadingStores(true);
+  async function init() {
+    try {
+      setLoadingStores(true);
 
-        const [resM, resD] = await Promise.all([
-          fetch("/api/check/stores", { cache: "no-store" }),
-          fetch("/api/check/results/summary", { cache: "no-store" }),
-        ]);
+      const [resM, resD] = await Promise.all([
+        fetch("/api/check/stores", { cache: "no-store" }),
+        fetch("/api/check/results/summary", { cache: "no-store" }),
+      ]);
 
-        if (!resM.ok) {
-          throw new Error(`stores API error: ${resM.status}`);
-        }
-        if (!resD.ok) {
-          throw new Error(`summary API error: ${resD.status}`);
-        }
-
-        const m = await resM.json();
-        const d = await resD.json();
-
-        setStoreMaster(Array.isArray(m.items) ? m.items : []);
-        setDoneStoreIds(Array.isArray(d.doneStoreIds) ? d.doneStoreIds : []);
-      } catch (error) {
-        console.error(error);
-        setStoreMaster([]);
-        setDoneStoreIds([]);
-      } finally {
-        setLoadingStores(false);
+      if (!resM.ok) {
+        throw new Error(`stores API error: ${resM.status}`);
       }
-    }
+      if (!resD.ok) {
+        throw new Error(`summary API error: ${resD.status}`);
+      }
 
-    init();
-  }, []);
+      const m = await resM.json();
+      const d = await resD.json();
+
+      const stores = Array.isArray(m?.items)
+        ? m.items
+        : Array.isArray(m)
+        ? m
+        : [];
+
+      setStoreMaster(stores);
+
+      const normalizedDoneIds = (Array.isArray(d?.doneStoreIds) ? d.doneStoreIds : [])
+        .map((id: string) => String(id).replace(/^STORE#/, ""))
+        .filter(Boolean);
+
+      setDoneStoreIds(normalizedDoneIds);
+    } catch (error) {
+      console.error(error);
+      setStoreMaster([]);
+      setDoneStoreIds([]);
+    } finally {
+      setLoadingStores(false);
+    }
+  }
+
+  init();
+}, []);
 
   // localStorage の draft 読み込み
   useEffect(() => {
@@ -162,11 +177,17 @@ export default function CheckPage() {
     setDraftStoreIds(keys);
   }, []);
 
-  const getDynamicStatus = (id: string): StoreStatus => {
-    if (doneStoreIds.includes(id)) return "done";
-    if (draftStoreIds.includes(id)) return "draft";
-    return "new";
-  };
+  const getDynamicStatus = (id?: string): StoreStatus => {
+  const cleanId = String(id ?? "").replace(/^STORE#/, "");
+  if (!cleanId) return "new";
+
+  const isDone = doneStoreIds.includes(cleanId);
+  const isDraft = draftStoreIds.includes(cleanId);
+
+  if (isDone) return "done";
+  if (isDraft) return "draft";
+  return "new";
+};
 
   const companies = useMemo(() => {
     return uniqBy(storeMaster, (r) => r.companyId).map((r) => ({
@@ -215,46 +236,45 @@ export default function CheckPage() {
   }, [brandScopedRows]);
 
   const storeList = useMemo(() => {
-    const k = storeQuery.trim().toLowerCase();
+  if (!Array.isArray(storeMaster)) return [];
 
-    return storeMaster
-      .map((s) => ({ ...s, status: getDynamicStatus(s.storeId) }))
-      .filter((r) => {
-        if (companyId && r.companyId !== companyId) return false;
-        if (bizIds.length > 0 && !bizIds.includes(r.bizId)) return false;
-        if (brandIds.length > 0 && !brandIds.includes(r.brandId)) return false;
-        if (areaIds.length > 0 && !areaIds.includes(r.areaId)) return false;
-        if (statusFilters.length > 0 && !statusFilters.includes(r.status)) return false;
+  const k = storeQuery.trim().toLowerCase();
 
-        if (k) {
-          const target = [
-            r.storeName,
-            r.storeId,
-            r.brandName,
-            r.areaName,
-            r.companyName,
-            r.bizName,
-          ]
-            .join(" ")
-            .toLowerCase();
+  return storeMaster
+    .map((s) => {
+      const normalizedStoreId = String(s.storeId ?? "").replace(/^STORE#/, "");
+      return {
+        ...s,
+        storeId: normalizedStoreId,
+        status: getDynamicStatus(normalizedStoreId),
+      };
+    })
+    .filter((r) => {
+      if (statusFilters.length > 0 && !statusFilters.includes(r.status)) return false;
+      if (companyId && r.companyId !== companyId) return false;
+      if (bizIds.length > 0 && !bizIds.includes(r.bizId)) return false;
+      if (brandIds.length > 0 && !brandIds.includes(r.brandId)) return false;
+      if (areaIds.length > 0 && !areaIds.includes(r.areaId)) return false;
 
-          if (!target.includes(k)) return false;
-        }
+      if (k) {
+        const target = `${r.storeName} ${r.storeId} ${r.brandName} ${r.areaName}`.toLowerCase();
+        if (!target.includes(k)) return false;
+      }
 
-        return true;
-      })
-      .sort((a, b) => a.storeName.localeCompare(b.storeName, "ja"));
-  }, [
-    storeMaster,
-    doneStoreIds,
-    draftStoreIds,
-    companyId,
-    bizIds,
-    brandIds,
-    areaIds,
-    statusFilters,
-    storeQuery,
-  ]);
+      return true;
+    })
+    .sort((a, b) => (a.storeName || "").localeCompare(b.storeName || "", "ja"));
+}, [
+  storeMaster,
+  doneStoreIds,
+  draftStoreIds,
+  companyId,
+  bizIds,
+  brandIds,
+  areaIds,
+  statusFilters,
+  storeQuery,
+]);
 
   const selectedStore = useMemo(() => {
     return storeList.find((s) => s.storeId === selectedStoreId) || null;
@@ -262,7 +282,7 @@ export default function CheckPage() {
 
   const toggleMultiValue = (
     value: string,
-    list: string[],
+    _list: string[],
     setList: React.Dispatch<React.SetStateAction<string[]>>
   ) => {
     setList((prev) =>
@@ -300,7 +320,7 @@ export default function CheckPage() {
       }
 
       const data = await res.json();
-      setResultHistory(Array.isArray(data.items) ? data.items : []);
+      setResultHistory(Array.isArray(data?.items) ? data.items : []);
       setIsHistoryModalOpen(true);
     } catch (error) {
       console.error(error);
@@ -318,9 +338,7 @@ export default function CheckPage() {
 
       if (typeof window !== "undefined") {
         localStorage.removeItem(`qsc_draft_${selectedStore.storeId}`);
-        setDraftStoreIds((prev) =>
-          prev.filter((id) => id !== selectedStore.storeId)
-        );
+        setDraftStoreIds((prev) => prev.filter((id) => id !== selectedStore.storeId));
       }
 
       router.push(`/check/run?storeId=${selectedStore.storeId}&mode=new`);
@@ -335,7 +353,7 @@ export default function CheckPage() {
     setIsHistoryModalOpen(false);
     router.push(
       `/check/run?storeId=${encodeURIComponent(
-        item.storeId
+        normalizeStoreId(item.storeId)
       )}&mode=edit&resultId=${encodeURIComponent(item.resultId)}`
     );
   }
@@ -980,6 +998,45 @@ export default function CheckPage() {
                 </div>
               </div>
 
+              {/* ステータス */}
+              <div>
+                <label
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 900,
+                    color: "#94a3b8",
+                    display: "block",
+                    marginBottom: "10px",
+                  }}
+                >
+                  ステータス
+                </label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
+                  {[
+                    { value: "new" as StoreStatus, label: "未着手" },
+                    { value: "draft" as StoreStatus, label: "途中保存" },
+                    { value: "done" as StoreStatus, label: "完了" },
+                  ].map((o) => (
+                    <button
+                      key={o.value}
+                      onClick={() => toggleStatus(o.value)}
+                      style={{
+                        padding: "12px 18px",
+                        borderRadius: "14px",
+                        border: "1px solid",
+                        borderColor: statusFilters.includes(o.value) ? "#1e293b" : "#e2e8f0",
+                        background: statusFilters.includes(o.value) ? "#1e293b" : "#fff",
+                        color: statusFilters.includes(o.value) ? "#fff" : "#64748b",
+                        fontSize: "14px",
+                        fontWeight: 800,
+                      }}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* 企業 */}
               <div>
                 <label
@@ -1126,63 +1183,6 @@ export default function CheckPage() {
                   ))}
                 </div>
               </div>
-
-              {/* ステータス */}
-              <div>
-                <label
-                  style={{
-                    fontSize: "12px",
-                    fontWeight: 900,
-                    color: "#94a3b8",
-                    display: "block",
-                    marginBottom: "10px",
-                  }}
-                >
-                  ステータス
-                </label>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "10px" }}>
-                  {[
-                    { value: "new" as StoreStatus, label: "未着手" },
-                    { value: "draft" as StoreStatus, label: "途中保存" },
-                    { value: "done" as StoreStatus, label: "完了" },
-                  ].map((o) => (
-                    <button
-                      key={o.value}
-                      onClick={() => toggleStatus(o.value)}
-                      style={{
-                        padding: "12px 18px",
-                        borderRadius: "14px",
-                        border: "1px solid",
-                        borderColor: statusFilters.includes(o.value) ? "#1e293b" : "#e2e8f0",
-                        background: statusFilters.includes(o.value) ? "#1e293b" : "#fff",
-                        color: statusFilters.includes(o.value) ? "#fff" : "#64748b",
-                        fontSize: "14px",
-                        fontWeight: 800,
-                      }}
-                    >
-                      {o.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: "grid", gap: "12px", marginTop: "40px" }}>
-              <button
-                onClick={() => setIsFilterOpen(false)}
-                style={{
-                  width: "100%",
-                  height: "64px",
-                  background: "#1e293b",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: "20px",
-                  fontSize: "17px",
-                  fontWeight: 950,
-                }}
-              >
-                適用する
-              </button>
 
               <button
                 onClick={resetFilters}
