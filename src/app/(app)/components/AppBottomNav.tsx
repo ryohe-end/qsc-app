@@ -80,7 +80,7 @@ export default function AppBottomNav() {
 
   // FAB（点検開始ボタン）を表示するか？
   // 店舗ユーザー以外 かつ 実行画面以外の場合に表示
-  const showFab = !isRunning && session?.role !== "manager";
+  const showFab = !isRunning && (session?.role as string) !== "manager";
 
   // =========================================================
   // NG Badge count（仮）
