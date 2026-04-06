@@ -4,6 +4,7 @@ import {
   DynamoDBDocumentClient,
   GetCommand,
   PutCommand,
+  QueryCommand,
   ScanCommand,
 } from "@aws-sdk/lib-dynamodb";
 
@@ -72,6 +73,17 @@ type BrandMetaItem = {
   brand?: string;
   name?: string;
   isActive?: boolean;
+};
+
+type StoreAssetItem = {
+  PK: string;
+  SK: "STORE_ASSET";
+  entityType?: string;
+  type?: string;
+  storeId?: string;
+  assetId?: string;
+  isActive?: boolean;
+  updatedAt?: string;
 };
 
 const region =
@@ -227,6 +239,7 @@ async function loadCorpName(corpId?: string) {
     new GetCommand({
       TableName: tableName,
       Key: corpMetaKey(corpId),
+      ConsistentRead: true,
     })
   );
 
@@ -243,6 +256,7 @@ async function loadBrandName(brandId?: string) {
     new GetCommand({
       TableName: tableName,
       Key: brandMetaKey(brandId),
+      ConsistentRead: true,
     })
   );
 
@@ -252,41 +266,61 @@ async function loadBrandName(brandId?: string) {
   return String(item.brand || item.name || "");
 }
 
-export async function GET() {
-  try {
+async function scanAllStoreMetaItems() {
+  const allItems: StoreMetaItem[] = [];
+  let ExclusiveStartKey: Record<string, any> | undefined = undefined;
+
+  do {
     const result = await ddb.send(
       new ScanCommand({
         TableName: tableName,
+        ConsistentRead: true,
+        FilterExpression: "#type = :storeType AND SK = :sk",
+        ExpressionAttributeNames: {
+          "#type": "type",
+        },
+        ExpressionAttributeValues: {
+          ":storeType": "STORE",
+          ":sk": "METADATA",
+        },
+        ExclusiveStartKey,
       })
     );
 
-    const rawItems = Array.isArray(result.Items) ? result.Items : [];
+    if (Array.isArray(result.Items)) {
+      allItems.push(...(result.Items as StoreMetaItem[]));
+    }
 
-    const storeMetaItems = rawItems.filter(
-      (item) =>
-        item?.type === "STORE" &&
-        item?.SK === "METADATA" &&
-        typeof item?.storeId === "string"
-    ) as StoreMetaItem[];
+    ExclusiveStartKey = result.LastEvaluatedKey;
+  } while (ExclusiveStartKey);
 
-    const assetMap = new Map<string, string>();
+  return allItems;
+}
+
+async function loadStoreAsset(storeId: string): Promise<StoreAssetItem | undefined> {
+  const res = await ddb.send(
+    new QueryCommand({
+      TableName: tableName,
+      KeyConditionExpression: "PK = :pk AND SK = :sk",
+      ExpressionAttributeValues: {
+        ":pk": storePk(storeId),
+        ":sk": "STORE_ASSET",
+      },
+      ConsistentRead: true,
+      Limit: 1,
+    })
+  );
+
+  const items = Array.isArray(res.Items) ? (res.Items as StoreAssetItem[]) : [];
+  return items[0];
+}
+
+export async function GET() {
+  try {
+    const storeMetaItems = await scanAllStoreMetaItems();
+
     const corpIds = new Set<string>();
     const brandIds = new Set<string>();
-
-    for (const item of rawItems) {
-      const isCurrentStoreAsset =
-        item?.SK === "STORE_ASSET" &&
-        (item?.entityType === "STORE_ASSET" || typeof item?.storeId === "string");
-
-      if (
-        isCurrentStoreAsset &&
-        typeof item?.storeId === "string" &&
-        typeof item?.assetId === "string" &&
-        item?.isActive !== false
-      ) {
-        assetMap.set(String(item.storeId), String(item.assetId));
-      }
-    }
 
     for (const item of storeMetaItems) {
       if (item.corpId) corpIds.add(String(item.corpId));
@@ -307,20 +341,34 @@ export async function GET() {
       }),
     ]);
 
-    const items = storeMetaItems.map((item) => {
-      const corpId = item.corpId ? String(item.corpId) : "";
-      const brandId = item.brandId ? String(item.brandId) : "";
+    const items = await Promise.all(
+      storeMetaItems.map(async (item) => {
+        const corpId = item.corpId ? String(item.corpId) : "";
+        const brandId = item.brandId ? String(item.brandId) : "";
 
-      const corporateName = corpNameMap.get(corpId) || "";
-      const brandName = brandNameMap.get(brandId) || "";
+        const corporateName = corpNameMap.get(corpId) || "";
+        const brandName = brandNameMap.get(brandId) || "";
 
-      const store = fromStoreMetaItem(item, corporateName, brandName);
+        const store = fromStoreMetaItem(item, corporateName, brandName);
+        const storeAsset = await loadStoreAsset(store.storeId);
 
-      return {
-        ...store,
-        assetId: assetMap.get(store.storeId) || store.assetId,
-      };
-    });
+        return {
+          ...store,
+          assetId:
+            storeAsset?.isActive !== false && storeAsset?.assetId
+              ? String(storeAsset.assetId)
+              : undefined,
+        };
+      })
+    );
+
+    console.log(
+      "[stores response]",
+      items.map((x) => ({
+        storeId: x.storeId,
+        assetId: x.assetId,
+      }))
+    );
 
     return NextResponse.json({
       items: sortStores(items),
@@ -351,6 +399,7 @@ export async function POST(req: NextRequest) {
       new GetCommand({
         TableName: tableName,
         Key: key,
+        ConsistentRead: true,
       })
     );
 
@@ -407,6 +456,7 @@ export async function PUT(req: NextRequest) {
       new GetCommand({
         TableName: tableName,
         Key: key,
+        ConsistentRead: true,
       })
     );
 

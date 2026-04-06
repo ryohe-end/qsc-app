@@ -1,117 +1,130 @@
 import { NextRequest, NextResponse } from "next/server";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
-  DynamoDBClient,
-  PutItemCommand,
-  GetItemCommand,
-  ScanCommand,
-  DeleteItemCommand,
-} from "@aws-sdk/client-dynamodb";
-import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
+  DynamoDBDocumentClient,
+  GetCommand,
+  PutCommand,
+  UpdateCommand,
+} from "@aws-sdk/lib-dynamodb";
 
+export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-east-1",
+const region =
+  process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
+const tableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
+
+const client = new DynamoDBClient({ region });
+const ddb = DynamoDBDocumentClient.from(client, {
+  marshallOptions: {
+    removeUndefinedValues: true,
+  },
 });
 
-const TABLE_NAME = process.env.QSC_TABLE_NAME || "QSC_MasterTable";
-
-/** 1店舗の割当取得 / 全件取得 */
-export async function GET(req: NextRequest) {
-  try {
-    const storeId = req.nextUrl.searchParams.get("storeId");
-
-    if (storeId) {
-      const res = await client.send(
-        new GetItemCommand({
-          TableName: TABLE_NAME,
-          Key: marshall({
-            PK: `STORE#${storeId}`,
-            SK: "ASSET",
-          }),
-        })
-      );
-
-      return NextResponse.json({
-        item: res.Item ? unmarshall(res.Item) : null,
-      });
-    }
-
-    const res = await client.send(
-      new ScanCommand({
-        TableName: TABLE_NAME,
-      })
-    );
-
-    const items = (res.Items ?? [])
-      .map((x) => unmarshall(x))
-      .filter((x: any) => x.type === "STORE_ASSET");
-
-    return NextResponse.json({ items });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "取得失敗" }, { status: 500 });
-  }
+function jsonError(message: string, status = 400) {
+  return NextResponse.json({ error: message }, { status });
 }
 
-/** 店舗にアセットを保存 */
+function storePk(storeId: string) {
+  return `STORE#${storeId}`;
+}
+
+function storeAssetSk() {
+  return "STORE_ASSET";
+}
+
+/**
+ * 店舗アセット紐付け
+ * - 1店舗につき1レコードのみ
+ * - PK = STORE#<storeId>
+ * - SK = STORE_ASSET
+ * - 毎回上書き
+ * - ついでに STORE/METADATA の assetId も更新
+ */
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
 
-    if (!body.storeId || !body.assetId) {
-      return NextResponse.json(
-        { error: "storeId と assetId は必須です。" },
-        { status: 400 }
-      );
-    }
-
-    const item = {
-      PK: `STORE#${body.storeId}`,
-      SK: "ASSET",
-      type: "STORE_ASSET",
-      storeId: body.storeId,
-      assetId: body.assetId,
-      isActive: typeof body.isActive === "boolean" ? body.isActive : true,
-      updatedAt: new Date().toISOString(),
-    };
-
-    await client.send(
-      new PutItemCommand({
-        TableName: TABLE_NAME,
-        Item: marshall(item, { removeUndefinedValues: true }),
-      })
-    );
-
-    return NextResponse.json({ ok: true, item });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "保存失敗" }, { status: 500 });
-  }
-}
-
-/** 店舗のアセット割当削除 */
-export async function DELETE(req: NextRequest) {
-  try {
-    const storeId = req.nextUrl.searchParams.get("storeId");
+    const storeId = String(body.storeId || "").trim();
+    const assetId = String(body.assetId || "").trim();
+    const isActive = body.isActive !== false;
+    const updatedAt = new Date().toISOString();
 
     if (!storeId) {
-      return NextResponse.json({ error: "storeId が必要です。" }, { status: 400 });
+      return jsonError("storeId は必須です");
     }
 
-    await client.send(
-      new DeleteItemCommand({
-        TableName: TABLE_NAME,
-        Key: marshall({
-          PK: `STORE#${storeId}`,
-          SK: "ASSET",
-        }),
+    if (!assetId) {
+      return jsonError("assetId は必須です");
+    }
+
+    const pk = storePk(storeId);
+
+    // 店舗METADATA存在確認
+    const meta = await ddb.send(
+      new GetCommand({
+        TableName: tableName,
+        Key: {
+          PK: pk,
+          SK: "METADATA",
+        },
+        ConsistentRead: true,
       })
     );
 
-    return NextResponse.json({ ok: true });
-  } catch (e) {
-    console.error(e);
-    return NextResponse.json({ error: "削除失敗" }, { status: 500 });
+    if (!meta.Item) {
+      return jsonError("対象店舗の META レコードが見つかりません", 404);
+    }
+
+    // 1店舗=1レコードで上書き
+    await ddb.send(
+      new PutCommand({
+        TableName: tableName,
+        Item: {
+          PK: pk,
+          SK: storeAssetSk(),
+          entityType: "STORE_ASSET",
+          storeId,
+          assetId,
+          isActive,
+          updatedAt,
+        },
+      })
+    );
+
+    // STORE/METADATA 側にも現在値を保持
+    await ddb.send(
+      new UpdateCommand({
+        TableName: tableName,
+        Key: {
+          PK: pk,
+          SK: "METADATA",
+        },
+        UpdateExpression: "SET assetId = :assetId, updatedAt = :updatedAt",
+        ExpressionAttributeValues: {
+          ":assetId": assetId,
+          ":updatedAt": updatedAt,
+        },
+        ConditionExpression: "attribute_exists(PK) AND attribute_exists(SK)",
+      })
+    );
+
+    return NextResponse.json({
+      ok: true,
+      item: {
+        storeId,
+        assetId,
+        isActive,
+        updatedAt,
+      },
+    });
+  } catch (error: any) {
+    console.error("[POST /api/admin/qsc/store-assets]", error);
+
+    if (error?.name === "ConditionalCheckFailedException") {
+      return jsonError("対象店舗の META レコードが見つかりません", 404);
+    }
+
+    return jsonError(error?.message || "アセット紐付けの保存に失敗しました", 500);
   }
 }
