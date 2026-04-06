@@ -166,7 +166,6 @@ function toStoreMetaItem(store: StoreRow, prev?: Partial<StoreMetaItem>): StoreM
     PK: storePk(store.storeId),
     SK: "METADATA",
     type: "STORE",
-
     areaId: prev?.areaId || "",
     areaName: prev?.areaName || "",
     assetId: store.assetId || prev?.assetId || "",
@@ -275,8 +274,12 @@ export async function GET() {
     const brandIds = new Set<string>();
 
     for (const item of rawItems) {
+      const isCurrentStoreAsset =
+        item?.SK === "STORE_ASSET" &&
+        (item?.entityType === "STORE_ASSET" || typeof item?.storeId === "string");
+
       if (
-        item?.entityType === "STORE_ASSET" &&
+        isCurrentStoreAsset &&
         typeof item?.storeId === "string" &&
         typeof item?.assetId === "string" &&
         item?.isActive !== false

@@ -73,7 +73,7 @@ function isValidEmail(email: string) {
 }
 
 function normalizeEmails(emails: string[]) {
-  return emails.map((v) => v.trim()).filter(Boolean);
+  return (emails || []).map((v) => v.trim()).filter(Boolean);
 }
 
 async function safeJson<T = any>(res: Response): Promise<T | null> {
@@ -315,6 +315,15 @@ export default function AdminStoresPage() {
     setRows(Array.isArray((json as any)?.items) ? (json as any).items : []);
   };
 
+  const reloadAssets = async () => {
+    const res = await fetch("/api/admin/qsc/assets", {
+      method: "GET",
+      cache: "no-store",
+    });
+    const json = await assertOk(res, "アセット一覧の取得に失敗しました");
+    setAssets(Array.isArray((json as any)?.items) ? (json as any).items : []);
+  };
+
   useEffect(() => {
     let cancelled = false;
 
@@ -365,7 +374,7 @@ export default function AdminStoresPage() {
   }, []);
 
   const assetLabelMap = useMemo(
-    () => Object.fromEntries(assets.map((a) => [a.assetId, a.name])),
+    () => Object.fromEntries(assets.map((a) => [a.assetId, a.name || a.assetId])),
     [assets]
   );
 
@@ -584,7 +593,6 @@ export default function AdminStoresPage() {
         brandName: brandLabelMap[draft.brandId || ""] || draft.brandName || "",
       };
 
-      // 1. 店舗本体を保存
       const storeRes = await fetch("/api/admin/qsc/stores", {
         method: sheetMode === "create" ? "POST" : "PUT",
         headers: {
@@ -608,7 +616,6 @@ export default function AdminStoresPage() {
 
       const savedStoreId = savedStore.storeId || payload.storeId;
 
-      // 2. アセットが選択されている場合は紐付け保存
       if (payload.assetId) {
         const assetRes = await fetch("/api/admin/qsc/store-assets", {
           method: "POST",
@@ -625,7 +632,6 @@ export default function AdminStoresPage() {
         await assertOk(assetRes, "アセット紐付けの保存に失敗しました");
       }
 
-      // 3. 画面反映
       setRows((prev) => {
         if (sheetMode === "create") {
           return [{ ...savedStore, assetId: payload.assetId }, ...prev];
@@ -669,6 +675,21 @@ export default function AdminStoresPage() {
       alert(e?.message || "削除に失敗しました");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const openBatchModal = async () => {
+    try {
+      setBatchAssetId("");
+      setBatchModalOpen(true);
+      setAssetsLoading(true);
+      await reloadAssets();
+    } catch (e: any) {
+      console.error(e);
+      setAssets([]);
+      alert(e?.message || "アセット一覧の取得に失敗しました");
+    } finally {
+      setAssetsLoading(false);
     }
   };
 
@@ -1118,7 +1139,7 @@ export default function AdminStoresPage() {
             {selectedIds.length}件選択中（現在の絞り込みのみ一括選択可）
           </span>
           <button
-            onClick={() => setBatchModalOpen(true)}
+            onClick={openBatchModal}
             style={{
               background: "#4f46e5",
               color: "#fff",
@@ -1362,83 +1383,80 @@ export default function AdminStoresPage() {
                   </button>
                 </div>
               </div>
+
+              {sheetMode === "edit" && (
+                <button
+                  type="button"
+                  onClick={() => deleteStore(draft.storeId)}
+                  disabled={deleting}
+                  style={{
+                    background: "#fef2f2",
+                    color: "#ef4444",
+                    border: "1px solid #fee2e2",
+                    padding: "12px",
+                    borderRadius: 12,
+                    fontWeight: 800,
+                    cursor: deleting ? "default" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                    marginTop: 12,
+                    opacity: deleting ? 0.7 : 1,
+                  }}
+                >
+                  {deleting ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+                  店舗を削除
+                </button>
+              )}
             </div>
 
             <div
               style={{
                 padding: "24px",
+                background: "#f8fafc",
                 borderTop: "1px solid #f1f5f9",
                 display: "flex",
-                justifyContent: "space-between",
                 gap: 12,
               }}
             >
-              <div>
-                {sheetMode === "edit" && (
-                  <button
-                    type="button"
-                    onClick={() => deleteStore(draft.storeId)}
-                    disabled={deleting || saving}
-                    style={{
-                      height: 46,
-                      padding: "0 18px",
-                      borderRadius: 12,
-                      border: "1px solid #fecaca",
-                      background: "#fff1f2",
-                      color: "#be123c",
-                      fontWeight: 900,
-                      cursor: deleting || saving ? "default" : "pointer",
-                      opacity: deleting || saving ? 0.6 : 1,
-                    }}
-                  >
-                    {deleting ? "削除中..." : "削除"}
-                  </button>
-                )}
-              </div>
-
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  type="button"
-                  onClick={() => closeSheet()}
-                  disabled={saving || deleting}
-                  style={{
-                    height: 46,
-                    padding: "0 18px",
-                    borderRadius: 12,
-                    border: "1px solid #e2e8f0",
-                    background: "#fff",
-                    color: "#334155",
-                    fontWeight: 900,
-                    cursor: saving || deleting ? "default" : "pointer",
-                    opacity: saving || deleting ? 0.6 : 1,
-                  }}
-                >
-                  キャンセル
-                </button>
-
-                <button
-                  type="button"
-                  onClick={saveStore}
-                  disabled={saving || deleting}
-                  style={{
-                    height: 46,
-                    padding: "0 18px",
-                    borderRadius: 12,
-                    border: "none",
-                    background: "#1e293b",
-                    color: "#fff",
-                    fontWeight: 900,
-                    cursor: saving || deleting ? "default" : "pointer",
-                    opacity: saving || deleting ? 0.6 : 1,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                  }}
-                >
-                  {saving && <Loader2 size={16} className="animate-spin" />}
-                  保存する
-                </button>
-              </div>
+              <button
+                onClick={() => closeSheet()}
+                disabled={saving || deleting}
+                style={{
+                  flex: 1,
+                  height: 50,
+                  borderRadius: 12,
+                  border: "1px solid #e2e8f0",
+                  background: "#fff",
+                  fontWeight: 800,
+                  cursor: saving || deleting ? "default" : "pointer",
+                  opacity: saving || deleting ? 0.7 : 1,
+                }}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={saveStore}
+                disabled={saving || deleting}
+                style={{
+                  flex: 2,
+                  height: 50,
+                  borderRadius: 12,
+                  background: "#1e293b",
+                  color: "#fff",
+                  fontWeight: 900,
+                  cursor: saving || deleting ? "default" : "pointer",
+                  opacity: saving || deleting ? 0.7 : 1,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+              >
+                {saving && <Loader2 size={16} className="animate-spin" />}
+                保存する
+              </button>
             </div>
           </div>
         </div>
@@ -1460,14 +1478,14 @@ export default function AdminStoresPage() {
           <div
             style={{
               background: "#fff",
-              width: 400,
+              width: 520,
               maxWidth: "calc(100vw - 32px)",
               maxHeight: "calc(100vh - 48px)",
               borderRadius: 24,
-              padding: "32px",
+              padding: "24px",
               display: "grid",
-              gridTemplateRows: "auto 1fr auto",
-              gap: 20,
+              gridTemplateRows: "auto auto minmax(0,1fr) auto",
+              gap: 16,
               overflow: "hidden",
             }}
           >
@@ -1475,27 +1493,101 @@ export default function AdminStoresPage() {
               アセットを一括適用
             </h3>
 
-            <div style={{ overflowY: "auto" }}>
-              <SelectBox
-                label="適用アセット"
-                options={assets.map((a) => a.assetId)}
-                value={batchAssetId}
-                onChange={setBatchAssetId}
-                placeholder={assetsLoading ? "読み込み中..." : "選択..."}
-                optionLabelMap={assetLabelMap}
-              />
+            <div
+              style={{
+                fontSize: 13,
+                color: "#64748b",
+                fontWeight: 700,
+                textAlign: "center",
+              }}
+            >
+              選択中の {selectedIds.length} 店舗に適用するアセットを選んでください
             </div>
 
-            <div style={{ display: "flex", gap: 12 }}>
+            <div
+              style={{
+                display: "grid",
+                gap: 10,
+                overflowY: "auto",
+                minHeight: 120,
+                paddingRight: 4,
+                alignContent: "start",
+              }}
+            >
+              {assetsLoading ? (
+                <div
+                  style={{
+                    padding: 16,
+                    borderRadius: 12,
+                    background: "#f8fafc",
+                    color: "#64748b",
+                    fontWeight: 800,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 8,
+                  }}
+                >
+                  <Loader2 size={16} className="animate-spin" />
+                  アセットを読み込み中...
+                </div>
+              ) : assets.length === 0 ? (
+                <div
+                  style={{
+                    padding: 16,
+                    borderRadius: 12,
+                    background: "#f8fafc",
+                    color: "#94a3b8",
+                    fontWeight: 700,
+                    textAlign: "center",
+                  }}
+                >
+                  アセットがありません
+                </div>
+              ) : (
+                assets.map((a) => (
+                  <button
+                    key={a.assetId}
+                    type="button"
+                    onClick={() => setBatchAssetId(a.assetId)}
+                    style={{
+                      padding: "16px",
+                      borderRadius: 12,
+                      border: "2px solid",
+                      borderColor: batchAssetId === a.assetId ? "#4f46e5" : "#e2e8f0",
+                      background: batchAssetId === a.assetId ? "#f5f3ff" : "#fff",
+                      textAlign: "left",
+                      cursor: "pointer",
+                      fontWeight: 800,
+                      display: "grid",
+                      gap: 4,
+                    }}
+                  >
+                    <span style={{ fontSize: 14 }}>{a.name || a.assetId}</span>
+                    <span style={{ fontSize: 12, color: "#64748b", fontWeight: 700 }}>
+                      {a.assetId}
+                    </span>
+                    {a.description ? (
+                      <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700 }}>
+                        {a.description}
+                      </span>
+                    ) : null}
+                  </button>
+                ))
+              )}
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <button
+                type="button"
                 onClick={() => {
                   if (batchSaving) return;
                   setBatchModalOpen(false);
+                  setBatchAssetId("");
                 }}
                 disabled={batchSaving}
                 style={{
-                  flex: 1,
-                  height: 48,
+                  height: 46,
                   borderRadius: 12,
                   border: "1px solid #e2e8f0",
                   background: "#fff",
@@ -1504,21 +1596,22 @@ export default function AdminStoresPage() {
                   opacity: batchSaving ? 0.7 : 1,
                 }}
               >
-                キャンセル
+                戻る
               </button>
+
               <button
+                type="button"
                 onClick={applyBatchAsset}
-                disabled={batchSaving}
+                disabled={batchSaving || !batchAssetId}
                 style={{
-                  flex: 1,
-                  height: 48,
+                  height: 46,
                   borderRadius: 12,
                   border: "none",
                   background: "#4f46e5",
                   color: "#fff",
                   fontWeight: 900,
-                  cursor: batchSaving ? "default" : "pointer",
-                  opacity: batchSaving ? 0.7 : 1,
+                  cursor: batchSaving || !batchAssetId ? "default" : "pointer",
+                  opacity: batchSaving || !batchAssetId ? 0.7 : 1,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",

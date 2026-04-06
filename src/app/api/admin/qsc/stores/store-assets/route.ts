@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
+  GetCommand,
   PutCommand,
-  QueryCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
 
@@ -29,15 +29,17 @@ function storePk(storeId: string) {
   return `STORE#${storeId}`;
 }
 
-function assetSk(assetId: string) {
-  return `ASSET#${assetId}`;
+function storeAssetSk() {
+  return "STORE_ASSET";
 }
 
 /**
  * 店舗アセット紐付け
- * - 指定 asset を active で保存
- * - 同一店舗の他の STORE_ASSET は inactive に更新
- * - ついでに STORE/META の assetId も更新
+ * - 1店舗につき1レコードのみ
+ * - PK = STORE#<storeId>
+ * - SK = STORE_ASSET
+ * - 毎回上書き
+ * - ついでに STORE/METADATA の assetId も更新
  */
 export async function POST(req: NextRequest) {
   try {
@@ -58,49 +60,29 @@ export async function POST(req: NextRequest) {
 
     const pk = storePk(storeId);
 
-    const existing = await ddb.send(
-      new QueryCommand({
+    // 店舗METADATA存在確認
+    const meta = await ddb.send(
+      new GetCommand({
         TableName: tableName,
-        KeyConditionExpression: "PK = :pk",
-        ExpressionAttributeValues: {
-          ":pk": pk,
+        Key: {
+          PK: pk,
+          SK: "METADATA",
         },
+        ConsistentRead: true,
       })
     );
 
-    const items = Array.isArray(existing.Items) ? existing.Items : [];
+    if (!meta.Item) {
+      return jsonError("対象店舗の META レコードが見つかりません", 404);
+    }
 
-    const currentAssetLinks = items.filter(
-      (item) => item?.entityType === "STORE_ASSET" && typeof item?.assetId === "string"
-    );
-
-    await Promise.all(
-      currentAssetLinks
-        .filter((item) => String(item.assetId) !== assetId && item.isActive !== false)
-        .map((item) =>
-          ddb.send(
-            new UpdateCommand({
-              TableName: tableName,
-              Key: {
-                PK: item.PK,
-                SK: item.SK,
-              },
-              UpdateExpression: "SET isActive = :false, updatedAt = :updatedAt",
-              ExpressionAttributeValues: {
-                ":false": false,
-                ":updatedAt": updatedAt,
-              },
-            })
-          )
-        )
-    );
-
+    // 1店舗=1レコードで上書き
     await ddb.send(
       new PutCommand({
         TableName: tableName,
         Item: {
           PK: pk,
-          SK: assetSk(assetId),
+          SK: storeAssetSk(),
           entityType: "STORE_ASSET",
           storeId,
           assetId,
@@ -110,6 +92,7 @@ export async function POST(req: NextRequest) {
       })
     );
 
+    // STORE/METADATA 側にも現在値を保持
     await ddb.send(
       new UpdateCommand({
         TableName: tableName,
