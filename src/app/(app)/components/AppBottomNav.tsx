@@ -69,7 +69,7 @@ export default function AppBottomNav() {
 
     // 1. 店舗ユーザー (manager)
     // 「ホーム」「結果」「是正報告」
-    if (role === "manager") {
+    if ((role as string) === "manager") {
       return [itemHome, itemResults, itemNg];
     }
 
