@@ -215,7 +215,7 @@ export default function HomePage() {
 
   if (sessionLoading) return null;
 
-  const isStoreUser = session?.role === "manager" || session?.role === "store";
+  const isStoreUser = (session?.role as any) === "manager" || (session?.role as any) === "store";
 
   return (
     <div style={{ display: "grid", gap: 14 }}>
