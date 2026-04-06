@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 
 // ✅ ロール定義を現在の実態に合わせる
-export type Role = "admin" | "store" | "inspector";
+export type Role = "admin" | "inspector" | "manager" | "viewer";
 
 export type UserSession = {
   id: string;           // email

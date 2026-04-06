@@ -280,7 +280,7 @@ export default function ResultsPage() {
   if (loading) return null;
 
   const role = session?.role || "viewer";
-  const isManager = role === "manager";
+  const isManager = (role as any) === "manager";
 
   // ① 店舗ユーザーの場合: 「自店舗の詳細」を強制表示
   if (isManager) {
