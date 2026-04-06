@@ -622,7 +622,7 @@ export default function NgPage() {
   const role = session?.role || "viewer";
   const storeIdFromSession = session?.assignedStoreId || (session as any)?.storeId;
 
-  if (role === "manager" && storeIdFromSession) {
+  if ((role as any) === "manager" && storeIdFromSession) {
     return (
       <StoreNgView
         storeName={session?.name || "自店舗"}
