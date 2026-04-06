@@ -620,7 +620,7 @@ export default function NgPage() {
   if (loading) return null;
 
   const role = session?.role || "viewer";
-  const storeIdFromSession = session?.assignedStoreId || session?.storeId;
+  const storeIdFromSession = session?.assignedStoreId || (session as any)?.storeId;
 
   if (role === "manager" && storeIdFromSession) {
     return (
