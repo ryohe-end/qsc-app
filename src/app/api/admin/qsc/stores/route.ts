@@ -77,7 +77,7 @@ type BrandMetaItem = {
 
 type StoreAssetItem = {
   PK: string;
-  SK: "STORE_ASSET";
+  SK: "ASSET";
   entityType?: string;
   type?: string;
   storeId?: string;
@@ -144,7 +144,10 @@ function normalizeStore(input: any): StoreRow {
     companyName: String(input.companyName || "").trim(),
     corporateName: String(input.corporateName || "").trim(),
     status: (input.status || "active") as StoreStatus,
-    assetId: input.assetId ? String(input.assetId).trim() : undefined,
+    assetId:
+      input.assetId === null || input.assetId === undefined || input.assetId === ""
+        ? undefined
+        : String(input.assetId).trim(),
     emails: Array.isArray(input.emails)
       ? input.emails.map((v: unknown) => String(v || "").trim()).filter(Boolean)
       : [],
@@ -180,7 +183,7 @@ function toStoreMetaItem(store: StoreRow, prev?: Partial<StoreMetaItem>): StoreM
     type: "STORE",
     areaId: prev?.areaId || "",
     areaName: prev?.areaName || "",
-    assetId: store.assetId || prev?.assetId || "",
+    assetId: store.assetId !== undefined ? store.assetId : prev?.assetId || "",
     bizId: prev?.bizId || "",
     bizName: store.businessTypeName || prev?.bizName || "",
     brand: prev?.brand || "",
@@ -214,7 +217,10 @@ function fromStoreMetaItem(
     companyName: "",
     corporateName: corporateName || String(item.corpName || ""),
     status: (item.status || "active") as StoreStatus,
-    assetId: item.assetId ? String(item.assetId) : undefined,
+    assetId:
+      item.assetId === null || item.assetId === undefined || item.assetId === ""
+        ? undefined
+        : String(item.assetId),
     emails: Array.isArray(item.emails) ? item.emails.map((v) => String(v)) : [],
     updatedAt: item.updatedAt ? String(item.updatedAt) : undefined,
     version: Number(item.version || 0),
@@ -304,7 +310,7 @@ async function loadStoreAsset(storeId: string): Promise<StoreAssetItem | undefin
       KeyConditionExpression: "PK = :pk AND SK = :sk",
       ExpressionAttributeValues: {
         ":pk": storePk(storeId),
-        ":sk": "STORE_ASSET",
+        ":sk": "ASSET",
       },
       ConsistentRead: true,
       Limit: 1,
@@ -350,6 +356,11 @@ export async function GET() {
         const brandName = brandNameMap.get(brandId) || "";
 
         const store = fromStoreMetaItem(item, corporateName, brandName);
+
+        if (store.assetId) {
+          return store;
+        }
+
         const storeAsset = await loadStoreAsset(store.storeId);
 
         return {
@@ -471,6 +482,8 @@ export async function PUT(req: NextRequest) {
       ...prevRow,
       ...normalized,
       storeId: prevRow.storeId,
+      assetId:
+        normalized.assetId !== undefined ? normalized.assetId : prevRow.assetId,
       updatedAt: new Date().toISOString(),
       version: Number(prevRow.version || 0) + 1,
     };

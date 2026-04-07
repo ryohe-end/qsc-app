@@ -30,16 +30,13 @@ function storePk(storeId: string) {
 }
 
 function storeAssetSk() {
-  return "STORE_ASSET";
+  return "ASSET";
 }
 
 /**
- * 店舗アセット紐付け
- * - 1店舗につき1レコードのみ
- * - PK = STORE#<storeId>
- * - SK = STORE_ASSET
- * - 毎回上書き
- * - ついでに STORE/METADATA の assetId も更新
+ * 1店舗 = 1アセット = 1レコード
+ * PK = STORE#<storeId>
+ * SK = ASSET
  */
 export async function POST(req: NextRequest) {
   try {
@@ -49,6 +46,12 @@ export async function POST(req: NextRequest) {
     const assetId = String(body.assetId || "").trim();
     const isActive = body.isActive !== false;
     const updatedAt = new Date().toISOString();
+
+    console.log("[store-assets POST] request", {
+      storeId,
+      assetId,
+      isActive,
+    });
 
     if (!storeId) {
       return jsonError("storeId は必須です");
@@ -60,7 +63,6 @@ export async function POST(req: NextRequest) {
 
     const pk = storePk(storeId);
 
-    // 店舗METADATA存在確認
     const meta = await ddb.send(
       new GetCommand({
         TableName: tableName,
@@ -76,7 +78,6 @@ export async function POST(req: NextRequest) {
       return jsonError("対象店舗の META レコードが見つかりません", 404);
     }
 
-    // 1店舗=1レコードで上書き
     await ddb.send(
       new PutCommand({
         TableName: tableName,
@@ -84,6 +85,7 @@ export async function POST(req: NextRequest) {
           PK: pk,
           SK: storeAssetSk(),
           entityType: "STORE_ASSET",
+          type: "STORE_ASSET",
           storeId,
           assetId,
           isActive,
@@ -92,7 +94,6 @@ export async function POST(req: NextRequest) {
       })
     );
 
-    // STORE/METADATA 側にも現在値を保持
     await ddb.send(
       new UpdateCommand({
         TableName: tableName,
@@ -108,6 +109,15 @@ export async function POST(req: NextRequest) {
         ConditionExpression: "attribute_exists(PK) AND attribute_exists(SK)",
       })
     );
+
+    console.log("[store-assets saved]", {
+      PK: pk,
+      SK: storeAssetSk(),
+      storeId,
+      assetId,
+      isActive,
+      updatedAt,
+    });
 
     return NextResponse.json({
       ok: true,
