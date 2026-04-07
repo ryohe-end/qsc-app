@@ -6,6 +6,7 @@ import {
   PutCommand,
   QueryCommand,
   ScanCommand,
+  ScanCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
 
 export const runtime = "nodejs";
@@ -275,9 +276,10 @@ async function loadBrandName(brandId?: string) {
 async function scanAllStoreMetaItems() {
   const allItems: StoreMetaItem[] = [];
   let ExclusiveStartKey: Record<string, any> | undefined = undefined;
+  let result: ScanCommandOutput;
 
   do {
-    const result = await ddb.send(
+    result = await ddb.send(
       new ScanCommand({
         TableName: tableName,
         ConsistentRead: true,
@@ -297,7 +299,7 @@ async function scanAllStoreMetaItems() {
       allItems.push(...(result.Items as StoreMetaItem[]));
     }
 
-    ExclusiveStartKey = result.LastEvaluatedKey;
+    ExclusiveStartKey = result.LastEvaluatedKey as Record<string, any> | undefined;
   } while (ExclusiveStartKey);
 
   return allItems;
