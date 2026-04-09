@@ -18,6 +18,7 @@ type CheckResultHistoryItem = {
   storeName: string;
   submittedAt: string;
   status: string;
+  userName: string; // [追加]
 };
 
 export async function GET(req: NextRequest) {
@@ -55,6 +56,7 @@ export async function GET(req: NextRequest) {
         storeName: item.storeName ?? "",
         submittedAt: item.submittedAt ?? item.createdAt ?? "",
         status: item.status ?? "",
+        userName: item.userName ?? "", // [追加]
       }));
 
     return NextResponse.json({ items });

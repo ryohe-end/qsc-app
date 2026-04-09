@@ -19,10 +19,11 @@ const TABLE_NAME = process.env.QSC_TABLE_NAME || "QSC_MasterTable";
 type RunQuestionItem = {
   id: string;
   label: string;
+  category: string; // [追加] Q/S/C などのカテゴリ
   state: "unset";
   note: string;
   holdNote: string;
-  photos: any[];
+  photos: never[];
 };
 
 type RunSection = {
@@ -40,27 +41,23 @@ async function tryGetFirst(keys: Array<{ PK: string; SK: string }>) {
   return null;
 }
 
-// 🚀 高速化の要: 100件ずつ一気に取得する関数
 async function fetchQuestionsInBatches(questionIds: string[]) {
   const chunks: string[][] = [];
   for (let i = 0; i < questionIds.length; i += 100) {
     chunks.push(questionIds.slice(i, i + 100));
   }
 
-  const allFetchedItems: any[] = [];
+  const allFetchedItems: Record<string, unknown>[] = [];
   const batchPromises = chunks.map(async (chunk) => {
-    // 取得したいキーのリストを作成
     let keys = chunk.map((id) => ({ PK: `QUESTION#${id}`, SK: "METADATA" }));
-    
+
     while (keys.length > 0) {
       const res = await docClient.send(new BatchGetCommand({
         RequestItems: { [TABLE_NAME]: { Keys: keys } },
       }));
-      const items = res.Responses?.[TABLE_NAME] || [];
+      const items = (res.Responses?.[TABLE_NAME] ?? []) as Record<string, unknown>[];
       allFetchedItems.push(...items);
-
-      // 未処理のキーがあれば再試行
-      keys = (res.UnprocessedKeys?.[TABLE_NAME]?.Keys as any[]) || [];
+      keys = ((res.UnprocessedKeys?.[TABLE_NAME]?.Keys ?? []) as typeof keys);
     }
   });
 
@@ -85,7 +82,7 @@ export async function GET(req: NextRequest) {
       { PK: `STORE#${storeId}`, SK: "ASSET" },
       { PK: `STORE#${storeId}`, SK: "STORE_ASSET" },
     ]);
-    const assetId = binding?.assetId || binding?.AssetId || "";
+    const assetId = String(binding?.assetId ?? binding?.AssetId ?? "");
     if (!assetId) return NextResponse.json({ error: "アセット未割当" }, { status: 404 });
 
     // 2. アセット本体から設問IDリストを取得
@@ -93,12 +90,14 @@ export async function GET(req: NextRequest) {
       { PK: `ASSET#${assetId}`, SK: "METADATA" },
       { PK: `ASSET#${assetId}`, SK: "ASSET" },
     ]);
-    const questionIds = Array.isArray(asset?.questionIds) ? asset.questionIds : [];
+    const questionIds = Array.isArray(asset?.questionIds) ? (asset.questionIds as string[]) : [];
     if (questionIds.length === 0) return NextResponse.json({ questions: [] });
 
-    // 3. 🚀 設問データを一括取得（300件でも一瞬）
+    // 3. 設問データを一括取得
     const rawQuestions = await fetchQuestionsInBatches(questionIds);
-    const qMap = new Map(rawQuestions.map(q => [q.PK.replace("QUESTION#", ""), q]));
+    const qMap = new Map(
+      rawQuestions.map((q) => [String(q.PK).replace("QUESTION#", ""), q])
+    );
 
     // 4. 元のID順序を維持しつつセクション分け
     const sectionsMap = new Map<string, RunSection>();
@@ -106,8 +105,8 @@ export async function GET(req: NextRequest) {
       const q = qMap.get(id);
       if (!q || q.isActive === false) continue;
 
-      const secId = String(q.place || q.areaId || "default");
-      const secTitle = String(q.placeName || q.areaName || q.place || "その他");
+      const secId = String(q.place ?? q.areaId ?? "default");
+      const secTitle = String(q.placeName ?? q.areaName ?? q.place ?? "その他");
 
       if (!sectionsMap.has(secId)) {
         sectionsMap.set(secId, { id: secId, title: secTitle, items: [] });
@@ -115,7 +114,8 @@ export async function GET(req: NextRequest) {
 
       sectionsMap.get(secId)!.items.push({
         id,
-        label: String(q.text || q.name || "名称未設定"),
+        label: String(q.text ?? q.name ?? "名称未設定"),
+        category: String(q.category ?? ""),  // [追加] QSC_MasterTable の category フィールド
         state: "unset",
         note: "",
         holdNote: "",
@@ -125,12 +125,13 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      storeName: String(storeMeta.name || ""),
+      storeName: String(storeMeta.name ?? ""),
       assetId,
       questions: Array.from(sectionsMap.values()),
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Unknown error";
     console.error("GET error:", e);
-    return NextResponse.json({ error: e.message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

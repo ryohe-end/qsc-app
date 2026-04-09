@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Sparkles,
   Search,
+  Loader2,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +47,7 @@ type ResultHistoryItem = {
   storeName: string;
   submittedAt: string;
   status: string;
+  userName: string; // [追加]
 };
 
 /* =========================
@@ -74,9 +76,8 @@ function todayParts() {
   };
 }
 
-function formatResultDate(value?: string) {
-  if (!value) return "日時不明";
-
+// [修正] submittedAt は string (非 optional) なので引数の型を合わせる
+function formatResultDate(value: string) {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return value;
 
@@ -91,6 +92,15 @@ function formatResultDate(value?: string) {
 
 function normalizeStoreId(id?: string) {
   return String(id ?? "").replace(/^STORE#/, "");
+}
+
+function formatStatus(status: string): string {
+  const map: Record<string, string> = {
+    done: "完了",
+    draft: "途中保存",
+    pending: "途中保存",
+  };
+  return map[status] ?? status;
 }
 
 /* =========================
@@ -120,74 +130,73 @@ export default function CheckPage() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [resultHistory, setResultHistory] = useState<ResultHistoryItem[]>([]);
 
-  // 初期データ取得
-  useEffect(() => {
-  async function init() {
-    try {
-      setLoadingStores(true);
-
-      const [resM, resD] = await Promise.all([
-        fetch("/api/check/stores", { cache: "no-store" }),
-        fetch("/api/check/results/summary", { cache: "no-store" }),
-      ]);
-
-      if (!resM.ok) {
-        throw new Error(`stores API error: ${resM.status}`);
-      }
-      if (!resD.ok) {
-        throw new Error(`summary API error: ${resD.status}`);
-      }
-
-      const m = await resM.json();
-      const d = await resD.json();
-
-      const stores = Array.isArray(m?.items)
-        ? m.items
-        : Array.isArray(m)
-        ? m
-        : [];
-
-      setStoreMaster(stores);
-
-      const normalizedDoneIds = (Array.isArray(d?.doneStoreIds) ? d.doneStoreIds : [])
-        .map((id: string) => String(id).replace(/^STORE#/, ""))
-        .filter(Boolean);
-
-      setDoneStoreIds(normalizedDoneIds);
-    } catch (error) {
-      console.error(error);
-      setStoreMaster([]);
-      setDoneStoreIds([]);
-    } finally {
-      setLoadingStores(false);
-    }
-  }
-
-  init();
-}, []);
-
-  // localStorage の draft 読み込み
-  useEffect(() => {
+  // [修正] localStorage の draft を読み込むロジックを関数化して再利用可能にする
+  const loadDraftStoreIds = useCallback(() => {
     if (typeof window === "undefined") return;
-
     const keys = Object.keys(localStorage)
       .filter((k) => k.startsWith("qsc_draft_"))
       .map((k) => k.replace("qsc_draft_", ""));
-
     setDraftStoreIds(keys);
   }, []);
 
-  const getDynamicStatus = (id?: string): StoreStatus => {
-  const cleanId = String(id ?? "").replace(/^STORE#/, "");
-  if (!cleanId) return "new";
+  // 初期データ取得
+  useEffect(() => {
+    async function init() {
+      try {
+        setLoadingStores(true);
 
-  const isDone = doneStoreIds.includes(cleanId);
-  const isDraft = draftStoreIds.includes(cleanId);
+        const [resM, resD] = await Promise.all([
+          fetch("/api/check/stores", { cache: "no-store" }),
+          fetch("/api/check/results/summary", { cache: "no-store" }),
+        ]);
 
-  if (isDone) return "done";
-  if (isDraft) return "draft";
-  return "new";
-};
+        if (!resM.ok) throw new Error(`stores API error: ${resM.status}`);
+        if (!resD.ok) throw new Error(`summary API error: ${resD.status}`);
+
+        const m = await resM.json();
+        const d = await resD.json();
+
+        const stores = Array.isArray(m?.items) ? m.items : Array.isArray(m) ? m : [];
+        setStoreMaster(stores);
+
+        const normalizedDoneIds = (Array.isArray(d?.doneStoreIds) ? d.doneStoreIds : [])
+          .map((id: string) => String(id).replace(/^STORE#/, ""))
+          .filter(Boolean);
+        setDoneStoreIds(normalizedDoneIds);
+      } catch (error) {
+        console.error(error);
+        setStoreMaster([]);
+        setDoneStoreIds([]);
+      } finally {
+        setLoadingStores(false);
+      }
+    }
+
+    init();
+  }, []);
+
+  // [修正] 初回マウント時の localStorage 読み込み
+  useEffect(() => {
+    loadDraftStoreIds();
+  }, [loadDraftStoreIds]);
+
+  // [修正] ページにフォーカスが戻ったとき（他画面でドラフト保存後など）に再読み込み
+  useEffect(() => {
+    window.addEventListener("focus", loadDraftStoreIds);
+    return () => window.removeEventListener("focus", loadDraftStoreIds);
+  }, [loadDraftStoreIds]);
+
+  // [修正] useCallback でメモ化し、依存配列を明示する
+  const getDynamicStatus = useCallback(
+    (id?: string): StoreStatus => {
+      const cleanId = String(id ?? "").replace(/^STORE#/, "");
+      if (!cleanId) return "new";
+      if (doneStoreIds.includes(cleanId)) return "done";
+      if (draftStoreIds.includes(cleanId)) return "draft";
+      return "new";
+    },
+    [doneStoreIds, draftStoreIds]
+  );
 
   const companies = useMemo(() => {
     return uniqBy(storeMaster, (r) => r.companyId).map((r) => ({
@@ -236,53 +245,52 @@ export default function CheckPage() {
   }, [brandScopedRows]);
 
   const storeList = useMemo(() => {
-  if (!Array.isArray(storeMaster)) return [];
+    if (!Array.isArray(storeMaster)) return [];
 
-  const k = storeQuery.trim().toLowerCase();
+    const k = storeQuery.trim().toLowerCase();
 
-  return storeMaster
-    .map((s) => {
-      const normalizedStoreId = String(s.storeId ?? "").replace(/^STORE#/, "");
-      return {
-        ...s,
-        storeId: normalizedStoreId,
-        status: getDynamicStatus(normalizedStoreId),
-      };
-    })
-    .filter((r) => {
-      if (statusFilters.length > 0 && !statusFilters.includes(r.status)) return false;
-      if (companyId && r.companyId !== companyId) return false;
-      if (bizIds.length > 0 && !bizIds.includes(r.bizId)) return false;
-      if (brandIds.length > 0 && !brandIds.includes(r.brandId)) return false;
-      if (areaIds.length > 0 && !areaIds.includes(r.areaId)) return false;
+    return storeMaster
+      .map((s) => {
+        const normalizedStoreId = String(s.storeId ?? "").replace(/^STORE#/, "");
+        return {
+          ...s,
+          storeId: normalizedStoreId,
+          status: getDynamicStatus(normalizedStoreId),
+        };
+      })
+      .filter((r) => {
+        if (statusFilters.length > 0 && !statusFilters.includes(r.status)) return false;
+        if (companyId && r.companyId !== companyId) return false;
+        if (bizIds.length > 0 && !bizIds.includes(r.bizId)) return false;
+        if (brandIds.length > 0 && !brandIds.includes(r.brandId)) return false;
+        if (areaIds.length > 0 && !areaIds.includes(r.areaId)) return false;
 
-      if (k) {
-        const target = `${r.storeName} ${r.storeId} ${r.brandName} ${r.areaName}`.toLowerCase();
-        if (!target.includes(k)) return false;
-      }
+        if (k) {
+          const target = `${r.storeName} ${r.storeId} ${r.brandName} ${r.areaName}`.toLowerCase();
+          if (!target.includes(k)) return false;
+        }
 
-      return true;
-    })
-    .sort((a, b) => (a.storeName || "").localeCompare(b.storeName || "", "ja"));
-}, [
-  storeMaster,
-  doneStoreIds,
-  draftStoreIds,
-  companyId,
-  bizIds,
-  brandIds,
-  areaIds,
-  statusFilters,
-  storeQuery,
-]);
+        return true;
+      })
+      .sort((a, b) => (a.storeName || "").localeCompare(b.storeName || "", "ja"));
+  }, [
+    storeMaster,
+    getDynamicStatus, // [修正] useCallback化したので依存配列に追加（doneStoreIds/draftStoreIdsの変化を捕捉）
+    companyId,
+    bizIds,
+    brandIds,
+    areaIds,
+    statusFilters,
+    storeQuery,
+  ]);
 
   const selectedStore = useMemo(() => {
     return storeList.find((s) => s.storeId === selectedStoreId) || null;
   }, [selectedStoreId, storeList]);
 
+  // [修正] 不使用だった第2引数 `_list` を削除
   const toggleMultiValue = (
     value: string,
-    _list: string[],
     setList: React.Dispatch<React.SetStateAction<string[]>>
   ) => {
     setList((prev) =>
@@ -305,26 +313,36 @@ export default function CheckPage() {
     setStoreQuery("");
   };
 
-  async function openHistoryModal(storeId: string) {
-    try {
-      setLoadingHistory(true);
-      setResultHistory([]);
+  // [修正] モーダルを閉じるときに選択状態もリセット
+  const closeDoneModal = () => {
+    setIsDoneModalOpen(false);
+    setSelectedStoreId("");
+  };
 
+  const closeHistoryModal = () => {
+    setIsHistoryModalOpen(false);
+    setSelectedStoreId("");
+  };
+
+  async function openHistoryModal(storeId: string) {
+    // [修正] 先にモーダルを開いてローディング表示→フリーズ感を解消
+    setLoadingHistory(true);
+    setResultHistory([]);
+    setIsHistoryModalOpen(true);
+
+    try {
       const res = await fetch(
         `/api/check/results/history?storeId=${encodeURIComponent(storeId)}`,
         { cache: "no-store" }
       );
 
-      if (!res.ok) {
-        throw new Error(`history API error: ${res.status}`);
-      }
+      if (!res.ok) throw new Error(`history API error: ${res.status}`);
 
       const data = await res.json();
       setResultHistory(Array.isArray(data?.items) ? data.items : []);
-      setIsHistoryModalOpen(true);
     } catch (error) {
       console.error(error);
-      alert("過去の点検履歴の取得に失敗しました。");
+      setResultHistory([]);
     } finally {
       setLoadingHistory(false);
     }
@@ -676,7 +694,39 @@ export default function CheckPage() {
                   </div>
                 </div>
 
-                <ChevronRight size={18} color="#cbd5e1" />
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  {s.status === "done" && (
+                    <span
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: "8px",
+                        background: "#d1fae5",
+                        color: "#059669",
+                        fontSize: "12px",
+                        fontWeight: 900,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      完了
+                    </span>
+                  )}
+                  {s.status === "draft" && (
+                    <span
+                      style={{
+                        padding: "4px 10px",
+                        borderRadius: "8px",
+                        background: "#ffedd5",
+                        color: "#d97706",
+                        fontSize: "12px",
+                        fontWeight: 900,
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      途中
+                    </span>
+                  )}
+                  <ChevronRight size={18} color="#cbd5e1" />
+                </div>
               </button>
             ))}
           </div>
@@ -695,7 +745,7 @@ export default function CheckPage() {
             display: "flex",
             alignItems: "flex-end",
           }}
-          onClick={() => setIsDoneModalOpen(false)}
+          onClick={closeDoneModal}
         >
           <div
             style={{
@@ -719,6 +769,7 @@ export default function CheckPage() {
             <div style={{ display: "grid", gap: "12px" }}>
               <button
                 onClick={() => onRunAction("edit")}
+                disabled={loadingHistory}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -726,13 +777,20 @@ export default function CheckPage() {
                   padding: "22px",
                   borderRadius: "22px",
                   border: "1px solid #e2e8f0",
-                  background: "#fff",
+                  background: loadingHistory ? "#f8fafc" : "#fff",
                   textAlign: "left",
+                  opacity: loadingHistory ? 0.7 : 1,
+                  transition: "0.15s",
                 }}
               >
-                <RotateCcw size={24} color="#6366f1" />
+                {loadingHistory
+                  ? <Loader2 size={24} color="#94a3b8" style={{ animation: "spin 1s linear infinite" }} />
+                  : <RotateCcw size={24} color="#6366f1" />
+                }
                 <div>
-                  <div style={{ fontSize: "16px", fontWeight: 900 }}>前回の内容を修正</div>
+                  <div style={{ fontSize: "16px", fontWeight: 900 }}>
+                    {loadingHistory ? "履歴を読み込み中..." : "前回の内容を修正"}
+                  </div>
                   <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>
                     点検履歴から修正対象を選択
                   </div>
@@ -762,8 +820,9 @@ export default function CheckPage() {
               </button>
             </div>
 
+            {/* [修正] closeDoneModal で選択状態もリセット */}
             <button
-              onClick={() => setIsDoneModalOpen(false)}
+              onClick={closeDoneModal}
               style={{
                 width: "100%",
                 marginTop: "24px",
@@ -793,7 +852,7 @@ export default function CheckPage() {
             display: "flex",
             alignItems: "flex-end",
           }}
-          onClick={() => setIsHistoryModalOpen(false)}
+          onClick={closeHistoryModal}
         >
           <div
             style={{
@@ -849,51 +908,80 @@ export default function CheckPage() {
               </div>
             ) : (
               <div style={{ display: "grid", gap: "12px" }}>
-                {resultHistory.map((item) => (
-                  <button
-                    key={item.resultId}
-                    onClick={() => onSelectHistory(item)}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "space-between",
-                      gap: "12px",
-                      padding: "18px 20px",
-                      borderRadius: "20px",
-                      border: "1px solid #e2e8f0",
-                      background: "#fff",
-                      textAlign: "left",
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          fontSize: "16px",
-                          fontWeight: 900,
-                          color: "#1e293b",
-                        }}
-                      >
-                        {formatResultDate(item.submittedAt)}
+                {resultHistory.map((item) => {
+                  const isDone = item.status === "done";
+                  return (
+                    <button
+                      key={item.resultId}
+                      onClick={() => onSelectHistory(item)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                        gap: "12px",
+                        padding: "18px 20px",
+                        borderRadius: "20px",
+                        border: "1px solid #e2e8f0",
+                        background: "#fff",
+                        textAlign: "left",
+                      }}
+                    >
+                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                        {/* ステータスアイコン */}
+                        <div
+                          style={{
+                            width: "40px",
+                            height: "40px",
+                            borderRadius: "12px",
+                            background: isDone ? "#d1fae5" : "#ffedd5",
+                            display: "grid",
+                            placeItems: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          {isDone
+                            ? <CheckCircle2 size={20} color="#10b981" />
+                            : <PauseCircle size={20} color="#f59e0b" />
+                          }
+                        </div>
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <div style={{ fontSize: "15px", fontWeight: 900, color: "#1e293b" }}>
+                              {formatResultDate(item.submittedAt)}
+                            </div>
+                          </div>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px", flexWrap: "wrap" }}>
+                            <span
+                              style={{
+                                display: "inline-block",
+                                padding: "2px 8px",
+                                borderRadius: "6px",
+                                fontSize: "11px",
+                                fontWeight: 900,
+                                background: isDone ? "#d1fae5" : "#ffedd5",
+                                color: isDone ? "#059669" : "#d97706",
+                              }}
+                            >
+                              {formatStatus(item.status)}
+                            </span>
+                            {item.userName && (
+                              <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8" }}>
+                                {item.userName}
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 700,
-                          color: "#94a3b8",
-                          marginTop: "4px",
-                        }}
-                      >
-                        {item.status}
-                      </div>
-                    </div>
-                    <ChevronRight size={18} color="#cbd5e1" />
-                  </button>
-                ))}
+                      <ChevronRight size={18} color="#cbd5e1" />
+                    </button>
+                  );
+                })}
               </div>
             )}
 
+            {/* [修正] closeHistoryModal で選択状態もリセット */}
             <button
-              onClick={() => setIsHistoryModalOpen(false)}
+              onClick={closeHistoryModal}
               style={{
                 width: "100%",
                 marginTop: "24px",
@@ -1096,7 +1184,8 @@ export default function CheckPage() {
                   {bizOptions.map((o) => (
                     <button
                       key={o.bizId}
-                      onClick={() => toggleMultiValue(o.bizId, bizIds, setBizIds)}
+                      // [修正] 第2引数 (_list) を削除した toggleMultiValue に合わせる
+                      onClick={() => toggleMultiValue(o.bizId, setBizIds)}
                       style={{
                         padding: "12px 18px",
                         borderRadius: "14px",
@@ -1131,7 +1220,7 @@ export default function CheckPage() {
                   {brandOptions.map((o) => (
                     <button
                       key={o.brandId}
-                      onClick={() => toggleMultiValue(o.brandId, brandIds, setBrandIds)}
+                      onClick={() => toggleMultiValue(o.brandId, setBrandIds)}
                       style={{
                         padding: "12px 18px",
                         borderRadius: "14px",
@@ -1166,7 +1255,7 @@ export default function CheckPage() {
                   {areaOptions.map((o) => (
                     <button
                       key={o.areaId}
-                      onClick={() => toggleMultiValue(o.areaId, areaIds, setAreaIds)}
+                      onClick={() => toggleMultiValue(o.areaId, setAreaIds)}
                       style={{
                         padding: "12px 18px",
                         borderRadius: "14px",
@@ -1251,12 +1340,12 @@ export default function CheckPage() {
 
       <style jsx global>{`
         @keyframes slideUp {
-          from {
-            transform: translateY(100%);
-          }
-          to {
-            transform: translateY(0);
-          }
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
+        }
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
       `}</style>
     </div>
