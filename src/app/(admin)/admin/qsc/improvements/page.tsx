@@ -250,35 +250,6 @@ export default function ImprovementReportsPage() {
     }
   }, [detailIssue]);
 
-  // 一括承認
-  const handleBulkApprove = useCallback(() => {
-    const targets = filteredIssues.filter(i =>
-      selectedIds.has(i.id) &&
-      (i.correctionStatus === "submitted" || i.correctionStatus === "reviewing")
-    );
-    if (targets.length === 0) {
-      setSheet({ open: true, title: "対象なし", message: "承認可能な項目が選択されていません（報告済み・確認中のみ承認できます）", cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
-      return;
-    }
-    setSheet({
-      open: true,
-      title: `${targets.length}件をまとめて承認`,
-      message: "選択した改善報告をまとめて承認しますか？",
-      primaryText: `${targets.length}件承認する`,
-      cancelText: "キャンセル",
-      onPrimary: async () => {
-        setSheet({ open: false });
-        let success = 0;
-        for (const issue of targets) {
-          try { await patchStatus(issue, "approved"); success++; } catch (e) { console.error(e); }
-        }
-        setSelectedIds(new Set());
-        setSheet({ open: true, title: "完了", message: `${success}件承認しました${success < targets.length ? `（${targets.length - success}件失敗）` : ""}`, cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
-      },
-      onCancel: () => setSheet({ open: false }),
-    });
-  }, [filteredIssues, selectedIds, patchStatus]);
-
   const handleApprove = useCallback((issue: NgIssue) => {
     setSheet({
       open: true, title: "承認する", message: "この改善報告を承認しますか？",
@@ -322,6 +293,35 @@ export default function ImprovementReportsPage() {
     issues.reduce((acc, i) => { acc[i.correctionStatus] = (acc[i.correctionStatus] ?? 0) + 1; return acc; }, {} as Record<string, number>),
     [issues]
   );
+
+  // 一括承認（filteredIssues の後に宣言）
+  const handleBulkApprove = useCallback(() => {
+    const targets = filteredIssues.filter(i =>
+      selectedIds.has(i.id) &&
+      (i.correctionStatus === "submitted" || i.correctionStatus === "reviewing")
+    );
+    if (targets.length === 0) {
+      setSheet({ open: true, title: "対象なし", message: "承認可能な項目が選択されていません（報告済み・確認中のみ承認できます）", cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
+      return;
+    }
+    setSheet({
+      open: true,
+      title: `${targets.length}件をまとめて承認`,
+      message: "選択した改善報告をまとめて承認しますか？",
+      primaryText: `${targets.length}件承認する`,
+      cancelText: "キャンセル",
+      onPrimary: async () => {
+        setSheet({ open: false });
+        let success = 0;
+        for (const issue of targets) {
+          try { await patchStatus(issue, "approved"); success++; } catch (e) { console.error(e); }
+        }
+        setSelectedIds(new Set());
+        setSheet({ open: true, title: "完了", message: `${success}件承認しました${success < targets.length ? `（${targets.length - success}件失敗）` : ""}`, cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
+      },
+      onCancel: () => setSheet({ open: false }),
+    });
+  }, [filteredIssues, selectedIds, patchStatus]);
 
   /* ========== 店舗一覧 ========== */
   if (!selectedStore) {
