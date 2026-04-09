@@ -593,3 +593,4 @@ export default function ResultsPage() {
   // 管理者 → 全店舗一覧
   return <AdminDashboardView onSelect={setSelectedStore} />;
 }
+
