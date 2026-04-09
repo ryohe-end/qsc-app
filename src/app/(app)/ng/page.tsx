@@ -230,7 +230,7 @@ function IssueCard({
   isBulkSubmitting,
 }: {
   issue: NgIssue; isAdmin: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement>;
+  fileInputRef: React.RefObject<HTMLInputElement | null>;
   onUpdateIssue: (id: string, patch: Partial<NgIssue>) => void;
   onSubmit: (id: string) => void;
   onApprove: (id: string) => void;
