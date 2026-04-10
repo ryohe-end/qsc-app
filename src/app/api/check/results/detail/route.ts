@@ -1,14 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const client = new DynamoDBClient({
   region: process.env.AWS_REGION || "us-east-1",
 });
-
 const ddb = DynamoDBDocumentClient.from(client);
 
+const s3 = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
+const BUCKET = process.env.QSC_PHOTOS_BUCKET || "qsc-check-photos-prod";
+
 const TABLE_NAME = process.env.QSC_CHECK_RESULTS_TABLE || "QSC_CheckResults";
+
+type PhotoRecord = {
+  id: string;
+  key?: string;
+  url?: string;
+  dataUrl?: string;
+  contentType?: string;
+};
+
+/* S3キーからPresigned URLを生成（1時間有効） */
+async function presignPhoto(photo: PhotoRecord): Promise<PhotoRecord> {
+  if (!photo.key) return photo;
+  try {
+    const url = await getSignedUrl(
+      s3,
+      new GetObjectCommand({ Bucket: BUCKET, Key: photo.key }),
+      { expiresIn: 3600 }
+    );
+    return { ...photo, url, dataUrl: url };
+  } catch (e) {
+    console.error("presign failed", photo.key, e);
+    return photo;
+  }
+}
+
+/* sections内の全写真にPresigned URLを付与 */
+async function presignSections(sections: unknown[]): Promise<unknown[]> {
+  return Promise.all(
+    sections.map(async (sec: unknown) => {
+      const s = sec as { items?: unknown[] };
+      if (!Array.isArray(s.items)) return sec;
+      const items = await Promise.all(
+        s.items.map(async (it: unknown) => {
+          const item = it as { photos?: PhotoRecord[] };
+          if (!Array.isArray(item.photos) || item.photos.length === 0) return it;
+          const photos = await Promise.all(item.photos.map(presignPhoto));
+          return { ...item, photos };
+        })
+      );
+      return { ...s, items };
+    })
+  );
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -25,15 +72,11 @@ export async function GET(req: NextRequest) {
 
     const pk = `STORE#${storeId}`;
 
-    // PK で絞り込んで全件取得し、resultId が一致するものを探す
-    // （SK が RESULT#<ISO日時> の形式のため、resultId での直接クエリは不可）
     const result = await ddb.send(
       new QueryCommand({
         TableName: TABLE_NAME,
         KeyConditionExpression: "PK = :pk",
-        ExpressionAttributeValues: {
-          ":pk": pk,
-        },
+        ExpressionAttributeValues: { ":pk": pk },
         ScanIndexForward: false,
       })
     );
@@ -43,11 +86,13 @@ export async function GET(req: NextRequest) {
     );
 
     if (!item) {
-      return NextResponse.json(
-        { message: "result not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ message: "result not found" }, { status: 404 });
     }
+
+    // 写真にPresigned URLを付与
+    const sections = Array.isArray(item.sections)
+      ? await presignSections(item.sections)
+      : [];
 
     return NextResponse.json({
       resultId: item.resultId ?? "",
@@ -55,7 +100,7 @@ export async function GET(req: NextRequest) {
       storeName: item.storeName ?? "",
       status: item.status ?? "",
       submittedAt: item.submittedAt ?? item.createdAt ?? "",
-      sections: item.sections ?? [],
+      sections,
       summary: item.summary ?? null,
     });
   } catch (error) {

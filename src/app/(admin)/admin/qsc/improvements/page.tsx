@@ -229,7 +229,7 @@ export default function ImprovementReportsPage() {
   const patchStatus = useCallback(async (
     issue: NgIssue, correctionStatus: CorrectionStatus, reviewNote?: string
   ) => {
-    const res = await fetch("/api/check/results/update-correction-status", {
+    const res = await fetch("/api/check/results/update", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

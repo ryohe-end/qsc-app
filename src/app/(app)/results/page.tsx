@@ -1,43 +1,23 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
-  ChevronLeft,
-  ChevronRight,
-  TrendingUp,
-  AlertTriangle,
-  Calendar,
-  UserCheck,
-  BarChart3,
-  Search,
-  Trophy,
-  Loader2,
-  Medal,
-  XCircle,
-  PauseCircle,
+  ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
+  TrendingUp, AlertTriangle, Calendar, UserCheck,
+  BarChart3, Search, Loader2, CheckCircle2, XCircle,
+  PauseCircle, MinusCircle,
 } from "lucide-react";
 import { useSession } from "@/app/(app)/lib/auth";
 
-export const dynamic = "force-dynamic";
-
 /* ========================= Types ========================= */
-type RankRow = {
-  storeId: string;
-  storeName: string;
-  totalScore: number;
-  q_score?: number | null;
-  s_score?: number | null;
-  c_score?: number | null;
-  inspectionDate?: string;
-  userName?: string;
-};
-
 type HistoryItem = {
   resultId: string;
+  storeId: string;
   storeName: string;
   submittedAt: string;
-  status: string;
   userName?: string;
   summary?: {
     point?: number;
@@ -45,40 +25,40 @@ type HistoryItem = {
     ng?: number;
     hold?: number;
     inspectionDate?: string;
+    categoryScores?: Record<string, { ok: number; maxScore: number; point: number }>;
   };
 };
 
-type NgItem = {
+type DetailItem = {
   id: string;
   label: string;
-  note: string;
-  sectionTitle: string;
+  state: "ok" | "ng" | "hold" | "na";
+  note?: string;
   category?: string;
 };
 
-/* ========================= Helpers ========================= */
-function getCurrentQuarter(): { quarter: number; fiscalYear: number } {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const year = now.getFullYear();
-  if (month >= 4 && month <= 6)  return { quarter: 1, fiscalYear: year };
-  if (month >= 7 && month <= 9)  return { quarter: 2, fiscalYear: year };
-  if (month >= 10 && month <= 12) return { quarter: 3, fiscalYear: year };
-  return { quarter: 4, fiscalYear: year - 1 };
-}
+type DetailSection = {
+  title: string;
+  items: DetailItem[];
+};
 
+type DetailResult = {
+  sections: DetailSection[];
+  summary?: {
+    point?: number;
+    categoryScores?: Record<string, { ok: number; maxScore: number; point: number }>;
+  };
+  storeName?: string;
+  userName?: string;
+  submittedAt?: string;
+};
+
+/* ========================= Helpers ========================= */
 function scoreColor(score: number) {
   if (score >= 90) return "#059669";
   if (score >= 70) return "#2563eb";
   if (score >= 50) return "#d97706";
   return "#dc2626";
-}
-
-function medalColor(idx: number) {
-  if (idx === 0) return "#f59e0b";
-  if (idx === 1) return "#94a3b8";
-  if (idx === 2) return "#b45309";
-  return "#e2e8f0";
 }
 
 function formatDate(iso?: string) {
@@ -88,440 +68,283 @@ function formatDate(iso?: string) {
   return `${d.getFullYear()}/${String(d.getMonth() + 1).padStart(2, "0")}/${String(d.getDate()).padStart(2, "0")}`;
 }
 
-const QUARTER_LABELS: Record<number, string> = {
-  1: "Q1  4〜6月",
-  2: "Q2  7〜9月",
-  3: "Q3 10〜12月",
-  4: "Q4  1〜3月",
+function normalizeCategory(v?: string) {
+  if (!v) return "";
+  return v.normalize("NFKC").trim().toUpperCase();
+}
+
+const STATE_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
+  ok:   { label: "OK",   color: "#059669", bg: "#f0fdf4", icon: <CheckCircle2 size={14} color="#059669" /> },
+  ng:   { label: "NG",   color: "#dc2626", bg: "#fef2f2", icon: <XCircle size={14} color="#dc2626" /> },
+  hold: { label: "保留", color: "#d97706", bg: "#fffbeb", icon: <PauseCircle size={14} color="#d97706" /> },
+  na:   { label: "N/A",  color: "#94a3b8", bg: "#f8fafc", icon: <MinusCircle size={14} color="#94a3b8" /> },
 };
 
+const CAT_TABS = [
+  { key: "Q" as const, label: "Quality（品質）",     color: "#0ea5e9", bg: "#f0f9ff" },
+  { key: "S" as const, label: "Service（接客）",     color: "#10b981", bg: "#f0fdf4" },
+  { key: "C" as const, label: "Cleanliness（清潔）", color: "#f59e0b", bg: "#fffbeb" },
+];
+
 /* ========================= ScoreRing ========================= */
-function ScoreRing({ score, size = 80 }: { score: number; size?: number }) {
+function ScoreRing({ score, size = 72 }: { score: number; size?: number }) {
   const r = size * 0.4;
-  const circumference = 2 * Math.PI * r;
-  const color = scoreColor(score);
+  const c = 2 * Math.PI * r;
   return (
-    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)" }}>
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={size * 0.08} />
-      <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={size * 0.08}
-        strokeDasharray={circumference}
-        strokeDashoffset={circumference * (1 - score / 100)}
-        strokeLinecap="round"
-        style={{ transition: "stroke-dashoffset 0.8s cubic-bezier(0.16,1,0.3,1)" }}
-      />
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)", flexShrink: 0 }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.15)" strokeWidth={size*0.09} />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={scoreColor(score)} strokeWidth={size*0.09}
+        strokeDasharray={c} strokeDashoffset={c * (1 - score / 100)}
+        strokeLinecap="round" style={{ transition: "stroke-dashoffset 0.8s ease" }} />
     </svg>
   );
 }
 
-/* ========================= Store Detail View ========================= */
-function StoreDetailView({
-  storeId,
-  storeName,
-  score,
-  onBack,
-}: {
-  storeId: string;
-  storeName: string;
-  score: RankRow;
-  onBack?: () => void;
+/* ========================= DetailPage ========================= */
+function DetailPage({ storeId, resultId, storeName, onBack }: {
+  storeId: string; resultId: string; storeName: string; onBack: () => void;
 }) {
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [ngItems, setNgItems] = useState<NgItem[]>([]);
-  const [loadingHistory, setLoadingHistory] = useState(true);
-  const [loadingNg, setLoadingNg] = useState(false);
+  const [detail, setDetail] = useState<DetailResult | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<"Q" | "S" | "C">("Q");
+  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
-  // 点検履歴を取得
   useEffect(() => {
-    if (!storeId) return;
-    fetch(`/api/check/results/history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" })
-      .then(r => r.ok ? r.json() : { items: [] })
-      .then(data => setHistory(Array.isArray(data?.items) ? data.items : []))
-      .catch(console.error)
-      .finally(() => setLoadingHistory(false));
-  }, [storeId]);
-
-  // 最新結果のNG項目を取得
-  useEffect(() => {
-    if (!history.length) return;
-    const latest = history[0];
-    if (!latest?.resultId) return;
-    setLoadingNg(true);
-    fetch(`/api/check/results/detail?storeId=${encodeURIComponent(storeId)}&resultId=${encodeURIComponent(latest.resultId)}`, { cache: "no-store" })
+    fetch(`/api/check/results/detail?storeId=${encodeURIComponent(storeId)}&resultId=${encodeURIComponent(resultId)}`, { cache: "no-store" })
       .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (!data?.sections) return;
-        const ngs: NgItem[] = [];
-        for (const sec of data.sections) {
-          for (const item of sec.items ?? []) {
-            if (item.state === "ng") {
-              ngs.push({ id: item.id, label: item.label, note: item.note || "", sectionTitle: sec.title, category: item.category });
-            }
-          }
-        }
-        setNgItems(ngs);
-      })
+      .then(data => setDetail(data))
       .catch(console.error)
-      .finally(() => setLoadingNg(false));
-  }, [history, storeId]);
+      .finally(() => setLoading(false));
+  }, [storeId, resultId]);
 
-  const totalSc = score.totalScore;
-  const color = scoreColor(totalSc);
+  const toggleSection = (title: string) => {
+    setExpandedSections(prev => {
+      const next = new Set(prev);
+      next.has(title) ? next.delete(title) : next.add(title);
+      return next;
+    });
+  };
+
+  // カテゴリ別にセクションをグループ化
+  const categorizedSections = useMemo(() => {
+    if (!detail?.sections) return { Q: [], S: [], C: [] } as Record<string, DetailSection[]>;
+    const result: Record<string, DetailSection[]> = { Q: [], S: [], C: [] };
+    for (const sec of detail.sections) {
+      const cats = new Set(sec.items.map(i => normalizeCategory(i.category)).filter(Boolean));
+      if (cats.has("S")) result["S"].push(sec);
+      else if (cats.has("C")) result["C"].push(sec);
+      else result["Q"].push(sec); // Q or 不明はQ
+    }
+    return result;
+  }, [detail]);
+
+  const catScores = detail?.summary?.categoryScores ?? {};
+  const totalScore = detail?.summary?.point ?? 0;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 80 }}>
       <style>{`
-        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
-        .rv-card { animation: fadeUp 0.3s ease both; border-radius: 24px; border: 1px solid #e2e8f0; background: #fff; overflow: hidden; }
-        .rv-card:nth-child(2) { animation-delay: 0.05s; }
-        .rv-card:nth-child(3) { animation-delay: 0.10s; }
-        .rv-card:nth-child(4) { animation-delay: 0.15s; }
+        @keyframes fadeUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+        @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+        .dt-sec:hover{background:#fafafa;}
       `}</style>
 
-      {/* 戻るボタン */}
-      {onBack ? (
-        <button onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 800, color: "#64748b", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-          <ChevronLeft size={18} /> 店舗一覧に戻る
-        </button>
-      ) : (
-        <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 800, color: "#64748b", textDecoration: "none" }}>
-          <ChevronLeft size={18} /> ホームへ
-        </Link>
-      )}
+      <button onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 800, color: "#64748b", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+        <ChevronLeft size={18} /> 一覧に戻る
+      </button>
 
-      {/* スコアヒーローカード */}
-      <div className="rv-card" style={{
-        background: "linear-gradient(135deg, #1e293b 0%, #334155 60%, #1e40af 100%)",
-        border: "none", color: "#fff", padding: "24px 20px",
-      }}>
-        <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>{storeName}</div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div>
-            <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em", marginBottom: 4 }}>TOTAL SCORE</div>
-            <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
-              <span style={{ fontSize: 64, fontWeight: 900, letterSpacing: "-3px", lineHeight: 1, color: "#fff" }}>{totalSc}</span>
-              <span style={{ fontSize: 20, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>点</span>
-            </div>
-          </div>
-          <div style={{ position: "relative", width: 80, height: 80 }}>
-            <ScoreRing score={totalSc} size={80} />
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 900, color: "#fff" }}>
-              {totalSc}%
-            </div>
-          </div>
+      {loading ? (
+        <div style={{ display: "flex", justifyContent: "center", padding: 48 }}>
+          <Loader2 size={28} style={{ animation: "spin 1s linear infinite", color: "#6366f1" }} />
         </div>
-
-        {/* Q/S/C */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 20 }}>
-          {([
-            { k: "Q", v: score.q_score, color: "#38bdf8" },
-            { k: "S", v: score.s_score, color: "#34d399" },
-            { k: "C", v: score.c_score, color: "#fbbf24" },
-          ] as const).map(item => (
-            <div key={item.k} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 14, padding: "10px 8px", textAlign: "center" }}>
-              <div style={{ fontSize: 11, fontWeight: 900, color: item.color, marginBottom: 2 }}>{item.k}</div>
-              <div style={{ fontSize: 22, fontWeight: 900, color: "#fff" }}>
-                {item.v !== null && item.v !== undefined ? item.v : "—"}
+      ) : !detail ? (
+        <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>データが見つかりません</div>
+      ) : <>
+        {/* ヒーローカード */}
+        <div style={{ background: "linear-gradient(135deg, #1e293b 0%, #334155 60%, #1e40af 100%)", borderRadius: 24, padding: 20, color: "#fff" }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>{storeName}</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>
+            {formatDate(detail.submittedAt)}{detail.userName ? ` · ${detail.userName}` : ""}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em", marginBottom: 4 }}>TOTAL SCORE</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
+                <span style={{ fontSize: 60, fontWeight: 900, letterSpacing: "-3px", lineHeight: 1 }}>{totalScore}</span>
+                <span style={{ fontSize: 18, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>点</span>
               </div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>点</div>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* QSCバー */}
-      <div className="rv-card" style={{ padding: "20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, fontSize: 14, fontWeight: 900, color: "#1e293b" }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: "#ede9fe", display: "grid", placeItems: "center" }}>
-            <BarChart3 size={15} color="#7c3aed" />
-          </div>
-          カテゴリ別スコア
-        </div>
-        {([
-          { label: "Q — Quality（品質）", v: score.q_score, color: "#0ea5e9", track: "#e0f2fe" },
-          { label: "S — Service（接客）", v: score.s_score, color: "#10b981", track: "#d1fae5" },
-          { label: "C — Cleanliness（清潔）", v: score.c_score, color: "#f59e0b", track: "#fef3c7" },
-        ] as const).map(item => (
-          <div key={item.label} style={{ marginBottom: 14 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 800, color: "#475569", marginBottom: 6 }}>
-              <span>{item.label}</span>
-              <span style={{ color: item.v !== null && item.v !== undefined ? item.color : "#94a3b8", fontWeight: 900 }}>
-                {item.v !== null && item.v !== undefined ? `${item.v}点` : "—"}
-              </span>
-            </div>
-            <div style={{ height: 10, borderRadius: 999, background: item.track, overflow: "hidden" }}>
-              <div style={{ height: "100%", width: `${item.v ?? 0}%`, borderRadius: 999, background: item.color, transition: "width 0.8s cubic-bezier(0.16,1,0.3,1)" }} />
+            <div style={{ position: "relative", width: 72, height: 72 }}>
+              <ScoreRing score={totalScore} size={72} />
+              <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#fff" }}>{totalScore}%</div>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* NG項目 */}
-      <div className="rv-card" style={{ padding: "20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, fontSize: 14, fontWeight: 900, color: "#1e293b" }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: "#fee2e2", display: "grid", placeItems: "center" }}>
-            <AlertTriangle size={15} color="#dc2626" />
-          </div>
-          改善が必要な項目
-          {ngItems.length > 0 && (
-            <span style={{ marginLeft: "auto", fontSize: 12, fontWeight: 900, padding: "2px 8px", borderRadius: 8, background: "#fee2e2", color: "#dc2626" }}>
-              {ngItems.length}件
-            </span>
-          )}
-        </div>
-        {loadingNg ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 16 }}>
-            <Loader2 size={20} style={{ animation: "spin 1s linear infinite", color: "#dc2626" }} />
-          </div>
-        ) : ngItems.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "16px 0", fontSize: 13, fontWeight: 700, color: "#059669" }}>
-            ✨ NG項目なし
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {ngItems.map((item, idx) => (
-              <div key={idx} style={{ borderRadius: 14, border: "1px solid #fee2e2", background: "#fff7f7", padding: "12px 14px" }}>
-                <div style={{ fontSize: 11, fontWeight: 800, color: "#94a3b8", marginBottom: 3 }}>
-                  {item.sectionTitle}{item.category ? ` · ${item.category}` : ""}
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#1e293b", lineHeight: 1.4, marginBottom: item.note ? 6 : 0 }}>
-                  {item.label}
-                </div>
-                {item.note && (
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "#dc2626", background: "#fee2e2", borderRadius: 8, padding: "6px 10px" }}>
-                    {item.note}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* 点検履歴 */}
-      <div className="rv-card" style={{ padding: "20px" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, fontSize: 14, fontWeight: 900, color: "#1e293b" }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: "#dbeafe", display: "grid", placeItems: "center" }}>
-            <TrendingUp size={15} color="#2563eb" />
-          </div>
-          点検履歴
-        </div>
-        {loadingHistory ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 16 }}>
-            <Loader2 size={20} style={{ animation: "spin 1s linear infinite", color: "#2563eb" }} />
-          </div>
-        ) : history.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "16px 0", fontSize: 13, fontWeight: 700, color: "#94a3b8" }}>
-            履歴がありません
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {history.slice(0, 6).map((h, idx) => {
-              const pt = h.summary?.point;
-              const inspDate = h.summary?.inspectionDate || formatDate(h.submittedAt);
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 16 }}>
+            {CAT_TABS.map(cat => {
+              const sc = catScores[cat.key];
               return (
-                <div key={h.resultId} style={{
-                  display: "flex", alignItems: "center", justifyContent: "space-between",
-                  padding: "12px 14px", borderRadius: 16,
-                  background: idx === 0 ? "#f8fafc" : "#fff",
-                  border: `1px solid ${idx === 0 ? "#e2e8f0" : "#f1f5f9"}`,
-                }}>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 14, fontWeight: 900, color: "#1e293b" }}>
-                      <Calendar size={13} color="#94a3b8" /> {inspDate}
-                      {idx === 0 && (
-                        <span style={{ fontSize: 10, fontWeight: 900, padding: "1px 6px", borderRadius: 5, background: "#1e293b", color: "#fff" }}>最新</span>
-                      )}
-                    </div>
-                    {h.userName && (
-                      <div style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600, marginTop: 2, paddingLeft: 19 }}>
-                        <UserCheck size={11} style={{ display: "inline", verticalAlign: "-1px", marginRight: 3 }} />
-                        {h.userName}
-                      </div>
-                    )}
-                  </div>
-                  {pt !== undefined ? (
-                    <div style={{ textAlign: "right" }}>
-                      <span style={{ fontSize: 22, fontWeight: 900, color: scoreColor(pt) }}>{pt}</span>
-                      <span style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8" }}>点</span>
-                    </div>
-                  ) : (
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8" }}>—</span>
-                  )}
+                <div key={cat.key} style={{ background: "rgba(255,255,255,0.08)", borderRadius: 14, padding: "10px 8px", textAlign: "center" }}>
+                  <div style={{ fontSize: 11, fontWeight: 900, color: cat.color, marginBottom: 2 }}>{cat.key}</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, color: "#fff" }}>{sc?.point ?? "—"}</div>
+                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", fontWeight: 700 }}>点</div>
                 </div>
               );
             })}
           </div>
-        )}
-      </div>
+        </div>
+
+        {/* カテゴリタブ */}
+        <div style={{ display: "flex", gap: 8 }}>
+          {CAT_TABS.map(cat => {
+            const pt = catScores[cat.key]?.point;
+            const isActive = activeCategory === cat.key;
+            return (
+              <button key={cat.key} onClick={() => setActiveCategory(cat.key)} style={{
+                flex: 1, padding: "10px 4px", borderRadius: 14, border: "1.5px solid",
+                borderColor: isActive ? cat.color : "#e2e8f0",
+                background: isActive ? cat.bg : "#fff",
+                color: isActive ? cat.color : "#94a3b8",
+                fontSize: 12, fontWeight: 900, cursor: "pointer", transition: "all 0.15s",
+              }}>
+                {cat.key}
+                {pt !== undefined && (
+                  <div style={{ fontSize: 16, fontWeight: 900, marginTop: 2 }}>{pt}<span style={{ fontSize: 10, fontWeight: 700 }}>点</span></div>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* セクション一覧（展開式） */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {(categorizedSections[activeCategory] ?? []).length === 0 ? (
+            <div style={{ textAlign: "center", padding: 24, color: "#94a3b8", fontSize: 13, fontWeight: 700, background: "#fff", borderRadius: 16, border: "1px solid #e2e8f0" }}>
+              このカテゴリのデータがありません
+            </div>
+          ) : (categorizedSections[activeCategory] ?? []).map(sec => {
+            const isExpanded = expandedSections.has(sec.title);
+            const ngCount = sec.items.filter(i => i.state === "ng").length;
+            const okCount = sec.items.filter(i => i.state === "ok").length;
+            const validCount = sec.items.filter(i => i.state !== "na").length;
+
+            return (
+              <div key={sec.title} style={{ borderRadius: 18, border: `1.5px solid ${ngCount > 0 ? "#fee2e2" : "#e2e8f0"}`, background: "#fff", overflow: "hidden" }}>
+                <button onClick={() => toggleSection(sec.title)} className="dt-sec"
+                  style={{ width: "100%", textAlign: "left", padding: "14px 16px", border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 12, transition: "background 0.15s" }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontSize: 14, fontWeight: 900, color: "#1e293b" }}>{sec.title}</div>
+                    <div style={{ display: "flex", gap: 10, marginTop: 4 }}>
+                      <span style={{ fontSize: 11, fontWeight: 800, color: "#059669" }}>OK {okCount}</span>
+                      {ngCount > 0 && <span style={{ fontSize: 11, fontWeight: 800, color: "#dc2626" }}>NG {ngCount}</span>}
+                      <span style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8" }}>全{validCount}問</span>
+                    </div>
+                  </div>
+                  {ngCount > 0 && (
+                    <span style={{ fontSize: 10, fontWeight: 900, padding: "3px 8px", borderRadius: 8, background: "#fee2e2", color: "#dc2626" }}>NG {ngCount}</span>
+                  )}
+                  {isExpanded ? <ChevronUp size={18} color="#94a3b8" /> : <ChevronDown size={18} color="#94a3b8" />}
+                </button>
+
+                {isExpanded && (
+                  <div style={{ borderTop: "1px solid #f1f5f9" }}>
+                    {sec.items.map((item, idx) => {
+                      const cfg = STATE_CONFIG[item.state] ?? STATE_CONFIG.na;
+                      return (
+                        <div key={item.id} style={{
+                          padding: "12px 16px",
+                          borderBottom: idx < sec.items.length - 1 ? "1px solid #f8fafc" : "none",
+                          background: item.state === "ng" ? "#fff7f7" : "#fff",
+                        }}>
+                          <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                            <div style={{ marginTop: 1, flexShrink: 0 }}>{cfg.icon}</div>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b", lineHeight: 1.4 }}>{item.label}</div>
+                              {item.note && item.state === "ng" && (
+                                <div style={{ marginTop: 6, fontSize: 12, fontWeight: 600, color: "#dc2626", background: "#fee2e2", borderRadius: 8, padding: "5px 10px" }}>
+                                  {item.note}
+                                </div>
+                              )}
+                            </div>
+                            <span style={{ fontSize: 11, fontWeight: 900, padding: "3px 8px", borderRadius: 8, background: cfg.bg, color: cfg.color, flexShrink: 0 }}>
+                              {cfg.label}
+                            </span>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </>}
     </div>
   );
 }
 
-/* ========================= Admin Dashboard View ========================= */
-function AdminDashboardView({
-  onSelect,
-}: {
-  onSelect: (row: RankRow) => void;
+/* ========================= ResultList ========================= */
+function ResultList({ items, onSelect, title, loading }: {
+  items: HistoryItem[]; onSelect: (item: HistoryItem) => void; title: string; loading: boolean;
 }) {
-  const { quarter: initQ, fiscalYear: initFY } = getCurrentQuarter();
-  const [selectedQuarter, setSelectedQuarter] = useState(initQ);
-  const [selectedFiscalYear] = useState(initFY);
-  const [allRows, setAllRows] = useState<RankRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
-
-  useEffect(() => {
-    setLoading(true);
-    fetch(`/api/ranking?quarter=${selectedQuarter}&fiscalYear=${selectedFiscalYear}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (!data) return;
-        // all から store ごとに最新1件を抽出してスコア降順
-        const byStore = new Map<string, RankRow>();
-        for (const row of (data.all as RankRow[]) ?? []) {
-          const existing = byStore.get(row.storeId);
-          if (!existing || (row.totalScore ?? 0) > (existing.totalScore ?? 0)) {
-            byStore.set(row.storeId, row);
-          }
-        }
-        const sorted = [...byStore.values()].sort((a, b) => b.totalScore - a.totalScore);
-        setAllRows(sorted);
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [selectedQuarter, selectedFiscalYear]);
-
   const filtered = useMemo(() =>
-    allRows.filter(r => r.storeName?.includes(q)),
-    [allRows, q]
+    items.filter(i => !q || i.storeName?.includes(q) || i.userName?.includes(q) || formatDate(i.submittedAt).includes(q)),
+    [items, q]
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 80 }}>
       <style>{`
-        @keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
-        @keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }
-        .rv-adm-card { animation: fadeUp 0.3s ease both; }
-        .rv-store-row:hover { background: #f8fafc !important; }
+        @keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+        .rl-row:hover{background:#f8fafc !important;}
       `}</style>
 
       <Link href="/" style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 800, color: "#64748b", textDecoration: "none" }}>
         <ChevronLeft size={18} /> ホームへ
       </Link>
 
-      {/* ヘッダー */}
-      <div className="rv-adm-card" style={{
-        background: "linear-gradient(135deg, #1e293b, #334155)",
-        borderRadius: 24, padding: "20px", color: "#fff",
-      }}>
+      <div style={{ background: "linear-gradient(135deg, #1e293b, #334155)", borderRadius: 24, padding: 20, color: "#fff" }}>
         <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em", marginBottom: 4 }}>RESULTS</div>
-        <div style={{ fontSize: 26, fontWeight: 900, lineHeight: 1.2 }}>全店舗 分析結果</div>
-        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 6, fontWeight: 600 }}>
-          {filtered.length} 店舗 · {QUARTER_LABELS[selectedQuarter]}
-        </div>
+        <div style={{ fontSize: 24, fontWeight: 900 }}>{title}</div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{filtered.length}件の点検結果</div>
       </div>
 
-      {/* クォーター選択 */}
-      <div style={{ display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 2 }}>
-        {([1, 2, 3, 4] as const).map(qt => (
-          <button key={qt} onClick={() => setSelectedQuarter(qt)} style={{
-            flexShrink: 0, padding: "7px 14px", borderRadius: 10,
-            fontSize: 12, fontWeight: 800, cursor: "pointer", border: "1.5px solid",
-            borderColor: selectedQuarter === qt ? "#1e293b" : "#e2e8f0",
-            background: selectedQuarter === qt ? "#1e293b" : "#fff",
-            color: selectedQuarter === qt ? "#fff" : "#64748b",
-            transition: "all 0.15s", whiteSpace: "nowrap",
-          }}>
-            {QUARTER_LABELS[qt]}
-          </button>
-        ))}
-      </div>
-
-      {/* 検索 */}
       <div style={{ position: "relative" }}>
-        <Search size={16} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
-        <input
-          placeholder="店舗名で検索…"
-          value={q}
-          onChange={e => setQ(e.target.value)}
-          style={{
-            width: "100%", boxSizing: "border-box", height: 48,
-            background: "#fff", border: "1px solid #e2e8f0", borderRadius: 16,
-            paddingLeft: 44, fontSize: 14, fontWeight: 700, outline: "none",
-          }}
-        />
+        <Search size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
+        <input placeholder="店舗名・検査員名で検索…" value={q} onChange={e => setQ(e.target.value)}
+          style={{ width: "100%", boxSizing: "border-box", height: 46, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, paddingLeft: 40, fontSize: 14, fontWeight: 700, outline: "none" }} />
       </div>
 
-      {/* 店舗リスト */}
-      <div style={{ background: "#fff", borderRadius: 24, border: "1px solid #e2e8f0", overflow: "hidden" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "14px 20px", borderBottom: "1px solid #f1f5f9" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 900, color: "#1e293b" }}>
-            <Trophy size={15} color="#ca8a04" /> ランキング順
-          </div>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8" }}>{filtered.length}店舗</span>
-        </div>
-
+      <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #e2e8f0", overflow: "hidden" }}>
         {loading ? (
-          <div style={{ display: "flex", justifyContent: "center", padding: 32 }}>
+          <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
             <Loader2 size={24} style={{ animation: "spin 1s linear infinite", color: "#6366f1" }} />
           </div>
         ) : filtered.length === 0 ? (
-          <div style={{ padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 13, fontWeight: 700 }}>
-            {q ? "該当する店舗がありません" : "このクォーターのデータがありません"}
-          </div>
-        ) : (
-          filtered.map((row, idx) => (
-            <button
-              key={row.storeId}
-              className="rv-store-row"
-              onClick={() => onSelect(row)}
-              style={{
-                width: "100%", textAlign: "left", padding: "14px 20px",
-                border: "none", borderBottom: idx < filtered.length - 1 ? "1px solid #f1f5f9" : "none",
-                background: "transparent", cursor: "pointer", display: "flex",
-                alignItems: "center", gap: 14, transition: "background 0.15s",
-              }}
-            >
-              {/* 順位 */}
-              <div style={{
-                width: 32, height: 32, borderRadius: "50%", flexShrink: 0,
-                background: idx < 3 ? medalColor(idx) : "#f1f5f9",
-                display: "grid", placeItems: "center",
-              }}>
-                {idx < 3 ? (
-                  <Medal size={14} color="#fff" />
-                ) : (
-                  <span style={{ fontSize: 12, fontWeight: 900, color: "#94a3b8" }}>{idx + 1}</span>
-                )}
+          <div style={{ padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 13, fontWeight: 700 }}>点検結果がありません</div>
+        ) : filtered.map((item, idx) => {
+          const pt = item.summary?.point;
+          const ng = item.summary?.ng ?? 0;
+          const inspDate = item.summary?.inspectionDate || formatDate(item.submittedAt);
+          return (
+            <button key={item.resultId} className="rl-row" onClick={() => onSelect(item)}
+              style={{ width: "100%", textAlign: "left", padding: "14px 18px", border: "none", borderBottom: idx < filtered.length - 1 ? "1px solid #f1f5f9" : "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 14, transition: "background 0.15s" }}>
+              <div style={{ width: 48, height: 48, borderRadius: "50%", background: pt !== undefined ? `${scoreColor(pt)}18` : "#f1f5f9", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                {pt !== undefined ? <span style={{ fontSize: 16, fontWeight: 900, color: scoreColor(pt) }}>{pt}</span> : <BarChart3 size={18} color="#94a3b8" />}
               </div>
-
-              {/* 店舗名 */}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 14, fontWeight: 800, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  {row.storeName}
-                </div>
-                <div style={{ display: "flex", gap: 10, marginTop: 2 }}>
-                  {([
-                    { k: "Q", v: row.q_score, c: "#0ea5e9" },
-                    { k: "S", v: row.s_score, c: "#10b981" },
-                    { k: "C", v: row.c_score, c: "#f59e0b" },
-                  ] as const).map(item => (
-                    <span key={item.k} style={{ fontSize: 11, fontWeight: 800, color: item.v !== null && item.v !== undefined ? item.c : "#cbd5e1" }}>
-                      {item.k}: {item.v !== null && item.v !== undefined ? item.v : "—"}
-                    </span>
-                  ))}
+                <div style={{ fontSize: 14, fontWeight: 900, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.storeName}</div>
+                <div style={{ display: "flex", gap: 10, marginTop: 3, flexWrap: "wrap" }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", display: "flex", alignItems: "center", gap: 3 }}><Calendar size={11} /> {inspDate}</span>
+                  {item.userName && <span style={{ fontSize: 12, fontWeight: 700, color: "#94a3b8", display: "flex", alignItems: "center", gap: 3 }}><UserCheck size={11} /> {item.userName}</span>}
+                  {ng > 0 && <span style={{ fontSize: 11, fontWeight: 900, padding: "1px 6px", borderRadius: 6, background: "#fef2f2", color: "#dc2626" }}>NG {ng}</span>}
                 </div>
               </div>
-
-              {/* スコア */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                <span style={{ fontSize: 22, fontWeight: 900, color: scoreColor(row.totalScore) }}>{row.totalScore}</span>
-                <ChevronRight size={16} color="#cbd5e1" />
-              </div>
+              <ChevronRight size={16} color="#cbd5e1" />
             </button>
-          ))
-        )}
+          );
+        })}
       </div>
     </div>
   );
@@ -529,68 +352,69 @@ function AdminDashboardView({
 
 /* ========================= Main ========================= */
 export default function ResultsPage() {
-  const { session, loading } = useSession();
-  const [selectedStore, setSelectedStore] = useState<RankRow | null>(null);
-  const [myScore, setMyScore] = useState<RankRow | null>(null);
-  const [loadingMyScore, setLoadingMyScore] = useState(true);
+  const { session, loading: sessionLoading } = useSession();
+  const [items, setItems] = useState<HistoryItem[]>([]);
+  const [loadingItems, setLoadingItems] = useState(true);
+  const [selected, setSelected] = useState<HistoryItem | null>(null);
 
-  const { quarter, fiscalYear } = getCurrentQuarter();
+  const role = (session?.role as string) ?? "";
+  const isStore = role === "store" || role === "manager";
+  const isInspector = role === "inspector";
 
-  // 店舗ユーザーの場合は自分のスコアを取得
   useEffect(() => {
-    if (loading) return;
-    const role = session?.role as string;
-    if (role !== "manager" && role !== "store") { setLoadingMyScore(false); return; }
-    const storeId = (session as any)?.storeId;
-    if (!storeId) { setLoadingMyScore(false); return; }
+    if (sessionLoading) return;
+    const fetch_ = async () => {
+      setLoadingItems(true);
+      try {
+        if (isStore) {
+          // 店舗ユーザー: 自店舗のhistoryのみ
+          const storeId = (session as Record<string, unknown>)?.storeId as string;
+          if (!storeId) return;
+          const res = await fetch(`/api/check/results/history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" });
+          if (!res.ok) return;
+          const data = await res.json();
+          setItems((data.items ?? []).map((i: HistoryItem) => ({ ...i, storeId, storeName: i.storeName || session?.name || "自店舗" })));
+        } else {
+          // 管理者・検査員: GSI経由で一括取得（高速）
+          const myName = isInspector ? (session?.name ?? "") : "";
+          const url = myName
+            ? `/api/check/results/all-history?userName=${encodeURIComponent(myName)}`
+            : `/api/check/results/all-history`;
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) return;
+          const data = await res.json();
+          setItems(data.items ?? []);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingItems(false);
+      }
+    };
+    fetch_();
+  }, [sessionLoading, session, isStore, isInspector]);
 
-    fetch(`/api/ranking?quarter=${quarter}&fiscalYear=${fiscalYear}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        const found = (data?.all as RankRow[])?.find(r => r.storeId === storeId);
-        setMyScore(found ?? { storeId, storeName: session?.name ?? "自店舗", totalScore: 0 });
-      })
-      .catch(console.error)
-      .finally(() => setLoadingMyScore(false));
-  }, [loading, session, quarter, fiscalYear]);
-
-  if (loading || loadingMyScore) {
+  if (sessionLoading) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
         <Loader2 size={32} style={{ animation: "spin 1s linear infinite", color: "#6366f1" }} />
-        <style>{`@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } }`}</style>
+        <style>{`@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}`}</style>
       </div>
     );
   }
 
-  const role = session?.role as string;
-  const isStoreUser = role === "manager" || role === "store";
+  const listTitle = isStore ? "自店舗の点検結果" : isInspector ? "自分の点検結果" : "全店舗の点検結果";
 
-  // 店舗ユーザー → 自店舗詳細
-  if (isStoreUser) {
-    const score = myScore ?? { storeId: "", storeName: session?.name ?? "", totalScore: 0 };
+  if (selected) {
     return (
-      <StoreDetailView
-        storeId={score.storeId}
-        storeName={score.storeName}
-        score={score}
+      <DetailPage
+        storeId={selected.storeId}
+        resultId={selected.resultId}
+        storeName={selected.storeName}
+        onBack={() => setSelected(null)}
       />
     );
   }
 
-  // 管理者 → 選択した店舗詳細
-  if (selectedStore) {
-    return (
-      <StoreDetailView
-        storeId={selectedStore.storeId}
-        storeName={selectedStore.storeName}
-        score={selectedStore}
-        onBack={() => setSelectedStore(null)}
-      />
-    );
-  }
-
-  // 管理者 → 全店舗一覧
-  return <AdminDashboardView onSelect={setSelectedStore} />;
+  return <ResultList items={items} onSelect={setSelected} title={listTitle} loading={loadingItems} />;
 }
-

@@ -14,6 +14,8 @@ export const dynamic = "force-dynamic";
 
 type StoreStatus = "active" | "inactive" | "archived";
 
+type Manager = { email: string; name: string };
+
 type StoreRow = {
   storeId: string;
   clubCode: number;
@@ -25,6 +27,8 @@ type StoreRow = {
   status: StoreStatus;
   assetId?: string;
   emails: string[];
+  email?: string;       // 通知先メール（単数・bulk-update用）
+  managers?: Manager[]; // 担当者
   updatedAt?: string;
   version?: number;
   corpId?: string;
@@ -52,6 +56,8 @@ type StoreMetaItem = {
   storeId?: string;
   updatedAt?: string;
   emails?: string[];
+  email?: string;
+  managers?: Manager[];
   status?: StoreStatus;
   version?: number;
 };
@@ -93,49 +99,53 @@ const tableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
 
 const client = new DynamoDBClient({ region });
 const ddb = DynamoDBDocumentClient.from(client, {
-  marshallOptions: {
-    removeUndefinedValues: true,
-  },
+  marshallOptions: { removeUndefinedValues: true },
 });
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ error: message }, { status });
 }
 
-function storePk(storeId: string) {
-  return `STORE#${storeId}`;
+function storePk(storeId: string) { return `STORE#${storeId}`; }
+function corpPk(corpId: string) { return `CORP#${corpId}`; }
+function brandPk(brandId: string) { return `BRAND#${brandId}`; }
+function storeMetaKey(storeId: string) { return { PK: storePk(storeId), SK: "METADATA" as const }; }
+function corpMetaKey(corpId: string) { return { PK: corpPk(corpId), SK: "METADATA" as const }; }
+function brandMetaKey(brandId: string) { return { PK: brandPk(brandId), SK: "METADATA" as const }; }
+
+/* ========================= managers の正規化 ========================= */
+function normalizeManagers(input: unknown): Manager[] {
+  if (!Array.isArray(input)) return [];
+  return input.map((m: unknown) => {
+    if (typeof m === "object" && m !== null) {
+      const obj = m as Record<string, unknown>;
+      // DynamoDB形式 { M: { email: { S: "..." }, name: { S: "..." } } }
+      if (obj.M && typeof obj.M === "object") {
+        const inner = obj.M as Record<string, { S?: string }>;
+        return {
+          email: String(inner.email?.S || "").trim(),
+          name: String(inner.name?.S || "").trim(),
+        };
+      }
+      // 通常形式 { email: "...", name: "..." }
+      return {
+        email: String(obj.email || "").trim(),
+        name: String(obj.name || "").trim(),
+      };
+    }
+    return { email: "", name: "" };
+  }).filter(m => m.email);
 }
 
-function corpPk(corpId: string) {
-  return `CORP#${corpId}`;
-}
+function normalizeStore(input: Record<string, unknown>): StoreRow {
+  // emailsの正規化: email単数 or emails配列どちらでも対応
+  let emails: string[] = [];
+  if (Array.isArray(input.emails)) {
+    emails = input.emails.map((v: unknown) => String(v || "").trim()).filter(Boolean);
+  } else if (input.email && typeof input.email === "string" && input.email.trim()) {
+    emails = [input.email.trim()];
+  }
 
-function brandPk(brandId: string) {
-  return `BRAND#${brandId}`;
-}
-
-function storeMetaKey(storeId: string) {
-  return {
-    PK: storePk(storeId),
-    SK: "METADATA" as const,
-  };
-}
-
-function corpMetaKey(corpId: string) {
-  return {
-    PK: corpPk(corpId),
-    SK: "METADATA" as const,
-  };
-}
-
-function brandMetaKey(brandId: string) {
-  return {
-    PK: brandPk(brandId),
-    SK: "METADATA" as const,
-  };
-}
-
-function normalizeStore(input: any): StoreRow {
   return {
     storeId: String(input.storeId || "").trim(),
     clubCode: Number(input.clubCode || 0),
@@ -149,9 +159,9 @@ function normalizeStore(input: any): StoreRow {
       input.assetId === null || input.assetId === undefined || input.assetId === ""
         ? undefined
         : String(input.assetId).trim(),
-    emails: Array.isArray(input.emails)
-      ? input.emails.map((v: unknown) => String(v || "").trim()).filter(Boolean)
-      : [],
+    emails,
+    email: emails[0] || "",
+    managers: normalizeManagers(input.managers),
     updatedAt: input.updatedAt ? String(input.updatedAt) : new Date().toISOString(),
     version: Number(input.version || 1),
     corpId: input.corpId ? String(input.corpId).trim() : undefined,
@@ -160,21 +170,12 @@ function normalizeStore(input: any): StoreRow {
 }
 
 function validateStore(store: StoreRow) {
-  if (!store.storeId) {
-    throw new Error("storeId は必須です");
-  }
-  if (!store.name) {
-    throw new Error("店舗名は必須です");
-  }
-  if (!store.clubCode || Number.isNaN(store.clubCode)) {
-    throw new Error("クラブコードは必須です");
-  }
-
+  if (!store.storeId) throw new Error("storeId は必須です");
+  if (!store.name) throw new Error("店舗名は必須です");
+  if (!store.clubCode || Number.isNaN(store.clubCode)) throw new Error("クラブコードは必須です");
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const invalid = store.emails.find((email) => !emailRegex.test(email));
-  if (invalid) {
-    throw new Error(`メールアドレスの形式が不正です: ${invalid}`);
-  }
+  if (invalid) throw new Error(`メールアドレスの形式が不正です: ${invalid}`);
 }
 
 function toStoreMetaItem(store: StoreRow, prev?: Partial<StoreMetaItem>): StoreMetaItem {
@@ -199,6 +200,8 @@ function toStoreMetaItem(store: StoreRow, prev?: Partial<StoreMetaItem>): StoreM
     storeId: store.storeId,
     updatedAt: store.updatedAt || new Date().toISOString(),
     emails: store.emails,
+    email: store.emails[0] || prev?.email || "",
+    managers: store.managers || prev?.managers || [],
     status: store.status,
     version: store.version || 1,
   };
@@ -209,6 +212,14 @@ function fromStoreMetaItem(
   corporateName = "",
   brandName = ""
 ): StoreRow {
+  // emailsの取得: emails配列 or email単数 どちらでも対応
+  let emails: string[] = [];
+  if (Array.isArray(item.emails) && item.emails.length > 0) {
+    emails = item.emails.map((v) => String(v));
+  } else if (item.email && String(item.email).trim()) {
+    emails = [String(item.email).trim()];
+  }
+
   return {
     storeId: String(item.storeId || ""),
     clubCode: Number(item.clubCode || 0),
@@ -222,7 +233,9 @@ function fromStoreMetaItem(
       item.assetId === null || item.assetId === undefined || item.assetId === ""
         ? undefined
         : String(item.assetId),
-    emails: Array.isArray(item.emails) ? item.emails.map((v) => String(v)) : [],
+    emails,
+    email: emails[0] || "",
+    managers: normalizeManagers(item.managers),
     updatedAt: item.updatedAt ? String(item.updatedAt) : undefined,
     version: Number(item.version || 0),
     corpId: item.corpId ? String(item.corpId) : undefined,
@@ -241,84 +254,52 @@ function sortStores(items: StoreRow[]) {
 
 async function loadCorpName(corpId?: string) {
   if (!corpId) return "";
-
-  const res = await ddb.send(
-    new GetCommand({
-      TableName: tableName,
-      Key: corpMetaKey(corpId),
-      ConsistentRead: true,
-    })
-  );
-
+  const res = await ddb.send(new GetCommand({ TableName: tableName, Key: corpMetaKey(corpId), ConsistentRead: true }));
   const item = res.Item as CorpMetaItem | undefined;
   if (!item) return "";
-
   return String(item.corpName || item.name || "");
 }
 
 async function loadBrandName(brandId?: string) {
   if (!brandId) return "";
-
-  const res = await ddb.send(
-    new GetCommand({
-      TableName: tableName,
-      Key: brandMetaKey(brandId),
-      ConsistentRead: true,
-    })
-  );
-
+  const res = await ddb.send(new GetCommand({ TableName: tableName, Key: brandMetaKey(brandId), ConsistentRead: true }));
   const item = res.Item as BrandMetaItem | undefined;
   if (!item) return "";
-
   return String(item.brand || item.name || "");
 }
 
 async function scanAllStoreMetaItems() {
   const allItems: StoreMetaItem[] = [];
-  let ExclusiveStartKey: Record<string, any> | undefined = undefined;
+  let ExclusiveStartKey: Record<string, unknown> | undefined = undefined;
   let result: ScanCommandOutput;
 
   do {
-    result = await ddb.send(
-      new ScanCommand({
-        TableName: tableName,
-        ConsistentRead: true,
-        FilterExpression: "#type = :storeType AND SK = :sk",
-        ExpressionAttributeNames: {
-          "#type": "type",
-        },
-        ExpressionAttributeValues: {
-          ":storeType": "STORE",
-          ":sk": "METADATA",
-        },
-        ExclusiveStartKey,
-      })
-    );
+    result = await ddb.send(new ScanCommand({
+      TableName: tableName,
+      ConsistentRead: true,
+      FilterExpression: "#type = :storeType AND SK = :sk",
+      ExpressionAttributeNames: { "#type": "type" },
+      ExpressionAttributeValues: { ":storeType": "STORE", ":sk": "METADATA" },
+      ExclusiveStartKey,
+    }));
 
     if (Array.isArray(result.Items)) {
       allItems.push(...(result.Items as StoreMetaItem[]));
     }
-
-    ExclusiveStartKey = result.LastEvaluatedKey as Record<string, any> | undefined;
+    ExclusiveStartKey = result.LastEvaluatedKey as Record<string, unknown> | undefined;
   } while (ExclusiveStartKey);
 
   return allItems;
 }
 
 async function loadStoreAsset(storeId: string): Promise<StoreAssetItem | undefined> {
-  const res = await ddb.send(
-    new QueryCommand({
-      TableName: tableName,
-      KeyConditionExpression: "PK = :pk AND SK = :sk",
-      ExpressionAttributeValues: {
-        ":pk": storePk(storeId),
-        ":sk": "ASSET",
-      },
-      ConsistentRead: true,
-      Limit: 1,
-    })
-  );
-
+  const res = await ddb.send(new QueryCommand({
+    TableName: tableName,
+    KeyConditionExpression: "PK = :pk AND SK = :sk",
+    ExpressionAttributeValues: { ":pk": storePk(storeId), ":sk": "ASSET" },
+    ConsistentRead: true,
+    Limit: 1,
+  }));
   const items = Array.isArray(res.Items) ? (res.Items as StoreAssetItem[]) : [];
   return items[0];
 }
@@ -329,7 +310,6 @@ export async function GET() {
 
     const corpIds = new Set<string>();
     const brandIds = new Set<string>();
-
     for (const item of storeMetaItems) {
       if (item.corpId) corpIds.add(String(item.corpId));
       if (item.brandId) brandIds.add(String(item.brandId));
@@ -340,12 +320,10 @@ export async function GET() {
 
     await Promise.all([
       ...Array.from(corpIds).map(async (corpId) => {
-        const corpName = await loadCorpName(corpId);
-        corpNameMap.set(corpId, corpName);
+        corpNameMap.set(corpId, await loadCorpName(corpId));
       }),
       ...Array.from(brandIds).map(async (brandId) => {
-        const brandName = await loadBrandName(brandId);
-        brandNameMap.set(brandId, brandName);
+        brandNameMap.set(brandId, await loadBrandName(brandId));
       }),
     ]);
 
@@ -353,39 +331,21 @@ export async function GET() {
       storeMetaItems.map(async (item) => {
         const corpId = item.corpId ? String(item.corpId) : "";
         const brandId = item.brandId ? String(item.brandId) : "";
+        const store = fromStoreMetaItem(item, corpNameMap.get(corpId) || "", brandNameMap.get(brandId) || "");
 
-        const corporateName = corpNameMap.get(corpId) || "";
-        const brandName = brandNameMap.get(brandId) || "";
-
-        const store = fromStoreMetaItem(item, corporateName, brandName);
-
-        if (store.assetId) {
-          return store;
-        }
+        if (store.assetId) return store;
 
         const storeAsset = await loadStoreAsset(store.storeId);
-
         return {
           ...store,
-          assetId:
-            storeAsset?.isActive !== false && storeAsset?.assetId
-              ? String(storeAsset.assetId)
-              : undefined,
+          assetId: storeAsset?.isActive !== false && storeAsset?.assetId
+            ? String(storeAsset.assetId)
+            : undefined,
         };
       })
     );
 
-    console.log(
-      "[stores response]",
-      items.map((x) => ({
-        storeId: x.storeId,
-        assetId: x.assetId,
-      }))
-    );
-
-    return NextResponse.json({
-      items: sortStores(items),
-    });
+    return NextResponse.json({ items: sortStores(items) });
   } catch (error) {
     console.error("[GET /api/admin/qsc/stores]", error);
     return jsonError("店舗一覧の取得に失敗しました", 500);
@@ -396,61 +356,32 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const normalized = normalizeStore(body);
-
     const store: StoreRow = {
       ...normalized,
       storeId: normalized.storeId || `S_${Date.now()}`,
       updatedAt: new Date().toISOString(),
       version: 1,
     };
-
     validateStore(store);
 
     const key = storeMetaKey(store.storeId);
+    const existing = await ddb.send(new GetCommand({ TableName: tableName, Key: key, ConsistentRead: true }));
+    if (existing.Item) return jsonError("同じ店舗IDのレコードがすでに存在します", 409);
 
-    const existing = await ddb.send(
-      new GetCommand({
-        TableName: tableName,
-        Key: key,
-        ConsistentRead: true,
-      })
-    );
+    await ddb.send(new PutCommand({
+      TableName: tableName,
+      Item: toStoreMetaItem(store),
+      ConditionExpression: "attribute_not_exists(PK) AND attribute_not_exists(SK)",
+    }));
 
-    if (existing.Item) {
-      return jsonError("同じ店舗IDのレコードがすでに存在します", 409);
-    }
-
-    const item = toStoreMetaItem(store);
-
-    await ddb.send(
-      new PutCommand({
-        TableName: tableName,
-        Item: item,
-        ConditionExpression: "attribute_not_exists(PK) AND attribute_not_exists(SK)",
-      })
-    );
-
-    const [corpName, brandName] = await Promise.all([
-      loadCorpName(store.corpId),
-      loadBrandName(store.brandId),
-    ]);
-
-    return NextResponse.json({
-      ok: true,
-      item: {
-        ...store,
-        corporateName: corpName,
-        brandName,
-      },
-    });
-  } catch (error: any) {
+    const [corpName, brandName] = await Promise.all([loadCorpName(store.corpId), loadBrandName(store.brandId)]);
+    return NextResponse.json({ ok: true, item: { ...store, corporateName: corpName, brandName } });
+  } catch (error: unknown) {
     console.error("[POST /api/admin/qsc/stores]", error);
-
-    if (error?.name === "ConditionalCheckFailedException") {
+    if ((error as { name?: string })?.name === "ConditionalCheckFailedException") {
       return jsonError("同じ店舗IDのレコードがすでに存在します", 409);
     }
-
-    return jsonError(error?.message || "店舗の新規登録に失敗しました", 500);
+    return jsonError((error as Error)?.message || "店舗の新規登録に失敗しました", 500);
   }
 }
 
@@ -458,24 +389,11 @@ export async function PUT(req: NextRequest) {
   try {
     const body = await req.json();
     const normalized = normalizeStore(body);
-
-    if (!normalized.storeId) {
-      return jsonError("storeId は必須です");
-    }
+    if (!normalized.storeId) return jsonError("storeId は必須です");
 
     const key = storeMetaKey(normalized.storeId);
-
-    const existing = await ddb.send(
-      new GetCommand({
-        TableName: tableName,
-        Key: key,
-        ConsistentRead: true,
-      })
-    );
-
-    if (!existing.Item) {
-      return jsonError("更新対象の店舗が見つかりません", 404);
-    }
+    const existing = await ddb.send(new GetCommand({ TableName: tableName, Key: key, ConsistentRead: true }));
+    if (!existing.Item) return jsonError("更新対象の店舗が見つかりません", 404);
 
     const prevItem = existing.Item as StoreMetaItem;
     const prevRow = fromStoreMetaItem(prevItem);
@@ -484,44 +402,25 @@ export async function PUT(req: NextRequest) {
       ...prevRow,
       ...normalized,
       storeId: prevRow.storeId,
-      assetId:
-        normalized.assetId !== undefined ? normalized.assetId : prevRow.assetId,
+      assetId: normalized.assetId !== undefined ? normalized.assetId : prevRow.assetId,
       updatedAt: new Date().toISOString(),
       version: Number(prevRow.version || 0) + 1,
     };
-
     validateStore(store);
 
-    const item = toStoreMetaItem(store, prevItem);
+    await ddb.send(new PutCommand({
+      TableName: tableName,
+      Item: toStoreMetaItem(store, prevItem),
+      ConditionExpression: "attribute_exists(PK) AND attribute_exists(SK)",
+    }));
 
-    await ddb.send(
-      new PutCommand({
-        TableName: tableName,
-        Item: item,
-        ConditionExpression: "attribute_exists(PK) AND attribute_exists(SK)",
-      })
-    );
-
-    const [corpName, brandName] = await Promise.all([
-      loadCorpName(store.corpId),
-      loadBrandName(store.brandId),
-    ]);
-
-    return NextResponse.json({
-      ok: true,
-      item: {
-        ...store,
-        corporateName: corpName,
-        brandName,
-      },
-    });
-  } catch (error: any) {
+    const [corpName, brandName] = await Promise.all([loadCorpName(store.corpId), loadBrandName(store.brandId)]);
+    return NextResponse.json({ ok: true, item: { ...store, corporateName: corpName, brandName } });
+  } catch (error: unknown) {
     console.error("[PUT /api/admin/qsc/stores]", error);
-
-    if (error?.name === "ConditionalCheckFailedException") {
+    if ((error as { name?: string })?.name === "ConditionalCheckFailedException") {
       return jsonError("更新対象の店舗が見つかりません", 404);
     }
-
-    return jsonError(error?.message || "店舗の更新に失敗しました", 500);
+    return jsonError((error as Error)?.message || "店舗の更新に失敗しました", 500);
   }
 }
