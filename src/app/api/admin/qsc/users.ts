@@ -11,10 +11,10 @@ import {
 // --- 1. AWS SDK 初期化 ---
 // 環境変数のブレをなくすため、設定状況をコンソールに出力します
 console.log("[DEBUG] Initializing DynamoDB Client...");
-console.log("[DEBUG] Region:", process.env.AWS_REGION || "NOT SET (Defaulting to us-east-1)");
+console.log("[DEBUG] Region:", process.env.QSC_AWS_REGION || "us-east-1" || "NOT SET (Defaulting to us-east-1)");
 
 const client = new DynamoDBClient({ 
-  region: process.env.AWS_REGION || "us-east-1" 
+  region: process.env.QSC_AWS_REGION || "us-east-1" 
 });
 const ddbDocClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = "QSC_UserTable";

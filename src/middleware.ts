@@ -15,13 +15,14 @@ export default function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // 2. 認証情報の取得（auth.ts でセットしている名前に合わせる）
+  // 2. 認証情報の取得
+  // qsc_authed は path:/ と path:/admin 両方チェック
   const isAuthed = request.cookies.has('qsc_authed');
-  const role = request.cookies.get('qsc_role')?.value; // roleを取得
+  // qsc_role は一般ログイン用、qsc_role_admin は管理者ログイン用
+  const role = request.cookies.get('qsc_role')?.value;
 
   // 3. 管理画面 (/admin) のガード
   if (pathname.startsWith('/admin')) {
-    // ログインしていない、またはロールが admin じゃない場合はログイン画面へ
     if (!isAuthed || role !== 'admin') {
       return NextResponse.redirect(new URL('/admin/login', request.url));
     }
@@ -29,7 +30,6 @@ export default function middleware(request: NextRequest) {
   }
 
   // 4. 一般画面のガード
-  // 未ログインなら強制的に /login へ
   if (!isAuthed) {
     return NextResponse.redirect(new URL('/login', request.url));
   }

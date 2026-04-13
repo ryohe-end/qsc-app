@@ -11,7 +11,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const region =
-  process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
+  process.env.QSC_AWS_REGION || "us-east-1" || process.env.AWS_DEFAULT_REGION || "us-east-1";
 const tableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
 
 const client = new DynamoDBClient({ region });

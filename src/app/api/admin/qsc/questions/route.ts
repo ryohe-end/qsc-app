@@ -11,7 +11,7 @@ import type { QscQuestion, QscQuestionItem, CategoryType } from "@/types/qsc";
 
 export const dynamic = "force-dynamic";
 
-const REGION = process.env.AWS_REGION || "ap-northeast-1";
+const REGION = process.env.QSC_AWS_REGION || "us-east-1" || "ap-northeast-1";
 const TABLE_NAME = process.env.QSC_TABLE_NAME || "QSC_MasterTable";
 
 const client = new DynamoDBClient({ region: REGION });

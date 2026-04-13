@@ -21,21 +21,15 @@ export async function POST(req: NextRequest) {
     }
 
     const cookieStore = await cookies();
-    const maxAge = 60 * 60 * 8; // 8時間
+    const maxAge = 60 * 60 * 8;
 
-    // ミドルウェアが参照するクッキー名に合わせる（qsc_authed / qsc_role）
-    // path: "/admin" で発行することで一般画面（path:/）には送られない
-    const cookieOptions = {
-      path: "/admin",
-      maxAge,
-      httpOnly: false,
-      sameSite: "lax" as const,
-    };
+    // ✅ path:"/" で発行（middlewareがどのパスでも読めるように）
+    const opts = { path: "/", maxAge, httpOnly: false, sameSite: "lax" as const };
 
-    cookieStore.set("qsc_authed", "1", cookieOptions);
-    cookieStore.set("qsc_role", "admin", cookieOptions);
-    cookieStore.set("qsc_user_name", "システム管理者", cookieOptions);
-    cookieStore.set("qsc_user_role", "admin", cookieOptions);
+    cookieStore.set("qsc_authed", "1", opts);
+    cookieStore.set("qsc_role", "admin", opts);
+    cookieStore.set("qsc_user_name", encodeURIComponent("システム管理者"), opts);
+    cookieStore.set("qsc_user_role", "admin", opts);
 
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
@@ -47,10 +41,10 @@ export async function POST(req: NextRequest) {
 
 export async function DELETE() {
   const cookieStore = await cookies();
-  const deleteOptions = { path: "/admin", maxAge: 0 };
-  cookieStore.set("qsc_authed", "", deleteOptions);
-  cookieStore.set("qsc_role", "", deleteOptions);
-  cookieStore.set("qsc_user_name", "", deleteOptions);
-  cookieStore.set("qsc_user_role", "", deleteOptions);
+  const deleteOpts = { path: "/", maxAge: 0 };
+  cookieStore.set("qsc_authed", "", deleteOpts);
+  cookieStore.set("qsc_role", "", deleteOpts);
+  cookieStore.set("qsc_user_name", "", deleteOpts);
+  cookieStore.set("qsc_user_role", "", deleteOpts);
   return NextResponse.json({ ok: true });
 }

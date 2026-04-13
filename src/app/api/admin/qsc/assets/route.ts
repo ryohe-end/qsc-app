@@ -7,7 +7,7 @@ import {
 import { marshall } from "@aws-sdk/util-dynamodb";
 
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-east-1",
+  region: process.env.QSC_AWS_REGION || "us-east-1",
 });
 
 const TABLE_NAME = process.env.QSC_TABLE_NAME || "QSC_MasterTable";

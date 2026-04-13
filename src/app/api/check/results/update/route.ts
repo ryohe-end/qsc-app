@@ -6,7 +6,7 @@ import { sendApprovalEmail, sendRejectionEmail } from "@/app/lib/sendgrid";
 
 export const dynamic = "force-dynamic";
 
-const region = process.env.AWS_REGION || "us-east-1";
+const region = process.env.QSC_AWS_REGION || "us-east-1";
 const resultTableName = process.env.QSC_RESULT_TABLE_NAME || "QSC_CheckResults";
 const masterTableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
 

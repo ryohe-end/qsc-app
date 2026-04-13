@@ -82,6 +82,16 @@ type BrandMetaItem = {
   isActive?: boolean;
 };
 
+type BizMetaItem = {
+  PK: string;
+  SK: "METADATA";
+  type: "BIZ";
+  bizId?: string;
+  bizName?: string;
+  name?: string;
+  isActive?: boolean;
+};
+
 type StoreAssetItem = {
   PK: string;
   SK: "ASSET";
@@ -94,7 +104,7 @@ type StoreAssetItem = {
 };
 
 const region =
-  process.env.AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
+  process.env.QSC_AWS_REGION || "us-east-1" || process.env.AWS_DEFAULT_REGION || "us-east-1";
 const tableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
 
 const client = new DynamoDBClient({ region });
@@ -268,6 +278,46 @@ async function loadBrandName(brandId?: string) {
   return String(item.brand || item.name || "");
 }
 
+async function scanAllBrandItems(): Promise<{ brandId: string; brandName: string }[]> {
+  try {
+    const res = await ddb.send(new ScanCommand({
+      TableName: tableName,
+      FilterExpression: "#type = :t AND SK = :sk",
+      ExpressionAttributeNames: { "#type": "type" },
+      ExpressionAttributeValues: { ":t": "BRAND", ":sk": "METADATA" },
+    }));
+    return (res.Items ?? [])
+      .map(i => {
+        const item = i as BrandMetaItem;
+        return {
+          brandId: String(item.brandId || item.PK?.replace("BRAND#", "") || ""),
+          brandName: String(item.brand || item.name || ""),
+        };
+      })
+      .filter(b => b.brandId && b.brandName);
+  } catch { return []; }
+}
+
+async function scanAllBizItems(): Promise<{ bizId: string; bizName: string }[]> {
+  try {
+    const res = await ddb.send(new ScanCommand({
+      TableName: tableName,
+      FilterExpression: "#type = :t AND SK = :sk",
+      ExpressionAttributeNames: { "#type": "type" },
+      ExpressionAttributeValues: { ":t": "BIZ", ":sk": "METADATA" },
+    }));
+    return (res.Items ?? [])
+      .map(i => {
+        const item = i as BizMetaItem;
+        return {
+          bizId: String(item.bizId || item.PK?.replace("BIZ#", "") || ""),
+          bizName: String(item.bizName || item.name || ""),
+        };
+      })
+      .filter(b => b.bizId && b.bizName);
+  } catch { return []; }
+}
+
 async function scanAllStoreMetaItems() {
   const allItems: StoreMetaItem[] = [];
   let ExclusiveStartKey: Record<string, unknown> | undefined = undefined;
@@ -345,7 +395,13 @@ export async function GET() {
       })
     );
 
-    return NextResponse.json({ items: sortStores(items) });
+    // BRAND/BIZ マスターも返す
+    const [brands, bizTypes] = await Promise.all([
+      scanAllBrandItems(),
+      scanAllBizItems(),
+    ]);
+
+    return NextResponse.json({ items: sortStores(items), brands, bizTypes });
   } catch (error) {
     console.error("[GET /api/admin/qsc/stores]", error);
     return jsonError("店舗一覧の取得に失敗しました", 500);
@@ -423,4 +479,5 @@ export async function PUT(req: NextRequest) {
     }
     return jsonError((error as Error)?.message || "店舗の更新に失敗しました", 500);
   }
+
 }

@@ -9,7 +9,7 @@ import {
 export const dynamic = "force-dynamic";
 
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-east-1",
+  region: process.env.QSC_AWS_REGION || "us-east-1",
 });
 
 const docClient = DynamoDBDocumentClient.from(client);

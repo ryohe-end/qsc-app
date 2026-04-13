@@ -245,6 +245,8 @@ function ManagerSearchInput({ selected, onChange }: {
 /* ========================= Page ========================= */
 export default function AdminStoresPage() {
   const [rows, setRows] = useState<StoreRow[]>([]);
+  const [brandMaster, setBrandMaster] = useState<{ brandId: string; brandName: string }[]>([]);
+  const [bizMaster, setBizMaster] = useState<{ bizId: string; bizName: string }[]>([]);
   const [rowsLoading, setRowsLoading] = useState(true);
   const [assets, setAssets] = useState<AssetRow[]>([]);
   const [assetsLoading, setAssetsLoading] = useState(true);
@@ -272,8 +274,10 @@ export default function AdminStoresPage() {
 
   const reloadStores = async () => {
     const res = await fetch("/api/admin/qsc/stores", { cache: "no-store" });
-    const json = await assertOk(res, "店舗一覧の再取得に失敗しました");
-    setRows(Array.isArray((json as { items?: StoreRow[] })?.items) ? (json as { items: StoreRow[] }).items : []);
+    const json = await assertOk(res, "店舗一覧の再取得に失敗しました") as { items?: StoreRow[]; brands?: { brandId: string; brandName: string }[]; bizTypes?: { bizId: string; bizName: string }[] };
+    setRows(Array.isArray(json?.items) ? json.items : []);
+    if (Array.isArray(json?.brands)) setBrandMaster(json.brands);
+    if (Array.isArray(json?.bizTypes)) setBizMaster(json.bizTypes);
   };
 
   const reloadAssets = async () => {
@@ -288,8 +292,12 @@ export default function AdminStoresPage() {
       try {
         setRowsLoading(true);
         const res = await fetch("/api/admin/qsc/stores", { cache: "no-store" });
-        const json = await assertOk(res, "店舗一覧の取得に失敗しました");
-        if (!cancelled) setRows(Array.isArray((json as { items?: StoreRow[] })?.items) ? (json as { items: StoreRow[] }).items : []);
+        const json = await assertOk(res, "店舗一覧の取得に失敗しました") as { items?: StoreRow[]; brands?: { brandId: string; brandName: string }[]; bizTypes?: { bizId: string; bizName: string }[] };
+        if (!cancelled) {
+          setRows(Array.isArray(json?.items) ? json.items : []);
+          if (Array.isArray(json?.brands)) setBrandMaster(json.brands);
+          if (Array.isArray(json?.bizTypes)) setBizMaster(json.bizTypes);
+        }
       } catch (e) { console.error(e); if (!cancelled) setRows([]); }
       finally { if (!cancelled) setRowsLoading(false); }
     };
@@ -307,12 +315,12 @@ export default function AdminStoresPage() {
   }, []);
 
   const assetLabelMap = useMemo(() => Object.fromEntries(assets.map(a => [a.assetId, a.name || a.assetId])), [assets]);
-  const brandLabelMap = useMemo(() => Object.fromEntries(rows.filter(r => r.brandId).map(r => [String(r.brandId), r.brandName || String(r.brandId)])), [rows]);
+  const brandLabelMap = useMemo(() => brandMaster.length > 0 ? Object.fromEntries(brandMaster.map(b => [b.brandId, b.brandName])) : Object.fromEntries(rows.filter(r => r.brandId).map(r => [String(r.brandId), r.brandName || String(r.brandId)])), [rows, brandMaster]);
   const corpLabelMap  = useMemo(() => Object.fromEntries(rows.filter(r => r.corpId).map(r => [String(r.corpId), r.corporateName || String(r.corpId)])), [rows]);
-  const businessTypeOptions = useMemo(() => Array.from(new Set(rows.map(r => String(r.businessTypeName || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja")), [rows]);
-  const brandOptions        = useMemo(() => Array.from(new Set(rows.map(r => String(r.brandName || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja")), [rows]);
+  const businessTypeOptions = useMemo(() => bizMaster.length > 0 ? bizMaster.map(b => b.bizName).sort((a, b) => a.localeCompare(b, "ja")) : Array.from(new Set(rows.map(r => String(r.businessTypeName || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja")), [rows, bizMaster]);
+  const brandOptions        = useMemo(() => brandMaster.length > 0 ? brandMaster.map(b => b.brandName).sort((a, b) => a.localeCompare(b, "ja")) : Array.from(new Set(rows.map(r => String(r.brandName || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja")), [rows, brandMaster]);
   const corporateOptions    = useMemo(() => Array.from(new Set(rows.map(r => String(r.corporateName || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja")), [rows]);
-  const brandIdOptions      = useMemo(() => Array.from(new Set(rows.map(r => String(r.brandId || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja")), [rows]);
+  const brandIdOptions      = useMemo(() => brandMaster.length > 0 ? brandMaster.map(b => b.brandId).sort((a, b) => a.localeCompare(b, "ja")) : Array.from(new Set(rows.map(r => String(r.brandId || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja")), [rows, brandMaster]);
   const corpIdOptions       = useMemo(() => Array.from(new Set(rows.map(r => String(r.corpId || "")).filter(Boolean))).sort((a, b) => a.localeCompare(b, "ja")), [rows]);
 
   const filtered = useMemo(() => rows.filter(r => {

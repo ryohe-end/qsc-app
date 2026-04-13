@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-
 
 export const dynamic = "force-dynamic";
 
-const client = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" });
+const client = new DynamoDBClient({ region: process.env.QSC_AWS_REGION || "us-east-1" });
 const docClient = DynamoDBDocumentClient.from(client);
 
 const STORES_TABLE = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";

@@ -5,11 +5,11 @@ import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const client = new DynamoDBClient({
-  region: process.env.AWS_REGION || "us-east-1",
+  region: process.env.QSC_AWS_REGION || "us-east-1",
 });
 const ddb = DynamoDBDocumentClient.from(client);
 
-const s3 = new S3Client({ region: process.env.AWS_REGION || "us-east-1" });
+const s3 = new S3Client({ region: process.env.QSC_AWS_REGION || "us-east-1" });
 const BUCKET = process.env.QSC_PHOTOS_BUCKET || "qsc-check-photos-prod";
 
 const TABLE_NAME = process.env.QSC_CHECK_RESULTS_TABLE || "QSC_CheckResults";

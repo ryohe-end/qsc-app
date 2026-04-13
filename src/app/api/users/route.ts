@@ -8,7 +8,7 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const region = process.env.AWS_REGION || "us-east-1";
+const region = process.env.QSC_AWS_REGION || "us-east-1";
 const tableName = process.env.QSC_USER_TABLE_NAME || "QSC_UserTable";
 
 const ddbClient = new DynamoDBClient({ region });

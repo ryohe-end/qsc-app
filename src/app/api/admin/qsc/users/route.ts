@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand, PutCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { sendWelcomeEmail } from "@/app/lib/sendgrid";
 
 export const dynamic = "force-dynamic";
 
-const client = new DynamoDBClient({ region: process.env.AWS_REGION || "us-east-1" });
+const client = new DynamoDBClient({ region: process.env.QSC_AWS_REGION || "us-east-1" });
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = "QSC_UserTable";
 
@@ -64,7 +64,6 @@ export async function POST(req: NextRequest) {
 
     await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: item }));
 
-    // ③ 新規作成時にウェルカムメール送信
     if (shouldSendEmail) {
       try {
         await sendWelcomeEmail({
@@ -75,7 +74,6 @@ export async function POST(req: NextRequest) {
         });
       } catch (mailErr) {
         console.error("メール送信失敗:", mailErr);
-        // メール失敗してもユーザー作成は成功とする
         return NextResponse.json({ ok: true, item, mailError: "メール送信に失敗しました" });
       }
     }
@@ -97,21 +95,32 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "email は必須です" }, { status: 400 });
     }
 
+    const lowerEmail = userData.email.toLowerCase();
+
+    // ✅ 既存レコードを取得してpasswordなど重要フィールドを保持
+    const existing = await docClient.send(new GetCommand({
+      TableName: TABLE_NAME,
+      Key: { email: lowerEmail, SK: "METADATA" },
+    }));
+
+    const existingItem = existing.Item || {};
     const now = new Date().toISOString();
+
     const item: Record<string, unknown> = {
-      email: userData.email.toLowerCase(),
+      ...existingItem, // 既存データを全部引き継ぐ（passwordを含む）
+      email: lowerEmail,
       SK: "METADATA",
-      userId: userData.userId,
+      userId: userData.userId || existingItem.userId,
       name: userData.name,
       role: userData.role || "store",
       corpId: userData.corpId || "",
       status: userData.status || "active",
       assignedStoreIds: userData.assignedStoreIds || [],
       updatedAt: now,
-      createdAt: userData.createdAt || now,
+      createdAt: userData.createdAt || existingItem.createdAt || now,
     };
 
-    // パスワードが送られてきた場合のみ更新
+    // パスワードが明示的に送られてきた場合のみ上書き
     if (userData.password) {
       item.password = userData.password;
     }
@@ -130,7 +139,6 @@ export async function DELETE(req: NextRequest) {
     const userId = req.nextUrl.searchParams.get("userId");
     if (!userId) return NextResponse.json({ error: "userId は必須です" }, { status: 400 });
 
-    // userId からメールアドレスを検索
     const scan = await docClient.send(new ScanCommand({
       TableName: TABLE_NAME,
       FilterExpression: "userId = :uid AND SK = :sk",

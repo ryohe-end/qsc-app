@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
 
 export const dynamic = "force-dynamic";
 
-const region = process.env.AWS_REGION || "us-east-1";
+const region = process.env.QSC_AWS_REGION || "us-east-1";
 const tableName = process.env.QSC_TABLE_NAME || "QSC_MasterTable";
 
 const ddbClient = new DynamoDBClient({ region });
