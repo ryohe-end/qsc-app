@@ -74,8 +74,9 @@ function patchSections(raw: Section[]): Section[] {
       holdNote: typeof (it as CheckItem).holdNote === "string" ? (it as CheckItem).holdNote : "",
       photos: Array.isArray(it.photos) ? it.photos.map((p: Record<string, string>) => ({
         id: p.id || uid("ph"),
-        // S3 URL の場合は dataUrl として扱う（imgタグで直接表示可能）
         dataUrl: p.dataUrl || p.url || "",
+        s3Url: p.s3Url || undefined,
+        s3Key: p.s3Key || undefined,
       })) : [],
       category: typeof (it as CheckItem).category === "string" ? (it as CheckItem).category : "",
     })),
