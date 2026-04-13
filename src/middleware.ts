@@ -34,6 +34,13 @@ export default function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
 
+  // 5. /check は inspector と admin のみアクセス可能
+  if (pathname.startsWith('/check')) {
+    if (role === 'store' || role === 'manager') {
+      return NextResponse.redirect(new URL('/', request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
