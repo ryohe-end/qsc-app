@@ -103,9 +103,8 @@ export default function CheckRunPage() {
   const storeLabel = useMemo(() => storeName || storeId || "店舗未選択", [storeId, storeName]);
 
   const DRAFT_KEY = useMemo(() => {
-    const key = [companyId, bizId, brandId, storeId].filter(Boolean).join("_");
-    return `qsc_check_draft_${key || "unknown"}`;
-  }, [companyId, bizId, brandId, storeId]);
+    return `qsc_draft_${storeId || "unknown"}`;
+  }, [storeId]);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -196,6 +195,7 @@ export default function CheckRunPage() {
   }, [sections, DRAFT_KEY, mounted]);
 
   const [saving, setSaving] = useState(false);
+  const [savedToast, setSavedToast] = useState(false);
   const [submitBusy, setSubmitBusy] = useState(false);
   const [areaOpen, setAreaOpen] = useState(false);
 
@@ -378,6 +378,8 @@ export default function CheckRunPage() {
           }));
           localStorage.setItem(DRAFT_KEY, JSON.stringify(sectionsToSave));
           await new Promise(r => setTimeout(r, 220));
+          setSavedToast(true);
+          setTimeout(() => setSavedToast(false), 2000);
         } finally { setSaving(false); }
       },
       onCancel: () => setSheet({ open: false }),
@@ -851,6 +853,13 @@ export default function CheckRunPage() {
             </div>
             <button type="button" className="crp-sheet-cancel" onClick={() => { vibrate(10); sheet.onCancel ? sheet.onCancel() : setSheet({ open: false }); }}>{sheet.cancelText ?? "キャンセル"}</button>
           </div>
+        </div>
+      )}
+
+      {/* 途中保存トースト */}
+      {savedToast && (
+        <div style={{ position: "fixed", bottom: 120, left: "50%", transform: "translateX(-50%)", zIndex: 9999, background: "#1e293b", color: "#fff", padding: "12px 24px", borderRadius: 14, fontSize: 14, fontWeight: 800, boxShadow: "0 8px 24px rgba(0,0,0,0.2)", whiteSpace: "nowrap" }}>
+          ✅ 途中保存しました
         </div>
       )}
 
