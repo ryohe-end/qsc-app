@@ -408,7 +408,20 @@ export default function CheckRunPage() {
     if (submitBusy) return;
     try {
       setSubmitBusy(true);
-      const res = await fetch("/api/check/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sendMail, sections }) });
+      // dataUrl（base64）を除去してリクエストサイズを削減
+      const sectionsToSubmit = sections.map(s => ({
+        ...s,
+        items: s.items.map(it => ({
+          ...it,
+          photos: (it.photos ?? []).map(p => ({
+            id: p.id,
+            dataUrl: p.s3Url ? "" : p.dataUrl, // S3済みはdataUrlを空に
+            s3Url: p.s3Url,
+            s3Key: p.s3Key,
+          })),
+        })),
+      }));
+      const res = await fetch("/api/check/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sendMail, sections: sectionsToSubmit }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "送信に失敗しました");
       try { localStorage.removeItem(DRAFT_KEY); } catch {} // 送信成功後に下書き削除
