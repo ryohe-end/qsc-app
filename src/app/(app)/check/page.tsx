@@ -1306,9 +1306,14 @@ export default function CheckPage() {
           }}
         >
           <button
-            onClick={() =>
-              onRunAction(getDynamicStatus(selectedStore.storeId) === "draft" ? "edit" : "new")
-            }
+            onClick={() => {
+              if (getDynamicStatus(selectedStore.storeId) === "draft") {
+                // 下書きあり：直接CheckRunPageへ
+                router.push(`/check/run?storeId=${selectedStore.storeId}&companyId=${selectedStore.companyId}&bizId=${selectedStore.bizId}&brandId=${selectedStore.brandId}&mode=new`);
+              } else {
+                onRunAction("new");
+              }
+            }}
             style={{
               width: "100%",
               height: "72px",
