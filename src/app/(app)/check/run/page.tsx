@@ -74,7 +74,7 @@ function patchSections(raw: Section[]): Section[] {
       holdNote: typeof (it as CheckItem).holdNote === "string" ? (it as CheckItem).holdNote : "",
       photos: Array.isArray(it.photos) ? it.photos.map((p: Record<string, string>) => ({
         id: p.id || uid("ph"),
-        dataUrl: p.dataUrl || p.url || "",
+        dataUrl: p.dataUrl || p.s3Url || p.url || "",
         s3Url: p.s3Url || undefined,
         s3Key: p.s3Key || undefined,
       })) : [],
@@ -175,7 +175,22 @@ export default function CheckRunPage() {
     if (!mounted) return;
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      try { localStorage.setItem(DRAFT_KEY, JSON.stringify(sections)); } catch {}
+      try {
+        // dataUrl（base64）は保存しない（サイズが大きいため）、s3Urlがあればそちらを使う
+        const sectionsToSave = sections.map(s => ({
+          ...s,
+          items: s.items.map(it => ({
+            ...it,
+            photos: (it.photos ?? []).map(p => ({
+              id: p.id,
+              dataUrl: p.s3Url ? "" : p.dataUrl, // S3済みはdataUrlを省略
+              s3Url: p.s3Url,
+              s3Key: p.s3Key,
+            })),
+          })),
+        }));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(sectionsToSave));
+      } catch {}
     }, 2000);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
   }, [sections, DRAFT_KEY, mounted]);
@@ -346,7 +361,25 @@ export default function CheckRunPage() {
     if (saving) return;
     vibrate();
     setSheet({ open: true, title: "途中保存しますか？", message: "この端末に途中経過を保存します。", primaryText: "保存する", cancelText: "キャンセル",
-      onPrimary: async () => { setSheet({ open: false }); setSaving(true); try { localStorage.setItem(DRAFT_KEY, JSON.stringify(sections)); await new Promise(r => setTimeout(r, 220)); } finally { setSaving(false); } },
+      onPrimary: async () => {
+        setSheet({ open: false }); setSaving(true);
+        try {
+          const sectionsToSave = sections.map(s => ({
+            ...s,
+            items: s.items.map(it => ({
+              ...it,
+              photos: (it.photos ?? []).map(p => ({
+                id: p.id,
+                dataUrl: p.s3Url ? "" : p.dataUrl,
+                s3Url: p.s3Url,
+                s3Key: p.s3Key,
+              })),
+            })),
+          }));
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(sectionsToSave));
+          await new Promise(r => setTimeout(r, 220));
+        } finally { setSaving(false); }
+      },
       onCancel: () => setSheet({ open: false }),
     });
   }, [saving, DRAFT_KEY, sections]);
