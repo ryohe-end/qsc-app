@@ -191,8 +191,8 @@ export default function CheckPage() {
     (id?: string): StoreStatus => {
       const cleanId = String(id ?? "").replace(/^STORE#/, "");
       if (!cleanId) return "new";
-      if (doneStoreIds.includes(cleanId)) return "done";
       if (draftStoreIds.includes(cleanId)) return "draft";
+      if (doneStoreIds.includes(cleanId)) return "done";
       return "new";
     },
     [doneStoreIds, draftStoreIds]
