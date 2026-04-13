@@ -367,13 +367,23 @@ export default function ResultsPage() {
       setLoadingItems(true);
       try {
         if (isStore) {
-          // 店舗ユーザー: 自店舗のhistoryのみ
-          const storeId = (session as Record<string, unknown>)?.storeId as string;
-          if (!storeId) return;
-          const res = await fetch(`/api/check/results/history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" });
-          if (!res.ok) return;
-          const data = await res.json();
-          setItems((data.items ?? []).map((i: HistoryItem) => ({ ...i, storeId, storeName: i.storeName || session?.name || "自店舗" })));
+          // 店舗ユーザー: assignedStoreIds または メール照合で取得した店舗の結果を表示
+          const assignedStoreIds = (session as Record<string, unknown>)?.assignedStoreIds as string[] | undefined;
+          const storeIds = Array.isArray(assignedStoreIds) && assignedStoreIds.length > 0
+            ? assignedStoreIds
+            : [];
+          if (storeIds.length === 0) return;
+          const allItems: HistoryItem[] = [];
+          await Promise.allSettled(storeIds.map(async storeId => {
+            const res = await fetch(`/api/check/results/history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" });
+            if (!res.ok) return;
+            const data = await res.json();
+            for (const item of (data.items ?? [])) {
+              allItems.push({ ...item, storeId, storeName: item.storeName || "自店舗" });
+            }
+          }));
+          allItems.sort((a, b) => String(b.submittedAt).localeCompare(String(a.submittedAt)));
+          setItems(allItems);
         } else {
           // 管理者・検査員: GSI経由で一括取得（高速）
           const myName = isInspector ? (session?.name ?? "") : "";
