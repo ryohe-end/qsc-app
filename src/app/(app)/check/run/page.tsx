@@ -24,7 +24,7 @@ const styles = { ...base, ...modal, ...bottom };
 const Z = { sectionTab: 800, bottomDock: 9000, overlay: 11000, sheet: 11100, photoModal: 11200, editModal: 20000 } as const;
 
 type CheckState = "ok" | "hold" | "ng" | "na" | "unset";
-type Photo = { id: string; dataUrl: string };
+type Photo = { id: string; dataUrl: string; s3Url?: string; s3Key?: string };
 type CheckItem = { id: string; label: string; state: CheckState; note?: string; holdNote?: string; photos?: Photo[]; category?: string };
 type Section = { id: string; title: string; items: CheckItem[] };
 type EditPhotoState = { open: false } | { open: true; dataUrl: string; onSave: (v: string) => void; onClose: () => void };
@@ -274,10 +274,51 @@ export default function CheckRunPage() {
   const addPhotosToItem = useCallback(async (secId: string, itemId: string, files: File[]) => {
     if (!files.length) return;
     const added: Photo[] = [];
-    for (const f of files.slice(0, 5)) { try { const orig = await readFileAsDataUrl(f); const ed = await openPhotoEditor(orig); if (ed) added.push({ id: uid("ph"), dataUrl: ed }); } catch {} }
+    const tempResultId = uid("tmp");
+
+    for (const f of files.slice(0, 5)) {
+      try {
+        const orig = await readFileAsDataUrl(f);
+        const ed = await openPhotoEditor(orig);
+        if (!ed) continue;
+
+        const photoId = uid("ph");
+        const contentType = f.type || "image/jpeg";
+
+        // Presigned URLを取得してS3に直接アップロード
+        try {
+          const presignRes = await fetch("/api/check/upload-presigned", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ storeId, resultId: tempResultId, sectionId: secId, itemId, photoId, contentType }),
+          });
+
+          if (presignRes.ok) {
+            const { url, fields, s3Url } = await presignRes.json();
+            const formData = new FormData();
+            Object.entries(fields).forEach(([k, v]) => formData.append(k, v as string));
+            // base64をBlobに変換
+            const base64Data = ed.split(",")[1];
+            const byteArray = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+            const blob = new Blob([byteArray], { type: contentType });
+            formData.append("file", blob);
+
+            const uploadRes = await fetch(url, { method: "POST", body: formData });
+            if (uploadRes.ok) {
+              // S3アップロード成功：s3Urlを保存、dataUrlはプレビュー用に保持
+              added.push({ id: photoId, dataUrl: ed, s3Url, s3Key: fields.key });
+              continue;
+            }
+          }
+        } catch {}
+
+        // S3失敗時はdataUrlのままフォールバック
+        added.push({ id: photoId, dataUrl: ed });
+      } catch {}
+    }
     if (!added.length) return;
     setSections(p => p.map(s => s.id !== secId ? s : { ...s, items: s.items.map(it => it.id !== itemId ? it : { ...it, photos: (it.photos ?? []).concat(added) }) }));
-  }, [openPhotoEditor]);
+  }, [openPhotoEditor, storeId]);
 
   const removePhotoFromItem = useCallback((secId: string, itemId: string, photoId: string) => {
     setSections(p => p.map(s => s.id !== secId ? s : { ...s, items: s.items.map(it => it.id !== itemId ? it : { ...it, photos: (it.photos ?? []).filter(p => p.id !== photoId) }) }));

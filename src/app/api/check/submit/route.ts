@@ -7,7 +7,7 @@ import { sendEmail } from "@/app/lib/sendgrid";
 
 export const dynamic = "force-dynamic";
 
-const region = process.env.QSC_AWS_REGION || "us-east-1";
+const region = process.env.AWS_REGION || "us-east-1";
 const resultTableName = process.env.QSC_RESULT_TABLE_NAME || "QSC_CheckResults";
 const masterTableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
 const userTableName = process.env.QSC_USER_TABLE || "QSC_UserTable";
@@ -255,7 +255,12 @@ export async function POST(req: NextRequest) {
 
         const storedPhotos: unknown[] = [];
         for (const p of item.photos || []) {
-          if (p.dataUrl && p.dataUrl.startsWith("data:")) {
+          if (p.s3Url && p.s3Key) {
+            // 既にS3にアップロード済み（Presigned URL方式）
+            storedPhotos.push({ id: p.id, key: p.s3Key, url: p.s3Url, contentType: "image/jpeg" });
+            totalPhotoCount++;
+          } else if (p.dataUrl && p.dataUrl.startsWith("data:")) {
+            // フォールバック：base64からS3アップロード
             const uploaded = await uploadPhotoToS3({ storeId: cleanStoreId, resultId, sectionId: sec.id, itemId: item.id, photo: p });
             storedPhotos.push(uploaded);
             totalPhotoCount++;

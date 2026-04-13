@@ -15,13 +15,11 @@ async function findStoreByEmail(email: string): Promise<string[]> {
   try {
     const res = await docClient.send(new ScanCommand({
       TableName: MASTER_TABLE,
-      FilterExpression: "#type = :t AND SK = :sk AND (contains(emails, :email) OR #email = :email)",
+      FilterExpression: "SK = :sk AND (contains(emails, :email) OR #email = :email)",
       ExpressionAttributeNames: {
-        "#type": "type",
         "#email": "email",
       },
       ExpressionAttributeValues: {
-        ":t": "STORE",
         ":sk": "METADATA",
         ":email": email.toLowerCase(),
       },
