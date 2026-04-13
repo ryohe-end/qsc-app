@@ -254,6 +254,7 @@ export async function POST(req: NextRequest) {
         if (s in counts) counts[s]++; else counts.unset++;
 
         const storedPhotos: unknown[] = [];
+        console.log("photos data:", JSON.stringify(item.photos?.map((p: Record<string, unknown>) => ({ id: p.id, hasS3Url: !!p.s3Url, hasS3Key: !!p.s3Key, hasDataUrl: !!(p.dataUrl as string)?.startsWith("data:") }))));
         for (const p of item.photos || []) {
           if (p.s3Url && p.s3Key) {
             // 既にS3にアップロード済み（Presigned URL方式）
