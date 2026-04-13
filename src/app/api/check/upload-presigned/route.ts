@@ -5,7 +5,7 @@ import { createPresignedPost } from "@aws-sdk/s3-presigned-post";
 export const dynamic = "force-dynamic";
 
 const region = process.env.QSC_AWS_REGION || "us-east-1";
-const bucket = process.env.QSC_PHOTO_BUCKET_NAME || "";
+const bucket = process.env.QSC_PHOTO_BUCKET_NAME || "qsc-check-photos-prod";
 const s3 = new S3Client({ region });
 
 export async function POST(req: NextRequest) {

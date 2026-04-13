@@ -11,7 +11,7 @@ const region = process.env.AWS_REGION || "us-east-1";
 const resultTableName = process.env.QSC_RESULT_TABLE_NAME || "QSC_CheckResults";
 const masterTableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
 const userTableName = process.env.QSC_USER_TABLE || "QSC_UserTable";
-const photoBucketName = process.env.QSC_PHOTO_BUCKET_NAME || "";
+const photoBucketName = process.env.QSC_PHOTO_BUCKET_NAME || "qsc-check-photos-prod";
 
 const ddbClient = new DynamoDBClient({ region });
 const docClient = DynamoDBDocumentClient.from(ddbClient);
