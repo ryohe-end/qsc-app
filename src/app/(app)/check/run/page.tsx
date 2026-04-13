@@ -74,7 +74,7 @@ function patchSections(raw: Section[]): Section[] {
       holdNote: typeof (it as CheckItem).holdNote === "string" ? (it as CheckItem).holdNote : "",
       photos: Array.isArray(it.photos) ? it.photos.map((p: Record<string, string>) => ({
         id: p.id || uid("ph"),
-        dataUrl: p.dataUrl || p.s3Url || p.url || "",
+        dataUrl: p.dataUrl || p.url || "",  // s3Urlは使わない（期限切れのため）
         s3Url: p.s3Url || undefined,
         s3Key: p.s3Key || undefined,
       })) : [],
@@ -124,7 +124,35 @@ export default function CheckRunPage() {
       if (!raw) return false;
       const parsed = JSON.parse(raw) as Section[];
       if (!Array.isArray(parsed) || parsed.length === 0) return false;
-      setSections(patchSections(parsed));
+      const patched = patchSections(parsed);
+      setSections(patched);
+      // s3Keyがある写真のPresigned URLを取得
+      const keys: { secId: string; itemId: string; photoId: string; key: string }[] = [];
+      for (const s of patched) {
+        for (const it of s.items) {
+          for (const p of it.photos ?? []) {
+            if (p.s3Key && !p.dataUrl) {
+              keys.push({ secId: s.id, itemId: it.id, photoId: p.id, key: p.s3Key });
+            }
+          }
+        }
+      }
+      if (keys.length > 0) {
+        Promise.all(keys.map(async ({ secId, itemId, photoId, key }) => {
+          try {
+            const res = await fetch(`/api/check/photo-url?key=${encodeURIComponent(key)}`);
+            if (!res.ok) return;
+            const { url } = await res.json();
+            setSections(prev => prev.map(s => s.id !== secId ? s : {
+              ...s,
+              items: s.items.map(it => it.id !== itemId ? it : {
+                ...it,
+                photos: (it.photos ?? []).map(p => p.id !== photoId ? p : { ...p, dataUrl: url }),
+              }),
+            }));
+          } catch {}
+        }));
+      }
       return true;
     } catch {
       if (fallback) setSections(fallback);
