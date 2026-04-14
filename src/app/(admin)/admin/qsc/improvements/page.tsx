@@ -247,7 +247,7 @@ export default function ImprovementReportsPage() {
           question: String(item.question || ""),
           inspectorNote: String(item.inspectorNote || ""),
           deadline: String(item.deadline || "期限なし"),
-          beforePhotos: normalizeImageUrls(item.beforePhoto || item.beforePhotos || item.photos || ""),
+          beforePhotos: normalizeImageUrls(item.beforePhotos || item.beforePhoto || item.photos || ""),
           afterPhotos: normalizeImageUrls(item.afterPhoto || item.afterPhotos || ""),
           comment: String(item.comment || ""),
           resultPk: String(item.resultPk || ""),
