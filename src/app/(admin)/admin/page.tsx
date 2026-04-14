@@ -263,7 +263,7 @@ function AdminTile({
       </div>
     </Link>
   );
-                <Card
+                <AdminTile
                   icon="⚙️"
                   title="設定"
                   desc="メールテスト・システム設定"
