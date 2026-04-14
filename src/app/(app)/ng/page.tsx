@@ -483,7 +483,7 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           question: String(item.question || ""),
           inspectorNote: String(item.inspectorNote || ""),
           deadline: String(item.deadline || "期限なし"),
-          beforePhotos: normalizeImageUrls(item.beforePhoto || item.beforePhotos || item.photos || ""),
+          beforePhotos: normalizeImageUrls(item.beforePhotos || item.beforePhoto || item.photos || ""),
           comment: String(item.comment || ""),
           isSubmitting: false,
           resultPk: String(item.resultPk || ""),
