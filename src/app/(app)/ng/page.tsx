@@ -5,7 +5,7 @@ import Link from "next/link";
 import {
   ChevronLeft, ChevronRight, Camera, Trash2, Clock, CheckCircle2,
   Building2, Loader2, AlertCircle, ImageOff, X, CheckCheck,
-  ThumbsUp, ThumbsDown, RotateCcw, AlertTriangle, Send,
+  ThumbsUp, ThumbsDown, RotateCcw, AlertTriangle, Send, Plus,
 } from "lucide-react";
 import { useSession } from "@/app/(app)/lib/auth";
 
@@ -16,6 +16,8 @@ type CorrectionStatus = "pending" | "submitted" | "reviewing" | "approved" | "re
 
 type UploadedPhoto = { id?: string; key?: string; url?: string; contentType?: string };
 
+type AfterPhoto = { file: File; previewUrl: string };
+
 type NgIssue = {
   id: string;
   sectionIndex: number;
@@ -23,7 +25,7 @@ type NgIssue = {
   question: string;
   inspectorNote: string;
   deadline: string;
-  beforePhoto: string;
+  beforePhotos: string[]; // 複数対応
   comment: string;
   isSubmitting?: boolean;
   resultPk: string;
@@ -36,8 +38,7 @@ type NgIssue = {
   reviewedAt?: string;
   storeId?: string;
   storeName?: string;
-  afterPhotoFile?: File;
-  afterPhotoPreviewUrl?: string;
+  afterPhotos: AfterPhoto[]; // 複数対応
 };
 
 type NgStore = {
@@ -74,16 +75,22 @@ function normalizeNgStores(json: unknown): NgStore[] {
   if (Array.isArray(j?.stores)) return j.stores as NgStore[];
   return [];
 }
-function normalizeImageUrl(value: unknown): string {
-  if (!value) return "";
-  if (typeof value === "string") return value.trim();
-  if (Array.isArray(value)) { for (const e of value) { const f = normalizeImageUrl(e); if (f) return f; } return ""; }
+
+// 複数画像URLを正規化して配列で返す
+function normalizeImageUrls(value: unknown): string[] {
+  if (!value) return [];
+  if (typeof value === "string") return value.trim() ? [value.trim()] : [];
+  if (Array.isArray(value)) {
+    return value.flatMap(e => normalizeImageUrls(e)).filter(Boolean);
+  }
   if (typeof value === "object") {
     const o = value as Record<string, unknown>;
-    return String(o.url || o.previewUrl || o.src || o.key || "").trim();
+    const url = String(o.url || o.previewUrl || o.src || o.key || "").trim();
+    return url ? [url] : [];
   }
-  return "";
+  return [];
 }
+
 function cleanupPreviewUrl(url?: string) { if (url?.startsWith("blob:")) URL.revokeObjectURL(url); }
 function isDisplayable(url?: string) {
   if (!url) return false;
@@ -98,22 +105,26 @@ function formatDate(iso?: string) {
 }
 
 /* ========================= API helpers ========================= */
-async function uploadAfterPhoto(target: NgIssue): Promise<UploadedPhoto[]> {
-  if (!target.afterPhotoFile) return [];
-  const form = new FormData();
-  form.append("file", target.afterPhotoFile);
-  form.append("pk", target.resultPk);
-  form.append("sk", target.resultSk);
-  form.append("itemId", target.id);
-  form.append("sectionIndex", String(target.sectionIndex));
-  const res = await fetch("/api/check/results/upload-after-photo", { method: "POST", body: form });
-  const json = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(json?.error || "After画像アップロード失敗");
-  return json?.photo ? [json.photo] : [];
+async function uploadAfterPhotos(target: NgIssue): Promise<UploadedPhoto[]> {
+  if (!target.afterPhotos.length) return [];
+  const uploaded: UploadedPhoto[] = [];
+  for (const { file } of target.afterPhotos) {
+    const form = new FormData();
+    form.append("file", file);
+    form.append("pk", target.resultPk);
+    form.append("sk", target.resultSk);
+    form.append("itemId", target.id);
+    form.append("sectionIndex", String(target.sectionIndex));
+    const res = await fetch("/api/check/results/upload-after-photo", { method: "POST", body: form });
+    const json = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(json?.error || "After画像アップロード失敗");
+    if (json?.photo) uploaded.push(json.photo);
+  }
+  return uploaded;
 }
 
 async function patchIssue(target: NgIssue, newStatus: CorrectionStatus = "submitted") {
-  const afterPhotos = await uploadAfterPhoto(target);
+  const afterPhotos = await uploadAfterPhotos(target);
   const res = await fetch("/api/check/results/update", {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
@@ -223,6 +234,24 @@ function Sheet({ sheet, setSheet }: { sheet: SheetState; setSheet: (s: SheetStat
   );
 }
 
+/* ========================= PhotoGrid ========================= */
+function PhotoGrid({ urls, onPreview }: { urls: string[]; onPreview: (url: string) => void }) {
+  if (!urls.length) return (
+    <div style={{ width: "100%", height: 100, border: "1px dashed #e2e8f0", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", color: "#94a3b8" }}>
+      <ImageOff size={20} /><span style={{ fontSize: 11, marginLeft: 6 }}>写真なし</span>
+    </div>
+  );
+  return (
+    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+      {urls.map((url, i) => (
+        <div key={i} style={{ width: 80, height: 80, borderRadius: 10, overflow: "hidden", cursor: "zoom-in", border: "1px solid #e2e8f0", flexShrink: 0 }} onClick={() => onPreview(url)}>
+          <SafeImage src={url} alt={`写真${i+1}`} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ========================= Issue Card ========================= */
 function IssueCard({
   issue, isAdmin, fileInputRef,
@@ -241,6 +270,7 @@ function IssueCard({
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const cfg = STATUS_CONFIG[issue.correctionStatus] ?? STATUS_CONFIG.pending;
   const isApproved = issue.correctionStatus === "approved";
+  // 写真なしでもコメントがあれば送信可能
   const canSubmit = !isAdmin && !isApproved && !!issue.comment?.trim() && !issue.isSubmitting && !isBulkSubmitting;
   const canApprove = isAdmin && (issue.correctionStatus === "submitted" || issue.correctionStatus === "reviewing");
   const canReject  = isAdmin && (issue.correctionStatus === "submitted" || issue.correctionStatus === "reviewing" || issue.correctionStatus === "approved");
@@ -274,43 +304,68 @@ function IssueCard({
             <div style={{ fontSize: 13, fontWeight: 600, color: "#7f1d1d", lineHeight: 1.4 }}>{issue.inspectorNote || "（コメントなし）"}</div>
           </div>
 
-          {/* 写真エリア */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          {/* Before写真（複数） */}
+          <div>
+            <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", marginBottom: 6 }}>指摘時の写真</div>
+            <PhotoGrid urls={issue.beforePhotos} onPreview={setPreviewSrc} />
+          </div>
+
+          {/* After写真（複数・追加可能） */}
+          {!isAdmin && (
             <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", marginBottom: 6 }}>指摘時の写真</div>
-              <SafeImage src={issue.beforePhoto} alt="Before" style={{ width: "100%", height: 120, cursor: issue.beforePhoto ? "zoom-in" : "default" }}
-                onClick={issue.beforePhoto ? () => setPreviewSrc(issue.beforePhoto) : undefined}
-              />
-            </div>
-            <div>
-              <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", marginBottom: 6 }}>改善後の写真</div>
-              {issue.afterPhotoPreviewUrl ? (
-                <div style={{ position: "relative" }}>
-                  <SafeImage src={issue.afterPhotoPreviewUrl} alt="After" style={{ width: "100%", height: 120, cursor: "zoom-in" }}
-                    onClick={() => setPreviewSrc(issue.afterPhotoPreviewUrl!)}
-                  />
-                  {!isApproved && !isAdmin && (
-                    <button onClick={() => { cleanupPreviewUrl(issue.afterPhotoPreviewUrl); onUpdateIssue(issue.id, { afterPhotoFile: undefined, afterPhotoPreviewUrl: undefined }); }}
-                      style={{ position: "absolute", top: 5, right: 5, width: 26, height: 26, borderRadius: "50%", background: "rgba(0,0,0,0.55)", border: "none", color: "#fff", display: "grid", placeItems: "center", cursor: "pointer" }}>
-                      <Trash2 size={13} />
-                    </button>
-                  )}
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+                <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b" }}>改善後の写真（任意）</div>
+                {!isApproved && (
+                  <button
+                    onClick={() => { onSetActiveId(issue.id); fileInputRef.current?.click(); }}
+                    style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 8, border: "1px solid #e2e8f0", background: "#f8fafc", fontSize: 12, fontWeight: 800, color: "#64748b", cursor: "pointer" }}
+                  >
+                    <Plus size={12} /> 追加
+                  </button>
+                )}
+              </div>
+              {issue.afterPhotos.length === 0 ? (
+                <div style={{ height: 80, border: "2px dashed #e2e8f0", borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, color: "#94a3b8", fontSize: 12, fontWeight: 700 }}>
+                  <Camera size={18} /> 写真なしでもコメントで送信できます
                 </div>
               ) : (
-                <button onClick={() => { onSetActiveId(issue.id); fileInputRef.current?.click(); }}
-                  disabled={isApproved || isAdmin}
-                  style={{ width: "100%", height: 120, border: "2px dashed #cbd5e1", borderRadius: 12, background: "#f8fafc", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: isApproved || isAdmin ? "default" : "pointer" }}>
-                  <Camera size={24} color="#94a3b8" />
-                  <span style={{ fontSize: 11, color: "#94a3b8", fontWeight: 700 }}>撮影する</span>
-                </button>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {issue.afterPhotos.map((p, i) => (
+                    <div key={i} style={{ position: "relative", width: 80, height: 80, borderRadius: 10, overflow: "hidden", border: "1px solid #e2e8f0", flexShrink: 0 }}>
+                      <img src={p.previewUrl} alt={`改善後${i+1}`} style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "zoom-in" }} onClick={() => setPreviewSrc(p.previewUrl)} />
+                      {!isApproved && (
+                        <button onClick={() => {
+                          cleanupPreviewUrl(p.previewUrl);
+                          onUpdateIssue(issue.id, { afterPhotos: issue.afterPhotos.filter((_, j) => j !== i) });
+                        }} style={{ position: "absolute", top: 3, right: 3, width: 22, height: 22, borderRadius: "50%", background: "rgba(0,0,0,0.55)", border: "none", color: "#fff", display: "grid", placeItems: "center", cursor: "pointer" }}>
+                          <X size={11} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
-          </div>
+          )}
+
+          {/* admin向けAfter写真表示 */}
+          {isAdmin && (
+            <div>
+              <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", marginBottom: 6 }}>改善後の写真</div>
+              {issue.afterPhotos.length === 0 ? (
+                <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 700 }}>写真なし</div>
+              ) : (
+                <PhotoGrid urls={issue.afterPhotos.map(p => p.previewUrl)} onPreview={setPreviewSrc} />
+              )}
+            </div>
+          )}
 
           {/* 改善対策コメント */}
           {!isAdmin && (
             <div>
-              <div style={{ fontSize: 12, fontWeight: 800, color: "#64748b", marginBottom: 6 }}>実施した改善対策</div>
+              <div style={{ fontSize: 12, fontWeight: 800, color: "#64748b", marginBottom: 6 }}>
+                実施した改善対策 <span style={{ color: "#dc2626", fontSize: 10 }}>（必須）</span>
+              </div>
               <textarea
                 value={issue.comment}
                 onChange={e => onUpdateIssue(issue.id, { comment: e.target.value })}
@@ -321,7 +376,7 @@ function IssueCard({
             </div>
           )}
 
-          {/* 店舗のコメント表示（admin向け） */}
+          {/* admin向けコメント表示 */}
           {isAdmin && issue.comment && (
             <div style={{ background: "#f8fafc", borderRadius: 12, padding: "10px 12px" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "#64748b", marginBottom: 4 }}>店舗の改善コメント</div>
@@ -329,7 +384,7 @@ function IssueCard({
             </div>
           )}
 
-          {/* 差し戻しコメント表示 */}
+          {/* 差し戻しコメント */}
           {issue.correctionStatus === "rejected" && issue.reviewNote && (
             <div style={{ background: "#f5f3ff", borderLeft: "3px solid #7c3aed", borderRadius: "0 10px 10px 0", padding: "10px 12px" }}>
               <div style={{ fontSize: 11, fontWeight: 900, color: "#7c3aed", marginBottom: 3 }}>差し戻し理由</div>
@@ -338,7 +393,7 @@ function IssueCard({
             </div>
           )}
 
-          {/* 承認済み表示 */}
+          {/* 承認済み */}
           {issue.correctionStatus === "approved" && (
             <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "#f0fdf4", borderRadius: 12 }}>
               <CheckCheck size={16} color="#059669" />
@@ -351,15 +406,12 @@ function IssueCard({
 
           {/* アクションボタン */}
           <div style={{ display: "flex", gap: 8 }}>
-            {/* 店舗ユーザー：送信ボタン */}
             {!isAdmin && !isApproved && (
               <button onClick={() => onSubmit(issue.id)} disabled={!canSubmit}
                 style={{ flex: 1, padding: "13px 0", borderRadius: 14, border: "none", background: canSubmit ? "#1e293b" : "#e2e8f0", color: canSubmit ? "#fff" : "#94a3b8", fontSize: 14, fontWeight: 900, cursor: canSubmit ? "pointer" : "not-allowed", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                 {issue.isSubmitting ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <><Send size={14} /> 改善報告を送信</>}
               </button>
             )}
-
-            {/* admin：承認・差し戻しボタン */}
             {isAdmin && (
               <>
                 {canApprove && (
@@ -431,7 +483,7 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           question: String(item.question || ""),
           inspectorNote: String(item.inspectorNote || ""),
           deadline: String(item.deadline || "期限なし"),
-          beforePhoto: normalizeImageUrl(item.beforePhoto || item.beforePhotos || item.photos || ""),
+          beforePhotos: normalizeImageUrls(item.beforePhoto || item.beforePhotos || item.photos || ""),
           comment: String(item.comment || ""),
           isSubmitting: false,
           resultPk: String(item.resultPk || ""),
@@ -444,6 +496,7 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           reviewedAt: item.reviewedAt ? String(item.reviewedAt) : undefined,
           storeId: item.storeId ? String(item.storeId) : undefined,
           storeName: item.storeName ? String(item.storeName) : undefined,
+          afterPhotos: normalizeImageUrls(item.afterPhotos || item.afterPhoto || "").map(url => ({ file: new File([], ""), previewUrl: url })),
         })));
       })
       .catch(e => { console.error(e); setError("データの読み込みに失敗しました"); })
@@ -458,15 +511,15 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
     const target = issues.find(i => i.id === issueId);
     if (!target) return;
     setSheet({
-      open: true, title: "改善報告を送信", message: "この内容で改善報告を送信しますか？",
+      open: true, title: "改善報告を送信", message: `コメント${target.afterPhotos.length > 0 ? `と${target.afterPhotos.length}枚の写真` : ""}で改善報告を送信しますか？`,
       primaryText: "送信する", cancelText: "キャンセル",
       onPrimary: async () => {
         setSheet({ open: false });
         updateIssue(issueId, { isSubmitting: true });
         try {
           await patchIssue(target, "submitted");
-          cleanupPreviewUrl(target.afterPhotoPreviewUrl);
-          updateIssue(issueId, { correctionStatus: "submitted", isSubmitting: false, afterPhotoFile: undefined, afterPhotoPreviewUrl: undefined });
+          target.afterPhotos.forEach(p => cleanupPreviewUrl(p.previewUrl));
+          updateIssue(issueId, { correctionStatus: "submitted", isSubmitting: false, afterPhotos: [] });
         } catch (e) {
           console.error(e);
           updateIssue(issueId, { isSubmitting: false });
@@ -539,8 +592,8 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
         for (const t of targets) {
           try {
             await patchIssue(t, "submitted");
-            cleanupPreviewUrl(t.afterPhotoPreviewUrl);
-            updateIssue(t.id, { correctionStatus: "submitted", afterPhotoFile: undefined, afterPhotoPreviewUrl: undefined });
+            t.afterPhotos.forEach(p => cleanupPreviewUrl(p.previewUrl));
+            updateIssue(t.id, { correctionStatus: "submitted", afterPhotos: [] });
             success++;
           } catch (e) { console.error(e); }
         }
@@ -551,7 +604,6 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
     });
   }, [issues, updateIssue]);
 
-  // フィルタリング・集計
   const statusCounts = issues.reduce((acc, i) => {
     acc[i.correctionStatus] = (acc[i.correctionStatus] ?? 0) + 1;
     return acc;
@@ -579,7 +631,6 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
     <>
       <style>{`@keyframes spin { from { transform:rotate(0deg); } to { transform:rotate(360deg); } } @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }`}</style>
       <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 100 }}>
-        {/* 戻るボタン */}
         {onBack ? (
           <button onClick={onBack} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 800, color: "#64748b", background: "none", border: "none", cursor: "pointer", padding: 0 }}>
             <ChevronLeft size={18} /> 戻る
@@ -590,7 +641,6 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           </Link>
         )}
 
-        {/* ヒーローカード */}
         <div style={{ background: "linear-gradient(135deg, #1e293b, #334155)", borderRadius: 24, padding: "20px", color: "#fff" }}>
           <div style={{ fontSize: 11, fontWeight: 800, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em", marginBottom: 4 }}>是正管理</div>
           <div style={{ fontSize: 22, fontWeight: 900, marginBottom: 16 }}>{storeName}</div>
@@ -608,7 +658,6 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           </div>
         </div>
 
-        {/* 一括送信ボタン（店舗ユーザーのみ） */}
         {!isAdmin && bulkCount > 0 && (
           <button onClick={handleBulkSubmit} disabled={isBulkSubmitting}
             style={{ width: "100%", padding: 16, borderRadius: 16, border: "none", background: "#059669", color: "#fff", fontSize: 15, fontWeight: 900, cursor: isBulkSubmitting ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
@@ -616,7 +665,6 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           </button>
         )}
 
-        {/* フィルタータブ */}
         <div style={{ display: "flex", gap: 6, overflowX: "auto", scrollbarWidth: "none", paddingBottom: 2 }}>
           {([["all", "すべて"], ...Object.entries(STATUS_CONFIG).map(([k, v]) => [k, v.label])] as [string, string][]).map(([key, label]) => {
             const count = key === "all" ? issues.length : (statusCounts[key] ?? 0);
@@ -631,7 +679,6 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           })}
         </div>
 
-        {/* Issue リスト */}
         {filtered.length === 0 ? (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12, padding: "48px 0", color: "#94a3b8" }}>
             <CheckCircle2 size={48} color="#10b981" strokeWidth={1.5} />
@@ -642,7 +689,6 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
         ) : (
           filtered.map(issue => (
             <div key={`${issue.resultPk}-${issue.resultSk}-${issue.id}`} style={{ animation: "fadeUp 0.3s ease both" }}>
-              {/* チェック日グループヘッダー */}
               {issue.inspectionDate && (
                 <div style={{ fontSize: 11, fontWeight: 900, color: "#94a3b8", marginBottom: 8, paddingLeft: 4 }}>
                   点検日: {issue.inspectionDate}
@@ -666,8 +712,7 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           const url = URL.createObjectURL(file);
           setIssues(prev => prev.map(iss => {
             if (iss.id !== activeIssueId) return iss;
-            cleanupPreviewUrl(iss.afterPhotoPreviewUrl);
-            return { ...iss, afterPhotoFile: file, afterPhotoPreviewUrl: url };
+            return { ...iss, afterPhotos: [...iss.afterPhotos, { file, previewUrl: url }] };
           }));
           e.target.value = "";
         }}
@@ -751,16 +796,13 @@ export default function NgPage() {
   const isStore = role === "manager" || role === "store";
   const storeId = String((session as Record<string, unknown>)?.storeId ?? (session as Record<string, unknown>)?.assignedStoreId ?? "");
 
-  // 店舗ユーザー → 自店舗の是正画面
   if (isStore && storeId) {
     return <StoreNgView storeName={session?.name ?? "自店舗"} storeId={storeId} isAdmin={false} />;
   }
 
-  // admin で店舗選択済み → 店舗の是正画面
   if (isAdmin && selectedStore) {
     return <StoreNgView storeName={selectedStore.name} storeId={selectedStore.id} isAdmin={true} onBack={() => setSelectedStore(null)} />;
   }
 
-  // admin → 一覧
   return <AdminNgDashboard onSelect={setSelectedStore} />;
 }

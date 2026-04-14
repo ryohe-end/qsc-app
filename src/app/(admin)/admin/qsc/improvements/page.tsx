@@ -7,8 +7,8 @@ import Link from "next/link";
 import {
   Search, Home, ChevronRight, AlertCircle, Clock, CheckCircle2,
   ImageIcon, MessageSquare, ArrowRight, X, RotateCcw, Maximize2,
-  Building2, UserCheck, Download, Loader2, Send, ThumbsUp, ThumbsDown,
-  CheckCheck,
+  Building2, UserCheck, Loader2, Send, ThumbsUp, ThumbsDown,
+  CheckCheck, ChevronLeft, ChevronRight as ChevronRightIcon,
 } from "lucide-react";
 
 /* ========================= Types ========================= */
@@ -28,8 +28,8 @@ type NgIssue = {
   question: string;
   inspectorNote: string;
   deadline: string;
-  beforePhoto: string;
-  afterPhoto?: string;
+  beforePhotos: string[];  // 複数対応
+  afterPhotos: string[];   // 複数対応
   comment: string;
   resultPk: string;
   resultSk: string;
@@ -68,16 +68,22 @@ function normalizeStores(json: unknown): NgStore[] {
   if (Array.isArray(j?.stores)) return j.stores as NgStore[];
   return [];
 }
-function normalizeImageUrl(value: unknown): string {
-  if (!value) return "";
-  if (typeof value === "string") return value.trim();
-  if (Array.isArray(value)) { for (const e of value) { const f = normalizeImageUrl(e); if (f) return f; } return ""; }
+
+// 複数画像URLを正規化して配列で返す
+function normalizeImageUrls(value: unknown): string[] {
+  if (!value) return [];
+  if (typeof value === "string") return value.trim() ? [value.trim()] : [];
+  if (Array.isArray(value)) {
+    return value.flatMap(e => normalizeImageUrls(e)).filter(Boolean);
+  }
   if (typeof value === "object") {
     const o = value as Record<string, unknown>;
-    return String(o.url || o.previewUrl || o.src || "").trim();
+    const url = String(o.url || o.previewUrl || o.src || "").trim();
+    return url ? [url] : [];
   }
-  return "";
+  return [];
 }
+
 function isDisplayable(url?: string) {
   if (!url) return false;
   return url.startsWith("blob:") || url.startsWith("data:image/") || url.startsWith("http") || url.startsWith("/");
@@ -161,30 +167,64 @@ function SafeImage({ src, style, onClick }: { src?: string; style?: React.CSSPro
   return <img src={src} alt="" style={{ ...style, objectFit: "cover", cursor: onClick ? "zoom-in" : "default" }} onError={() => setFailed(true)} onClick={onClick} />;
 }
 
+/* ========================= PhotoCarousel ========================= */
+function PhotoCarousel({ urls, onZoom, label }: { urls: string[]; onZoom: (url: string) => void; label: string }) {
+  const [idx, setIdx] = useState(0);
+  const displayUrl = urls[idx];
+
+  return (
+    <div style={{ textAlign: "center" }}>
+      <div style={{ fontSize: 10, fontWeight: 900, color: "#64748b", marginBottom: 8, letterSpacing: "0.05em" }}>{label}</div>
+      <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", aspectRatio: "1/1", background: "#e2e8f0" }}>
+        <SafeImage src={displayUrl} style={{ width: "100%", height: "100%" }}
+          onClick={isDisplayable(displayUrl) ? () => onZoom(displayUrl) : undefined} />
+        {isDisplayable(displayUrl) && (
+          <button onClick={() => onZoom(displayUrl)}
+            style={{ position: "absolute", bottom: 6, right: 6, background: "rgba(15,23,42,0.7)", border: "none", borderRadius: 8, padding: 6, color: "#fff", cursor: "pointer" }}>
+            <Maximize2 size={14} />
+          </button>
+        )}
+        {urls.length > 1 && (
+          <>
+            <button onClick={() => setIdx(i => Math.max(0, i - 1))} disabled={idx === 0}
+              style={{ position: "absolute", left: 4, top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.5)", border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", padding: 4, opacity: idx === 0 ? 0.3 : 1 }}>
+              <ChevronLeft size={14} />
+            </button>
+            <button onClick={() => setIdx(i => Math.min(urls.length - 1, i + 1))} disabled={idx === urls.length - 1}
+              style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", background: "rgba(0,0,0,0.5)", border: "none", borderRadius: 6, color: "#fff", cursor: "pointer", padding: 4, opacity: idx === urls.length - 1 ? 0.3 : 1 }}>
+              <ChevronRightIcon size={14} />
+            </button>
+            <div style={{ position: "absolute", bottom: 6, left: "50%", transform: "translateX(-50%)", fontSize: 10, fontWeight: 800, color: "#fff", background: "rgba(0,0,0,0.5)", padding: "2px 6px", borderRadius: 6 }}>
+              {idx + 1}/{urls.length}
+            </div>
+          </>
+        )}
+      </div>
+      {urls.length === 0 && (
+        <div style={{ marginTop: 4, fontSize: 11, color: "#94a3b8", fontWeight: 700 }}>写真なし</div>
+      )}
+    </div>
+  );
+}
+
 /* ========================= Main Page ========================= */
 export default function ImprovementReportsPage() {
   const [selectedStore, setSelectedStore] = useState<{ id: string; name: string; pending: number } | null>(null);
   const [detailIssue, setDetailIssue] = useState<NgIssue | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
 
-  // 店舗一覧
   const [stores, setStores] = useState<NgStore[]>([]);
   const [storesLoading, setStoresLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // 指摘一覧
   const [issues, setIssues] = useState<NgIssue[]>([]);
   const [issuesLoading, setIssuesLoading] = useState(false);
   const [filterStatus, setFilterStatus] = useState<CorrectionStatus | "all">("all");
-
-  // 一括選択
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  // Sheet
   const [sheet, setSheet] = useState<SheetState>({ open: false });
   const [rejectNote, setRejectNote] = useState("");
 
-  // 店舗一覧取得
   useEffect(() => {
     fetch("/api/check/results/ng-stores", { cache: "no-store" })
       .then(r => r.ok ? r.json() : {})
@@ -193,7 +233,6 @@ export default function ImprovementReportsPage() {
       .finally(() => setStoresLoading(false));
   }, []);
 
-  // 指摘一覧取得
   useEffect(() => {
     if (!selectedStore) return;
     setIssuesLoading(true);
@@ -208,8 +247,8 @@ export default function ImprovementReportsPage() {
           question: String(item.question || ""),
           inspectorNote: String(item.inspectorNote || ""),
           deadline: String(item.deadline || "期限なし"),
-          beforePhoto: normalizeImageUrl(item.beforePhoto || item.beforePhotos || item.photos || ""),
-          afterPhoto: normalizeImageUrl(item.afterPhoto || item.afterPhotos || "") || undefined,
+          beforePhotos: normalizeImageUrls(item.beforePhoto || item.beforePhotos || item.photos || ""),
+          afterPhotos: normalizeImageUrls(item.afterPhoto || item.afterPhotos || ""),
           comment: String(item.comment || ""),
           resultPk: String(item.resultPk || ""),
           resultSk: String(item.resultSk || ""),
@@ -225,7 +264,6 @@ export default function ImprovementReportsPage() {
       .finally(() => { setIssuesLoading(false); setSelectedIds(new Set()); });
   }, [selectedStore]);
 
-  // correctionStatus 更新
   const patchStatus = useCallback(async (
     issue: NgIssue, correctionStatus: CorrectionStatus, reviewNote?: string
   ) => {
@@ -240,11 +278,7 @@ export default function ImprovementReportsPage() {
     });
     const json = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(json?.error || "更新失敗");
-    // ローカル状態を更新
-    setIssues(prev => prev.map(i => i.id !== issue.id ? i : {
-      ...i, correctionStatus,
-      reviewNote: reviewNote ?? i.reviewNote,
-    }));
+    setIssues(prev => prev.map(i => i.id !== issue.id ? i : { ...i, correctionStatus, reviewNote: reviewNote ?? i.reviewNote }));
     if (detailIssue?.id === issue.id) {
       setDetailIssue(prev => prev ? { ...prev, correctionStatus, reviewNote: reviewNote ?? prev.reviewNote } : null);
     }
@@ -280,36 +314,23 @@ export default function ImprovementReportsPage() {
   }, [patchStatus, rejectNote]);
 
   const filteredStores = useMemo(() =>
-    stores.filter(s => resolveStoreName(s).includes(searchQuery)),
-    [stores, searchQuery]
-  );
+    stores.filter(s => resolveStoreName(s).includes(searchQuery)), [stores, searchQuery]);
 
   const filteredIssues = useMemo(() =>
-    filterStatus === "all" ? issues : issues.filter(i => i.correctionStatus === filterStatus),
-    [issues, filterStatus]
-  );
+    filterStatus === "all" ? issues : issues.filter(i => i.correctionStatus === filterStatus), [issues, filterStatus]);
 
   const statusCounts = useMemo(() =>
-    issues.reduce((acc, i) => { acc[i.correctionStatus] = (acc[i.correctionStatus] ?? 0) + 1; return acc; }, {} as Record<string, number>),
-    [issues]
-  );
+    issues.reduce((acc, i) => { acc[i.correctionStatus] = (acc[i.correctionStatus] ?? 0) + 1; return acc; }, {} as Record<string, number>), [issues]);
 
-  // 一括承認（filteredIssues の後に宣言）
   const handleBulkApprove = useCallback(() => {
-    const targets = filteredIssues.filter(i =>
-      selectedIds.has(i.id) &&
-      (i.correctionStatus === "submitted" || i.correctionStatus === "reviewing")
-    );
+    const targets = filteredIssues.filter(i => selectedIds.has(i.id) && (i.correctionStatus === "submitted" || i.correctionStatus === "reviewing"));
     if (targets.length === 0) {
-      setSheet({ open: true, title: "対象なし", message: "承認可能な項目が選択されていません（報告済み・確認中のみ承認できます）", cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
+      setSheet({ open: true, title: "対象なし", message: "承認可能な項目が選択されていません", cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
       return;
     }
     setSheet({
-      open: true,
-      title: `${targets.length}件をまとめて承認`,
-      message: "選択した改善報告をまとめて承認しますか？",
-      primaryText: `${targets.length}件承認する`,
-      cancelText: "キャンセル",
+      open: true, title: `${targets.length}件をまとめて承認`, message: "選択した改善報告をまとめて承認しますか？",
+      primaryText: `${targets.length}件承認する`, cancelText: "キャンセル",
       onPrimary: async () => {
         setSheet({ open: false });
         let success = 0;
@@ -317,7 +338,7 @@ export default function ImprovementReportsPage() {
           try { await patchStatus(issue, "approved"); success++; } catch (e) { console.error(e); }
         }
         setSelectedIds(new Set());
-        setSheet({ open: true, title: "完了", message: `${success}件承認しました${success < targets.length ? `（${targets.length - success}件失敗）` : ""}`, cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
+        setSheet({ open: true, title: "完了", message: `${success}件承認しました`, cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
       },
       onCancel: () => setSheet({ open: false }),
     });
@@ -329,7 +350,6 @@ export default function ImprovementReportsPage() {
       <main style={{ minHeight: "100vh", padding: "40px 24px", background: "#f8fafc" }}>
         <style>{`@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } } .ir-store:hover { border-color: #6366f1 !important; transform: translateY(-2px); }`}</style>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-          {/* Breadcrumb */}
           <nav style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, fontSize: 13, fontWeight: 700 }}>
             <Link href="/admin" style={{ color: "#64748b", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
               <Home size={14} /> Dashboard
@@ -341,9 +361,7 @@ export default function ImprovementReportsPage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 32, gap: 20, flexWrap: "wrap" }}>
             <div>
               <h1 style={{ fontSize: 28, fontWeight: 950, color: "#1e293b", margin: 0 }}>改善報告管理</h1>
-              <p style={{ color: "#64748b", fontWeight: 600, marginTop: 4, margin: "4px 0 0" }}>
-                是正対応が必要な店舗を選択してください
-              </p>
+              <p style={{ color: "#64748b", fontWeight: 600, marginTop: 4, margin: "4px 0 0" }}>是正対応が必要な店舗を選択してください</p>
             </div>
             <div style={{ position: "relative", width: "100%", maxWidth: 360 }}>
               <Search size={16} style={{ position: "absolute", left: 16, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
@@ -383,9 +401,7 @@ export default function ImprovementReportsPage() {
                     </div>
                     <div>
                       <h2 style={{ fontSize: 17, fontWeight: 900, color: "#1e293b", margin: "0 0 4px" }}>{sname}</h2>
-                      {store.inspectionDate && (
-                        <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>最終点検: {store.inspectionDate}</div>
-                      )}
+                      {store.inspectionDate && <div style={{ fontSize: 12, color: "#94a3b8", fontWeight: 600 }}>最終点検: {store.inspectionDate}</div>}
                     </div>
                     {store.userName && (
                       <div style={{ borderTop: "1px solid #f1f5f9", paddingTop: 12, display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 700, color: "#64748b" }}>
@@ -412,7 +428,6 @@ export default function ImprovementReportsPage() {
       `}</style>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
 
-        {/* Breadcrumb */}
         <nav style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24, fontSize: 13, fontWeight: 700 }}>
           <Link href="/admin" style={{ color: "#64748b", textDecoration: "none", display: "flex", alignItems: "center", gap: 6 }}>
             <Home size={14} /> Dashboard
@@ -425,7 +440,6 @@ export default function ImprovementReportsPage() {
           <span style={{ color: "#1e293b", fontWeight: 900 }}>{selectedStore.name}</span>
         </nav>
 
-        {/* 店舗ヘッダー */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 28, flexWrap: "wrap", gap: 16 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
             <div style={{ width: 52, height: 52, background: "#1e293b", borderRadius: 16, display: "grid", placeItems: "center" }}>
@@ -443,8 +457,7 @@ export default function ImprovementReportsPage() {
         {/* 一括操作バー */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
           <label style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", userSelect: "none" }}>
-            <input
-              type="checkbox"
+            <input type="checkbox"
               checked={filteredIssues.length > 0 && filteredIssues.every(i => selectedIds.has(i.id))}
               onChange={e => {
                 if (e.target.checked) setSelectedIds(new Set(filteredIssues.map(i => i.id)));
@@ -503,10 +516,7 @@ export default function ImprovementReportsPage() {
                   <div style={{ padding: 28, display: "flex", flexDirection: "column", gap: 16 }}>
                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
                       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                        {/* チェックボックス */}
-                        <input
-                          type="checkbox"
-                          checked={selectedIds.has(issue.id)}
+                        <input type="checkbox" checked={selectedIds.has(issue.id)}
                           onChange={e => {
                             setSelectedIds(prev => {
                               const next = new Set(prev);
@@ -517,29 +527,26 @@ export default function ImprovementReportsPage() {
                           }}
                           style={{ width: 18, height: 18, marginTop: 2, accentColor: "#6366f1", cursor: "pointer", flexShrink: 0 }}
                         />
-                      <div>
-                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                          <span style={{ fontSize: 11, fontWeight: 900, color: "#6366f1", background: "#f5f3ff", padding: "3px 8px", borderRadius: 6 }}>{issue.category}</span>
-                          {issue.inspectionDate && <span style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8" }}>{issue.inspectionDate}</span>}
+                        <div>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                            <span style={{ fontSize: 11, fontWeight: 900, color: "#6366f1", background: "#f5f3ff", padding: "3px 8px", borderRadius: 6 }}>{issue.category}</span>
+                            {issue.inspectionDate && <span style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8" }}>{issue.inspectionDate}</span>}
+                          </div>
+                          <h3 style={{ fontSize: 17, fontWeight: 900, color: "#1e293b", margin: 0, lineHeight: 1.4 }}>{issue.question}</h3>
                         </div>
-                        <h3 style={{ fontSize: 17, fontWeight: 900, color: "#1e293b", margin: 0, lineHeight: 1.4 }}>{issue.question}</h3>
-                      </div>
                       </div>
                       <StatusChip status={issue.correctionStatus} />
                     </div>
 
-                    {/* 指摘内容 */}
                     <div style={{ background: "#fff7f7", borderLeft: "3px solid #dc2626", borderRadius: "0 12px 12px 0", padding: "10px 14px" }}>
                       <div style={{ fontSize: 11, fontWeight: 900, color: "#dc2626", marginBottom: 3 }}>指摘内容</div>
                       <div style={{ fontSize: 13, fontWeight: 600, color: "#7f1d1d", lineHeight: 1.4 }}>{issue.inspectorNote || "（コメントなし）"}</div>
                     </div>
 
-                    {/* 期限 */}
                     <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, fontWeight: 700, color: "#64748b" }}>
                       <Clock size={14} /> 改善期限: {issue.deadline}
                     </div>
 
-                    {/* 店舗コメント */}
                     {issue.comment && (
                       <div style={{ background: "#f8fafc", borderRadius: 12, padding: "10px 14px" }}>
                         <div style={{ fontSize: 11, fontWeight: 900, color: "#64748b", marginBottom: 4 }}>店舗の改善コメント</div>
@@ -547,7 +554,6 @@ export default function ImprovementReportsPage() {
                       </div>
                     )}
 
-                    {/* 差し戻しコメント */}
                     {issue.correctionStatus === "rejected" && issue.reviewNote && (
                       <div style={{ background: "#f5f3ff", borderLeft: "3px solid #7c3aed", borderRadius: "0 12px 12px 0", padding: "10px 14px" }}>
                         <div style={{ fontSize: 11, fontWeight: 900, color: "#7c3aed", marginBottom: 3 }}>差し戻し理由</div>
@@ -556,7 +562,6 @@ export default function ImprovementReportsPage() {
                       </div>
                     )}
 
-                    {/* 承認済み */}
                     {issue.correctionStatus === "approved" && (
                       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", background: "#f0fdf4", borderRadius: 12 }}>
                         <CheckCheck size={16} color="#059669" />
@@ -567,7 +572,6 @@ export default function ImprovementReportsPage() {
                       </div>
                     )}
 
-                    {/* アクションボタン */}
                     <div style={{ display: "flex", gap: 10, marginTop: "auto" }}>
                       <button onClick={() => setDetailIssue(issue)}
                         style={{ flex: 1, height: 48, borderRadius: 14, background: "#f1f5f9", color: "#1e293b", border: "none", fontWeight: 800, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontSize: 13 }}>
@@ -588,35 +592,11 @@ export default function ImprovementReportsPage() {
                     </div>
                   </div>
 
-                  {/* 右：写真エリア */}
+                  {/* 右：写真エリア（カルーセル対応） */}
                   <div style={{ background: "#f8fafc", padding: 20, display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: 12 }}>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 10, fontWeight: 900, color: "#64748b", marginBottom: 8, letterSpacing: "0.05em" }}>指摘時（BEFORE）</div>
-                      <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", aspectRatio: "1/1", background: "#e2e8f0" }}>
-                        <SafeImage src={issue.beforePhoto} style={{ width: "100%", height: "100%" }}
-                          onClick={isDisplayable(issue.beforePhoto) ? () => setZoomedImage(issue.beforePhoto) : undefined} />
-                        {isDisplayable(issue.beforePhoto) && (
-                          <button onClick={() => setZoomedImage(issue.beforePhoto)}
-                            style={{ position: "absolute", bottom: 6, right: 6, background: "rgba(15,23,42,0.7)", border: "none", borderRadius: 8, padding: 6, color: "#fff", cursor: "pointer" }}>
-                            <Maximize2 size={14} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                    <PhotoCarousel urls={issue.beforePhotos} onZoom={setZoomedImage} label="指摘時（BEFORE）" />
                     <ArrowRight size={18} color="#cbd5e1" />
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 10, fontWeight: 900, color: "#64748b", marginBottom: 8, letterSpacing: "0.05em" }}>改善後（AFTER）</div>
-                      <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", aspectRatio: "1/1", background: "#e2e8f0" }}>
-                        <SafeImage src={issue.afterPhoto} style={{ width: "100%", height: "100%" }}
-                          onClick={isDisplayable(issue.afterPhoto) ? () => setZoomedImage(issue.afterPhoto!) : undefined} />
-                        {isDisplayable(issue.afterPhoto) && (
-                          <button onClick={() => setZoomedImage(issue.afterPhoto!)}
-                            style={{ position: "absolute", bottom: 6, right: 6, background: "rgba(15,23,42,0.7)", border: "none", borderRadius: 8, padding: 6, color: "#fff", cursor: "pointer" }}>
-                            <Maximize2 size={14} />
-                          </button>
-                        )}
-                      </div>
-                    </div>
+                    <PhotoCarousel urls={issue.afterPhotos} onZoom={setZoomedImage} label="改善後（AFTER）" />
                   </div>
                 </div>
               );
@@ -630,7 +610,6 @@ export default function ImprovementReportsPage() {
         <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", justifyContent: "flex-end" }}>
           <div onClick={() => setDetailIssue(null)} style={{ position: "absolute", inset: 0, background: "rgba(15,23,42,0.4)", backdropFilter: "blur(4px)" }} />
           <div style={{ position: "relative", width: "100%", maxWidth: 480, height: "100%", background: "#fff", boxShadow: "-10px 0 40px rgba(0,0,0,0.1)", display: "grid", gridTemplateRows: "auto 1fr auto", animation: "slideIn 0.3s cubic-bezier(0,0,0.2,1)" }}>
-            {/* ヘッダー */}
             <div style={{ padding: "24px 28px", borderBottom: "1px solid #f1f5f9", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <div>
                 <h2 style={{ fontSize: 18, fontWeight: 950, margin: "0 0 4px" }}>指摘詳細</h2>
@@ -641,7 +620,6 @@ export default function ImprovementReportsPage() {
               </button>
             </div>
 
-            {/* コンテンツ */}
             <div style={{ padding: 28, overflowY: "auto", display: "flex", flexDirection: "column", gap: 20 }}>
               <div style={{ fontSize: 15, fontWeight: 800, color: "#1e293b", lineHeight: 1.4 }}>{detailIssue.question}</div>
 
@@ -664,24 +642,13 @@ export default function ImprovementReportsPage() {
                 </div>
               )}
 
-              {/* 写真 */}
+              {/* 写真（複数対応） */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-                {[
-                  { label: "指摘時（BEFORE）", src: detailIssue.beforePhoto },
-                  { label: "改善後（AFTER）", src: detailIssue.afterPhoto },
-                ].map(({ label, src }) => (
-                  <div key={label}>
-                    <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b", marginBottom: 6 }}>{label}</div>
-                    <div style={{ aspectRatio: "1/1", borderRadius: 14, overflow: "hidden", background: "#f1f5f9" }}>
-                      <SafeImage src={src} style={{ width: "100%", height: "100%" }}
-                        onClick={isDisplayable(src) ? () => setZoomedImage(src!) : undefined} />
-                    </div>
-                  </div>
-                ))}
+                <PhotoCarousel urls={detailIssue.beforePhotos} onZoom={setZoomedImage} label="指摘時（BEFORE）" />
+                <PhotoCarousel urls={detailIssue.afterPhotos} onZoom={setZoomedImage} label="改善後（AFTER）" />
               </div>
             </div>
 
-            {/* 承認・差し戻しボタン */}
             <div style={{ padding: "20px 28px", borderTop: "1px solid #f1f5f9", display: "flex", gap: 12 }}>
               {(detailIssue.correctionStatus === "submitted" || detailIssue.correctionStatus === "reviewing") && (
                 <>
