@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { sendCorrectionSubmittedEmail } from "@/app/lib/sendgrid";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import {
   DynamoDBDocumentClient,
@@ -66,6 +67,26 @@ type BatchUpdateInput = {
   correctionBy?: string;
   afterPhotos?: CheckPhoto[];
 };
+
+async function getAdminEmails(): Promise<string[]> {
+  try {
+    const { DynamoDBClient } = await import("@aws-sdk/client-dynamodb");
+    const { DynamoDBDocumentClient, ScanCommand } = await import("@aws-sdk/lib-dynamodb");
+    const region = process.env.QSC_AWS_REGION || "us-east-1";
+    const userTable = process.env.QSC_USER_TABLE || "QSC_UserTable";
+    const client = new DynamoDBClient({ region });
+    const docClient = DynamoDBDocumentClient.from(client);
+    const res = await docClient.send(new ScanCommand({
+      TableName: userTable,
+      FilterExpression: "#r = :admin",
+      ExpressionAttributeNames: { "#r": "role" },
+      ExpressionAttributeValues: { ":admin": "admin" },
+    }));
+    return (res.Items ?? []).map(i => String(i.email || i.PK || "")).filter(e => e.includes("@"));
+  } catch {
+    return [];
+  }
+}
 
 function normalizeString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
@@ -238,6 +259,26 @@ export async function PATCH(req: NextRequest) {
             ConditionExpression: "attribute_exists(PK) AND attribute_exists(SK)",
           })
         );
+
+        // submitted ステータスの場合はadminにメール通知
+        const submittedItems = groupUpdates.filter(u => 
+          u.correctionStatus === "submitted" || u.status === "submitted"
+        );
+        if (submittedItems.length > 0) {
+          try {
+            const adminEmails = await getAdminEmails();
+            if (adminEmails.length > 0) {
+              await sendCorrectionSubmittedEmail({
+                to: adminEmails,
+                storeName: String(workingRecord.storeName || ""),
+                submittedCount: submittedItems.length,
+                submittedBy: String(workingRecord.userName || "店舗担当者"),
+              });
+            }
+          } catch (mailErr) {
+            console.error("correction submitted mail failed:", mailErr);
+          }
+        }
 
         results.push({
           pk,
