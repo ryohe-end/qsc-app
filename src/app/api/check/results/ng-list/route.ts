@@ -42,6 +42,7 @@ type CheckItem = {
   correctionStatus?: string;
   photos?: RawPhoto[];
   beforePhotos?: RawPhoto[];
+  afterPhotos?: RawPhoto[];
 };
 
 type CheckSection = {
