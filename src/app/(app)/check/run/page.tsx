@@ -442,7 +442,7 @@ export default function CheckRunPage() {
         ...s,
         items: s.items.map(it => ({
           ...it,
-          photos: (it.photos ?? []).map(p => ({
+          photos: (it.photos ?? []).filter(p => p.s3Url || p.dataUrl).map(p => ({
             id: p.id,
             dataUrl: p.s3Url ? "" : p.dataUrl, // S3済みはdataUrlを空に
             s3Url: p.s3Url,
