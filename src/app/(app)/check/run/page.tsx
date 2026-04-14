@@ -449,7 +449,7 @@ export default function CheckRunPage() {
           })),
         })),
       }));
-      const res = await fetch("/api/check/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sendMail, sections: sectionsToSubmit }) });
+      const res = await fetch("/api/check/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sendMail, sections: sectionsToSubmit, mode, existingResultId: resultId }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "送信に失敗しました");
       try { localStorage.removeItem(DRAFT_KEY); } catch {} // 送信成功後に下書き削除

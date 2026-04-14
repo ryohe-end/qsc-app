@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { cookies } from "next/headers";
 import { sendEmail } from "@/app/lib/sendgrid";
@@ -207,7 +207,7 @@ ${appUrl}/results`.trim(),
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { companyId = "", bizId = "", brandId = "", storeId, storeName, sendMail, inspectionDate } = body;
+    const { companyId = "", bizId = "", brandId = "", storeId, storeName, sendMail, inspectionDate, mode = "new", existingResultId = "" } = body;
 
     if (!storeId || !String(storeId).trim()) {
       return NextResponse.json({ error: "storeId が不正です" }, { status: 400 });
@@ -225,9 +225,25 @@ export async function POST(req: NextRequest) {
       const d = new Date(insDateStr); d.setMonth(d.getMonth() + 1); return d.toISOString().split("T")[0];
     })();
 
-    const resultId = crypto.randomUUID();
-    const now = new Date().toISOString();
     const cleanStoreId = String(storeId).replace(/^STORE#/, "");
+    const now = new Date().toISOString();
+
+    // editモード時は既存レコードのSKを使って上書き
+    let resultId = crypto.randomUUID();
+    let existingSK = `RESULT#${now}`;
+    if (mode === "edit" && existingResultId) {
+      // 既存レコードのSKを検索
+      const existing = await docClient.send(new QueryCommand({
+        TableName: resultTableName,
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: { ":pk": `STORE#${cleanStoreId}` },
+      }));
+      const found = (existing.Items ?? []).find(i => i.resultId === existingResultId);
+      if (found) {
+        resultId = existingResultId;
+        existingSK = found.SK;
+      }
+    }
 
     const storedSections: unknown[] = [];
     let totalScore = 0, totalMaxScore = 0, totalPhotoCount = 0, missingNotes = 0;
@@ -304,7 +320,7 @@ export async function POST(req: NextRequest) {
     await docClient.send(new PutCommand({
       TableName: resultTableName,
       Item: {
-        PK: `STORE#${cleanStoreId}`, SK: `RESULT#${now}`,
+        PK: `STORE#${cleanStoreId}`, SK: existingSK,
         type: "CHECK_RESULT", resultId, companyId, bizId, brandId,
         storeId: cleanStoreId, storeName, userName, summary,
         sections: storedSections, status: "done", createdAt: now, submittedAt: now,
