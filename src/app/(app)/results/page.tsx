@@ -6,9 +6,8 @@ import React, { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import {
   ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
-  TrendingUp, AlertTriangle, Calendar, UserCheck,
   BarChart3, Search, Loader2, CheckCircle2, XCircle,
-  PauseCircle, MinusCircle,
+  PauseCircle, MinusCircle, Calendar, UserCheck,
 } from "lucide-react";
 import { useSession } from "@/app/(app)/lib/auth";
 
@@ -73,6 +72,41 @@ function normalizeCategory(v?: string) {
   return v.normalize("NFKC").trim().toUpperCase();
 }
 
+// 4月始まりの年度・クォーターを計算
+function getFiscalInfo(date: Date) {
+  const month = date.getMonth() + 1; // 1-12
+  const year = date.getFullYear();
+  const fiscalYear = month >= 4 ? year : year - 1;
+  let quarter: number;
+  if (month >= 4 && month <= 6) quarter = 1;
+  else if (month >= 7 && month <= 9) quarter = 2;
+  else if (month >= 10 && month <= 12) quarter = 3;
+  else quarter = 4;
+  return { fiscalYear, quarter };
+}
+
+function getFiscalQuarterRange(fiscalYear: number, quarter: number): { start: Date; end: Date } {
+  const quarterMonths = [
+    { start: 4, end: 6 },
+    { start: 7, end: 9 },
+    { start: 10, end: 12 },
+    { start: 1, end: 3 },
+  ];
+  const q = quarterMonths[quarter - 1];
+  const startYear = quarter === 4 ? fiscalYear + 1 : fiscalYear;
+  const endYear = quarter === 4 ? fiscalYear + 1 : fiscalYear;
+  const start = new Date(startYear, q.start - 1, 1);
+  const end = new Date(endYear, q.end, 0, 23, 59, 59);
+  return { start, end };
+}
+
+function getFiscalYearRange(fiscalYear: number): { start: Date; end: Date } {
+  return {
+    start: new Date(fiscalYear, 3, 1), // 4/1
+    end: new Date(fiscalYear + 1, 2, 31, 23, 59, 59), // 3/31
+  };
+}
+
 const STATE_CONFIG: Record<string, { label: string; color: string; bg: string; icon: React.ReactNode }> = {
   ok:   { label: "OK",   color: "#059669", bg: "#f0fdf4", icon: <CheckCircle2 size={14} color="#059669" /> },
   ng:   { label: "NG",   color: "#dc2626", bg: "#fef2f2", icon: <XCircle size={14} color="#dc2626" /> },
@@ -125,7 +159,6 @@ function DetailPage({ storeId, resultId, storeName, onBack }: {
     });
   };
 
-  // カテゴリ別にセクションをグループ化
   const categorizedSections = useMemo(() => {
     if (!detail?.sections) return { Q: [], S: [], C: [] } as Record<string, DetailSection[]>;
     const result: Record<string, DetailSection[]> = { Q: [], S: [], C: [] };
@@ -133,7 +166,7 @@ function DetailPage({ storeId, resultId, storeName, onBack }: {
       const cats = new Set(sec.items.map(i => normalizeCategory(i.category)).filter(Boolean));
       if (cats.has("S")) result["S"].push(sec);
       else if (cats.has("C")) result["C"].push(sec);
-      else result["Q"].push(sec); // Q or 不明はQ
+      else result["Q"].push(sec);
     }
     return result;
   }, [detail]);
@@ -160,7 +193,6 @@ function DetailPage({ storeId, resultId, storeName, onBack }: {
       ) : !detail ? (
         <div style={{ textAlign: "center", padding: 40, color: "#94a3b8" }}>データが見つかりません</div>
       ) : <>
-        {/* ヒーローカード */}
         <div style={{ background: "linear-gradient(135deg, #1e293b 0%, #334155 60%, #1e40af 100%)", borderRadius: 24, padding: 20, color: "#fff" }}>
           <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.5)", marginBottom: 2 }}>{storeName}</div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 12 }}>
@@ -193,7 +225,6 @@ function DetailPage({ storeId, resultId, storeName, onBack }: {
           </div>
         </div>
 
-        {/* カテゴリタブ */}
         <div style={{ display: "flex", gap: 8 }}>
           {CAT_TABS.map(cat => {
             const pt = catScores[cat.key]?.point;
@@ -215,7 +246,6 @@ function DetailPage({ storeId, resultId, storeName, onBack }: {
           })}
         </div>
 
-        {/* セクション一覧（展開式） */}
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {(categorizedSections[activeCategory] ?? []).length === 0 ? (
             <div style={{ textAlign: "center", padding: 24, color: "#94a3b8", fontSize: 13, fontWeight: 700, background: "#fff", borderRadius: 16, border: "1px solid #e2e8f0" }}>
@@ -288,10 +318,48 @@ function ResultList({ items, onSelect, title, loading }: {
   items: HistoryItem[]; onSelect: (item: HistoryItem) => void; title: string; loading: boolean;
 }) {
   const [q, setQ] = useState("");
-  const filtered = useMemo(() =>
-    items.filter(i => !q || i.storeName?.includes(q) || i.userName?.includes(q) || formatDate(i.submittedAt).includes(q)),
-    [items, q]
-  );
+
+  // 年度・クォーターフィルター
+  const today = new Date();
+  const { fiscalYear: currentFY, quarter: currentQ } = getFiscalInfo(today);
+  const [selectedFY, setSelectedFY] = useState<number>(currentFY);
+  const [selectedQ, setSelectedQ] = useState<number>(0); // 0=全クォーター
+
+  // 利用可能な年度を生成（現在年度から3年前まで）
+  const fiscalYears = useMemo(() => {
+    const years = [];
+    for (let y = currentFY; y >= currentFY - 2; y--) years.push(y);
+    return years;
+  }, [currentFY]);
+
+  const filtered = useMemo(() => {
+    let result = items;
+
+    // 年度フィルター
+    const { start: fyStart, end: fyEnd } = getFiscalYearRange(selectedFY);
+    result = result.filter(i => {
+      const d = new Date(i.submittedAt);
+      return d >= fyStart && d <= fyEnd;
+    });
+
+    // クォーターフィルター
+    if (selectedQ > 0) {
+      const { start: qStart, end: qEnd } = getFiscalQuarterRange(selectedFY, selectedQ);
+      result = result.filter(i => {
+        const d = new Date(i.submittedAt);
+        return d >= qStart && d <= qEnd;
+      });
+    }
+
+    // テキスト検索
+    if (q) {
+      result = result.filter(i =>
+        i.storeName?.includes(q) || i.userName?.includes(q) || formatDate(i.submittedAt).includes(q)
+      );
+    }
+
+    return result;
+  }, [items, selectedFY, selectedQ, q]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 80 }}>
@@ -310,6 +378,31 @@ function ResultList({ items, onSelect, title, loading }: {
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{filtered.length}件の点検結果</div>
       </div>
 
+      {/* 年度・クォーターフィルター */}
+      <div style={{ display: "flex", gap: 8 }}>
+        <select
+          value={selectedFY}
+          onChange={e => { setSelectedFY(Number(e.target.value)); setSelectedQ(0); }}
+          style={{ flex: 1, height: 44, borderRadius: 12, border: "1.5px solid #e2e8f0", background: "#fff", padding: "0 12px", fontSize: 14, fontWeight: 700, outline: "none" }}
+        >
+          {fiscalYears.map(y => (
+            <option key={y} value={y}>{y}年度</option>
+          ))}
+        </select>
+        <select
+          value={selectedQ}
+          onChange={e => setSelectedQ(Number(e.target.value))}
+          style={{ flex: 1, height: 44, borderRadius: 12, border: "1.5px solid #e2e8f0", background: "#fff", padding: "0 12px", fontSize: 14, fontWeight: 700, outline: "none" }}
+        >
+          <option value={0}>全クォーター</option>
+          <option value={1}>Q1（4〜6月）</option>
+          <option value={2}>Q2（7〜9月）</option>
+          <option value={3}>Q3（10〜12月）</option>
+          <option value={4}>Q4（1〜3月）</option>
+        </select>
+      </div>
+
+      {/* テキスト検索 */}
       <div style={{ position: "relative" }}>
         <Search size={16} style={{ position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)", color: "#94a3b8" }} />
         <input placeholder="店舗名・検査員名で検索…" value={q} onChange={e => setQ(e.target.value)}
@@ -367,11 +460,8 @@ export default function ResultsPage() {
       setLoadingItems(true);
       try {
         if (isStore) {
-          // 店舗ユーザー: assignedStoreIds または メール照合で取得した店舗の結果を表示
           const assignedStoreIds = (session as Record<string, unknown>)?.assignedStoreIds as string[] | undefined;
-          const storeIds = Array.isArray(assignedStoreIds) && assignedStoreIds.length > 0
-            ? assignedStoreIds
-            : [];
+          const storeIds = Array.isArray(assignedStoreIds) && assignedStoreIds.length > 0 ? assignedStoreIds : [];
           if (storeIds.length === 0) return;
           const allItems: HistoryItem[] = [];
           await Promise.allSettled(storeIds.map(async storeId => {
@@ -385,7 +475,6 @@ export default function ResultsPage() {
           allItems.sort((a, b) => String(b.submittedAt).localeCompare(String(a.submittedAt)));
           setItems(allItems);
         } else {
-          // 管理者・検査員: GSI経由で一括取得（高速）
           const myName = isInspector ? (session?.name ?? "") : "";
           const url = myName
             ? `/api/check/results/all-history?userName=${encodeURIComponent(myName)}`
