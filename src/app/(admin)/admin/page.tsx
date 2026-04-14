@@ -153,16 +153,16 @@ export default function AdminHomePage() {
               />
               <AdminTile
                 href="/admin/qsc/assets"
-                icon={<FileStack size={22} />
-                <AdminTile
-                  icon="⚙️"
-                  title="設定"
-                  desc="メールテスト・システム設定"
-                  href="/admin/settings"
-                />}
+                icon={<FileStack size={22} />}
                 title="アセット構成"
                 desc="設問をパッケージ化し店舗へ配信"
                 color="#8b5cf6"
+              />
+              <AdminTile
+                icon="⚙️"
+                title="設定"
+                desc="メールテスト・システム設定"
+                href="/admin/settings"
               />
             </div>
           </div>
