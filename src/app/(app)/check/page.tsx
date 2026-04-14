@@ -124,7 +124,7 @@ export default function CheckPage() {
 
   const [selectedStoreId, setSelectedStoreId] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
-  const [isDoneModalOpen, setIsDoneModalOpen] = useState(false);
+  const [isActionModalOpen, setIsActionModalOpen] = useState(false);
 
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
@@ -315,7 +315,7 @@ export default function CheckPage() {
 
   // [修正] モーダルを閉じるときに選択状態もリセット
   const closeDoneModal = () => {
-    setIsDoneModalOpen(false);
+    setIsActionModalOpen(false);
     setSelectedStoreId("");
   };
 
@@ -352,7 +352,7 @@ export default function CheckPage() {
     if (!selectedStore) return;
 
     if (mode === "new") {
-      setIsDoneModalOpen(false);
+      setIsActionModalOpen(false);
 
       if (typeof window !== "undefined") {
         localStorage.removeItem(`qsc_draft_${selectedStore.storeId}`);
@@ -363,7 +363,7 @@ export default function CheckPage() {
       return;
     }
 
-    setIsDoneModalOpen(false);
+    setIsActionModalOpen(false);
     await openHistoryModal(selectedStore.storeId);
   };
 
@@ -628,9 +628,7 @@ export default function CheckPage() {
                 key={s.storeId}
                 onClick={() => {
                   setSelectedStoreId(s.storeId);
-                  if (s.status === "done") {
-                    setIsDoneModalOpen(true);
-                  }
+                  setIsActionModalOpen(true);
                 }}
                 style={{
                   width: "100%",
@@ -734,7 +732,7 @@ export default function CheckPage() {
       </section>
 
       {/* Action Modal */}
-      {isDoneModalOpen && selectedStore && (
+      {isActionModalOpen && selectedStore && (
         <div
           style={{
             position: "fixed",
@@ -762,77 +760,83 @@ export default function CheckPage() {
                 {selectedStore.storeName}
               </div>
               <p style={{ fontSize: "14px", fontWeight: 700, color: "#64748b", marginTop: "8px" }}>
-                完了済みの店舗です。アクションを選択
+                アクションを選択してください
               </p>
             </div>
 
             <div style={{ display: "grid", gap: "12px" }}>
-              <button
-                onClick={() => onRunAction("edit")}
-                disabled={loadingHistory}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                  padding: "22px",
-                  borderRadius: "22px",
-                  border: "1px solid #e2e8f0",
-                  background: loadingHistory ? "#f8fafc" : "#fff",
-                  textAlign: "left",
-                  opacity: loadingHistory ? 0.7 : 1,
-                  transition: "0.15s",
-                }}
-              >
-                {loadingHistory
-                  ? <Loader2 size={24} color="#94a3b8" style={{ animation: "spin 1s linear infinite" }} />
-                  : <RotateCcw size={24} color="#6366f1" />
-                }
-                <div>
-                  <div style={{ fontSize: "16px", fontWeight: 900 }}>
-                    {loadingHistory ? "履歴を読み込み中..." : "前回の内容を修正"}
+              {/* 途中保存がある場合 */}
+              {getDynamicStatus(selectedStore.storeId) === "draft" && (
+                <button
+                  onClick={() => {
+                    setIsActionModalOpen(false);
+                    router.push(`/check/run?storeId=${selectedStore.storeId}&companyId=${selectedStore.companyId}&bizId=${selectedStore.bizId}&brandId=${selectedStore.brandId}&mode=new`);
+                  }}
+                  style={{ display: "flex", alignItems: "center", gap: "16px", padding: "22px", borderRadius: "22px", border: "1.5px solid #f59e0b", background: "#fffbeb", textAlign: "left" }}
+                >
+                  <PauseCircle size={24} color="#f59e0b" />
+                  <div>
+                    <div style={{ fontSize: "16px", fontWeight: 900 }}>途中から再開</div>
+                    <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>保存済みの途中データを続きから入力</div>
                   </div>
-                  <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>
-                    点検履歴から修正対象を選択
-                  </div>
-                </div>
-              </button>
+                </button>
+              )}
 
+              {/* 過去の結果がある場合（done or draft） */}
+              {(getDynamicStatus(selectedStore.storeId) === "done" || getDynamicStatus(selectedStore.storeId) === "draft") && (
+                <button
+                  onClick={() => onRunAction("edit")}
+                  disabled={loadingHistory}
+                  style={{ display: "flex", alignItems: "center", gap: "16px", padding: "22px", borderRadius: "22px", border: "1px solid #e2e8f0", background: loadingHistory ? "#f8fafc" : "#fff", textAlign: "left", opacity: loadingHistory ? 0.7 : 1 }}
+                >
+                  {loadingHistory
+                    ? <Loader2 size={24} color="#94a3b8" style={{ animation: "spin 1s linear infinite" }} />
+                    : <RotateCcw size={24} color="#6366f1" />
+                  }
+                  <div>
+                    <div style={{ fontSize: "16px", fontWeight: 900 }}>{loadingHistory ? "履歴を読み込み中..." : "過去の結果を修正"}</div>
+                    <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>点検履歴から修正対象を選択</div>
+                  </div>
+                </button>
+              )}
+
+              {/* 新規開始 */}
               <button
                 onClick={() => onRunAction("new")}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "16px",
-                  padding: "22px",
-                  borderRadius: "22px",
-                  border: "1px solid #e2e8f0",
-                  background: "#fff",
-                  textAlign: "left",
-                }}
+                style={{ display: "flex", alignItems: "center", gap: "16px", padding: "22px", borderRadius: "22px", border: "1px solid #e2e8f0", background: "#fff", textAlign: "left" }}
               >
                 <Sparkles size={24} color="#f59e0b" />
                 <div>
                   <div style={{ fontSize: "16px", fontWeight: 900 }}>新しく開始</div>
-                  <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>
-                    履歴を引き継がず新規作成
-                  </div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>履歴を引き継がず新規作成</div>
                 </div>
               </button>
+
+              {/* 途中保存を破棄 */}
+              {getDynamicStatus(selectedStore.storeId) === "draft" && (
+                <button
+                  onClick={() => {
+                    if (confirm("途中保存を破棄しますか？")) {
+                      localStorage.removeItem(`qsc_draft_${selectedStore.storeId}`);
+                      setDraftStoreIds(prev => prev.filter(id => id !== selectedStore.storeId));
+                      setIsActionModalOpen(false);
+                      setSelectedStoreId("");
+                    }
+                  }}
+                  style={{ display: "flex", alignItems: "center", gap: "16px", padding: "18px 22px", borderRadius: "22px", border: "1px solid #fee2e2", background: "#fff5f5", textAlign: "left" }}
+                >
+                  <X size={24} color="#dc2626" />
+                  <div>
+                    <div style={{ fontSize: "16px", fontWeight: 900, color: "#dc2626" }}>途中保存を破棄</div>
+                    <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>保存済みの途中データを削除</div>
+                  </div>
+                </button>
+              )}
             </div>
 
-            {/* [修正] closeDoneModal で選択状態もリセット */}
             <button
               onClick={closeDoneModal}
-              style={{
-                width: "100%",
-                marginTop: "24px",
-                padding: "18px",
-                borderRadius: "16px",
-                border: "none",
-                background: "#f1f5f9",
-                color: "#64748b",
-                fontWeight: 800,
-              }}
+              style={{ width: "100%", marginTop: "24px", padding: "18px", borderRadius: "16px", border: "none", background: "#f1f5f9", color: "#64748b", fontWeight: 800 }}
             >
               キャンセル
             </button>
@@ -911,69 +915,81 @@ export default function CheckPage() {
                 {resultHistory.map((item) => {
                   const isDone = item.status === "done";
                   return (
-                    <button
-                      key={item.resultId}
-                      onClick={() => onSelectHistory(item)}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        gap: "12px",
-                        padding: "18px 20px",
-                        borderRadius: "20px",
-                        border: "1px solid #e2e8f0",
-                        background: "#fff",
-                        textAlign: "left",
-                      }}
-                    >
-                      <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                        {/* ステータスアイコン */}
-                        <div
-                          style={{
-                            width: "40px",
-                            height: "40px",
-                            borderRadius: "12px",
-                            background: isDone ? "#d1fae5" : "#ffedd5",
-                            display: "grid",
-                            placeItems: "center",
-                            flexShrink: 0,
-                          }}
-                        >
-                          {isDone
-                            ? <CheckCircle2 size={20} color="#10b981" />
-                            : <PauseCircle size={20} color="#f59e0b" />
-                          }
-                        </div>
-                        <div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <div style={{ fontSize: "15px", fontWeight: 900, color: "#1e293b" }}>
-                              {formatResultDate(item.submittedAt)}
+                    <div key={item.resultId} style={{ borderRadius: "20px", border: "1px solid #e2e8f0", background: "#fff", overflow: "hidden" }}>
+                      {/* メイン行 */}
+                      <button
+                        onClick={() => onSelectHistory(item)}
+                        style={{
+                          width: "100%",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "12px",
+                          padding: "18px 20px",
+                          border: "none",
+                          background: "transparent",
+                          textAlign: "left",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                          <div style={{ width: "40px", height: "40px", borderRadius: "12px", background: isDone ? "#d1fae5" : "#ffedd5", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                            {isDone ? <CheckCircle2 size={20} color="#10b981" /> : <PauseCircle size={20} color="#f59e0b" />}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: "15px", fontWeight: 900, color: "#1e293b" }}>{formatResultDate(item.submittedAt)}</div>
+                            <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px", flexWrap: "wrap" }}>
+                              <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: 900, background: isDone ? "#d1fae5" : "#ffedd5", color: isDone ? "#059669" : "#d97706" }}>
+                                {formatStatus(item.status)}
+                              </span>
+                              {item.userName && <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8" }}>{item.userName}</span>}
                             </div>
                           </div>
-                          <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px", flexWrap: "wrap" }}>
-                            <span
-                              style={{
-                                display: "inline-block",
-                                padding: "2px 8px",
-                                borderRadius: "6px",
-                                fontSize: "11px",
-                                fontWeight: 900,
-                                background: isDone ? "#d1fae5" : "#ffedd5",
-                                color: isDone ? "#059669" : "#d97706",
-                              }}
-                            >
-                              {formatStatus(item.status)}
-                            </span>
-                            {item.userName && (
-                              <span style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8" }}>
-                                {item.userName}
-                              </span>
-                            )}
-                          </div>
                         </div>
+                        <ChevronRight size={18} color="#cbd5e1" />
+                      </button>
+                      {/* アクションボタン行 */}
+                      <div style={{ display: "flex", borderTop: "1px solid #f1f5f9" }}>
+                        <button
+                          onClick={async () => {
+                            if (!confirm("このメールを再送しますか？")) return;
+                            try {
+                              const res = await fetch("/api/check/results/resend-mail", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ pk: item.pk, sk: item.sk }),
+                              });
+                              const data = await res.json();
+                              if (!res.ok) throw new Error(data.error);
+                              alert(`メールを再送しました（${data.sentTo?.join(", ")}）`);
+                            } catch (e: unknown) {
+                              alert(e instanceof Error ? e.message : "再送失敗");
+                            }
+                          }}
+                          style={{ flex: 1, padding: "12px", border: "none", background: "transparent", color: "#6366f1", fontSize: "13px", fontWeight: 800, cursor: "pointer", borderRight: "1px solid #f1f5f9" }}
+                        >
+                          📧 メール再送
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm("この点検結果を削除しますか？この操作は取り消せません。")) return;
+                            try {
+                              const res = await fetch("/api/check/results/delete", {
+                                method: "DELETE",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ pk: item.pk, sk: item.sk }),
+                              });
+                              if (!res.ok) throw new Error("削除失敗");
+                              setResultHistory(prev => prev.filter(r => r.resultId !== item.resultId));
+                            } catch (e: unknown) {
+                              alert(e instanceof Error ? e.message : "削除失敗");
+                            }
+                          }}
+                          style={{ flex: 1, padding: "12px", border: "none", background: "transparent", color: "#dc2626", fontSize: "13px", fontWeight: 800, cursor: "pointer" }}
+                        >
+                          🗑️ 削除
+                        </button>
                       </div>
-                      <ChevronRight size={18} color="#cbd5e1" />
-                    </button>
+                    </div>
                   );
                 })}
               </div>
@@ -1294,7 +1310,7 @@ export default function CheckPage() {
       )}
 
       {/* Floating Action Button */}
-      {selectedStore && !isDoneModalOpen && !isHistoryModalOpen && (
+      {selectedStore && !isActionModalOpen && !isHistoryModalOpen && (
         <div
           style={{
             position: "fixed",
@@ -1305,41 +1321,6 @@ export default function CheckPage() {
             zIndex: 900,
           }}
         >
-          <button
-            onClick={() => {
-              if (getDynamicStatus(selectedStore.storeId) === "draft") {
-                // 下書きあり：直接CheckRunPageへ
-                router.push(`/check/run?storeId=${selectedStore.storeId}&companyId=${selectedStore.companyId}&bizId=${selectedStore.bizId}&brandId=${selectedStore.brandId}&mode=new`);
-              } else {
-                onRunAction("new");
-              }
-            }}
-            style={{
-              width: "100%",
-              height: "72px",
-              background: "#1e293b",
-              color: "#fff",
-              border: "none",
-              borderRadius: "24px",
-              fontSize: "19px",
-              fontWeight: 950,
-              boxShadow: "0 15px 35px rgba(0,0,0,0.35)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "12px",
-            }}
-          >
-            {getDynamicStatus(selectedStore.storeId) === "draft" ? (
-              <>
-                <PauseCircle size={22} color="#f59e0b" /> 再開する
-              </>
-            ) : (
-              <>
-                <Sparkles size={22} color="#f59e0b" /> 点検開始
-              </>
-            )}
-          </button>
         </div>
       )}
 
