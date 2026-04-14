@@ -49,7 +49,7 @@ const DEFAULT_SECTIONS: Section[] = [
   ]},
 ];
 
-const NG_PRESETS = ["汚れが目立つ", "整理整頓されていない", "破損がある", "補充不足", "異臭がする"];
+const NG_PRESETS = ["埃がある", "汚れが目立つ", "整理整頓されていない", "破損がある", "補充不足", "異臭がする"];
 const HOLD_PRESETS = ["担当者に確認中", "後日対応予定", "現地判断不能", "業者手配済み"];
 const CHECK_CHOICES = [
   { state: "ok" as CheckState,   label: "OK",     color: "#059669" },
