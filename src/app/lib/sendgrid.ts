@@ -32,6 +32,7 @@ type SendEmailParams = {
 
 export async function sendEmail(params: SendEmailParams): Promise<void> {
   const apiKey = process.env.SENDGRID_API_KEY;
+  console.log("SENDGRID_API_KEY:", apiKey ? `設定あり(${apiKey.length}文字)` : "未設定");
   if (!apiKey) throw new Error("SENDGRID_API_KEY が設定されていません");
 
   const toList = Array.isArray(params.to) ? params.to : [params.to];
@@ -57,8 +58,11 @@ export async function sendEmail(params: SendEmailParams): Promise<void> {
 
   if (!res.ok) {
     const err = await res.text().catch(() => "unknown");
+    console.error(`SendGrid送信失敗 [${res.status}]:`, err);
+    console.error("SENDGRID_API_KEY exists:", !!apiKey, "length:", apiKey?.length);
     throw new Error(`SendGrid送信失敗 [${res.status}]: ${err}`);
   }
+  console.log("SendGrid送信成功");
 }
 
 /* ========================= 共通HTMLパーツ ========================= */
