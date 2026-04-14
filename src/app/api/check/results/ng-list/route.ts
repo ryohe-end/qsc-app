@@ -132,8 +132,31 @@ async function resolveBeforePhotoUrl(item: CheckItem): Promise<string> {
     }
   }
 
-  // フォールバック: URLだけでも返す
   return extractPhotoUrl(firstPhoto);
+}
+
+// 複数枚対応: 全写真のPresigned URLを返す
+async function resolveBeforePhotoUrls(item: CheckItem): Promise<string[]> {
+  const photos = [
+    ...(Array.isArray(item.photos) ? item.photos : []),
+    ...(Array.isArray(item.beforePhotos) ? item.beforePhotos : []),
+  ];
+
+  if (!photos.length) return [];
+
+  const urls = await Promise.all(photos.map(async (photo) => {
+    const key = extractPhotoKey(photo);
+    if (key) {
+      try {
+        return await buildSignedPhotoUrl(key);
+      } catch {
+        return extractPhotoUrl(photo);
+      }
+    }
+    return extractPhotoUrl(photo);
+  }));
+
+  return urls.filter(Boolean);
 }
 
 /**
@@ -185,6 +208,17 @@ export async function GET(req: NextRequest) {
           }
 
           const beforePhoto = await resolveBeforePhotoUrl(item);
+          const beforePhotos = await resolveBeforePhotoUrls(item);
+
+          // afterPhotos（是正後写真）のPresigned URL取得
+          const afterPhotoRaws = Array.isArray(item.afterPhotos) ? item.afterPhotos : [];
+          const afterPhotos = await Promise.all(afterPhotoRaws.map(async (photo: unknown) => {
+            const key = extractPhotoKey(photo);
+            if (key) {
+              try { return await buildSignedPhotoUrl(key); } catch {}
+            }
+            return extractPhotoUrl(photo);
+          })).then(urls => urls.filter(Boolean));
 
           ngList.push({
             id: item.id || "",
@@ -194,6 +228,8 @@ export async function GET(req: NextRequest) {
             inspectorNote: item.note || "",
             deadline: result.summary?.improvementDeadline || "期限なし",
             beforePhoto,
+            beforePhotos,
+            afterPhotos,
             comment: item.correction || "",
             correctionStatus: item.correctionStatus || "pending",
             storeId: targetStoreId,
