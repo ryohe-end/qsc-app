@@ -203,6 +203,7 @@ export default function CheckRunPage() {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       try {
+        if (mode === "edit") return; // editモードでは下書き保存しない
         // dataUrl（base64）は保存しない（サイズが大きいため）、s3Urlがあればそちらを使う
         const sectionsToSave = sections.map(s => ({
           ...s,
