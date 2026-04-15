@@ -137,6 +137,13 @@ export default function AdminHomePage() {
                 desc="統計グラフ・店舗別状況の可視化"
                 color="#ec4899"
               />
+              <AdminTile
+                href="/admin/qsc/store-requests"
+                icon={<Store size={22} />}
+                title="担当エリア変更申請"
+                desc="検査員からの担当エリア変更依頼の承認"
+                color="#10b981"
+              />
             </div>
           </div>
 

@@ -1,10 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { LogOut, Lock, Store, ChevronDown, X, Eye, EyeOff, Check, Search } from "lucide-react";
+import {
+  LogOut, Lock, Store, ChevronDown, X,
+  Eye, EyeOff, Check, Search, Plus, Loader2,
+} from "lucide-react";
 
-type StoreOption = { storeId: string; name: string; brandName?: string };
+type StoreOption = { storeId: string; name: string; brandName?: string; bizName?: string };
 
 type Props = {
   userName: string;
@@ -12,7 +15,6 @@ type Props = {
   onLogout: () => void;
 };
 
-/* ========================= Sheet ========================= */
 type SheetState = {
   open: boolean;
   title?: string;
@@ -36,16 +38,15 @@ export function UserMenu({ userName, role, onLogout }: Props) {
 
   const openPasswordChange = () => {
     setDropOpen(false);
-    // ドロップダウンが閉じた後にシートを開く
     setTimeout(() => {
       setSheet({ open: true, title: "パスワード変更", content: <PasswordChangeForm onClose={closeSheet} /> });
     }, 50);
   };
 
-  const openStoreRequest = () => {
+  const openAreaChange = () => {
     setDropOpen(false);
     setTimeout(() => {
-      setSheet({ open: true, title: "担当店舗変更依頼", content: <StoreChangeRequestForm onClose={closeSheet} /> });
+      setSheet({ open: true, title: "担当エリア変更依頼", content: <AreaChangeRequestForm onClose={closeSheet} /> });
     }, 50);
   };
 
@@ -53,7 +54,6 @@ export function UserMenu({ userName, role, onLogout }: Props) {
 
   return (
     <>
-      {/* トリガーボタン */}
       <div ref={dropRef} style={{ position: "relative" }}>
         <button
           onClick={() => setDropOpen(!dropOpen)}
@@ -68,37 +68,39 @@ export function UserMenu({ userName, role, onLogout }: Props) {
 
         {dropOpen && (
           <div style={{ position: "absolute", top: "calc(100% + 8px)", right: 0, minWidth: 220, background: "#fff", borderRadius: 20, border: "1px solid #e2e8f0", boxShadow: "0 10px 30px rgba(0,0,0,0.1)", padding: 8, zIndex: 1000 }}>
-            {/* ユーザー情報 */}
             <div style={{ padding: "10px 14px 12px", borderBottom: "1px solid #f1f5f9", marginBottom: 6 }}>
               <div style={{ fontSize: 14, fontWeight: 900, color: "#1e293b" }}>{userName}</div>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", marginTop: 2 }}>{
-                role === "admin" ? "システム管理者" :
-                role === "inspector" ? "検査員" :
-                role === "manager" ? "店舗担当" : role
-              }</div>
+              <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", marginTop: 2 }}>
+                {role === "admin" ? "システム管理者"
+                  : role === "inspector" ? "検査員"
+                  : role === "manager" ? "店舗担当" : role}
+              </div>
             </div>
 
-            {/* パスワード変更 */}
-            <button onClick={openPasswordChange} style={{ width: "100%", textAlign: "left", padding: "10px 14px", borderRadius: 12, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 800, color: "#1e293b" }}
+            <button
+              onClick={openPasswordChange}
+              style={{ width: "100%", textAlign: "left", padding: "10px 14px", borderRadius: 12, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 800, color: "#1e293b" }}
               onMouseEnter={e => (e.currentTarget.style.background = "#f8fafc")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
               <Lock size={15} color="#6366f1" /> パスワード変更
             </button>
 
-            {/* 担当店舗変更依頼（検査員のみ） */}
             {isInspector && (
-              <button onClick={openStoreRequest} style={{ width: "100%", textAlign: "left", padding: "10px 14px", borderRadius: 12, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 800, color: "#1e293b" }}
+              <button
+                onClick={openAreaChange}
+                style={{ width: "100%", textAlign: "left", padding: "10px 14px", borderRadius: 12, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 800, color: "#1e293b" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "#f8fafc")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               >
-                <Store size={15} color="#10b981" /> 担当店舗変更依頼
+                <Store size={15} color="#10b981" /> 担当エリア変更依頼
               </button>
             )}
 
-            {/* ログアウト */}
             <div style={{ borderTop: "1px solid #f1f5f9", marginTop: 6, paddingTop: 6 }}>
-              <button onClick={onLogout} style={{ width: "100%", textAlign: "left", padding: "10px 14px", borderRadius: 12, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 800, color: "#dc2626" }}
+              <button
+                onClick={onLogout}
+                style={{ width: "100%", textAlign: "left", padding: "10px 14px", borderRadius: 12, border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", gap: 10, fontSize: 13, fontWeight: 800, color: "#dc2626" }}
                 onMouseEnter={e => (e.currentTarget.style.background = "#fef2f2")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               >
@@ -109,11 +111,10 @@ export function UserMenu({ userName, role, onLogout }: Props) {
         )}
       </div>
 
-      {/* シートオーバーレイ（Portal経由でbodyに描画） */}
       {sheet.open && typeof document !== "undefined" && createPortal(
         <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)" }} onClick={closeSheet} />
-          <div style={{ position: "relative", background: "#fff", borderRadius: "24px 24px 0 0", padding: "24px 20px 48px", maxHeight: "85vh", overflowY: "auto" }}>
+          <div style={{ position: "relative", background: "#fff", borderRadius: "24px 24px 0 0", padding: "24px 20px 48px", maxHeight: "90vh", overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div style={{ fontSize: 18, fontWeight: 900, color: "#1e293b" }}>{sheet.title}</div>
               <button onClick={closeSheet} style={{ width: 36, height: 36, borderRadius: 10, background: "#f1f5f9", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
@@ -145,7 +146,6 @@ function PasswordChangeForm({ onClose }: { onClose: () => void }) {
     if (!current || !next || !confirm) { setError("すべての項目を入力してください"); return; }
     if (next !== confirm) { setError("新しいパスワードが一致しません"); return; }
     if (next.length < 6) { setError("新しいパスワードは6文字以上で設定してください"); return; }
-
     setLoading(true);
     try {
       const res = await fetch("/api/auth/change-password", {
@@ -176,7 +176,6 @@ function PasswordChangeForm({ onClose }: { onClose: () => void }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
       {error && <div style={{ padding: "10px 14px", borderRadius: 12, background: "#fef2f2", color: "#dc2626", fontSize: 13, fontWeight: 700 }}>{error}</div>}
-
       {[
         { label: "現在のパスワード", value: current, onChange: setCurrent, show: showCurrent, toggle: () => setShowCurrent(!showCurrent) },
         { label: "新しいパスワード", value: next, onChange: setNext, show: showNext, toggle: () => setShowNext(!showNext) },
@@ -197,7 +196,6 @@ function PasswordChangeForm({ onClose }: { onClose: () => void }) {
           </div>
         </div>
       ))}
-
       <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", height: 52, borderRadius: 16, border: "none", background: loading ? "#e2e8f0" : "#1e293b", color: "#fff", fontSize: 15, fontWeight: 900, cursor: loading ? "not-allowed" : "pointer", marginTop: 4 }}>
         {loading ? "変更中..." : "パスワードを変更する"}
       </button>
@@ -205,11 +203,15 @@ function PasswordChangeForm({ onClose }: { onClose: () => void }) {
   );
 }
 
-/* ========================= 担当店舗変更依頼フォーム ========================= */
-function StoreChangeRequestForm({ onClose }: { onClose: () => void }) {
-  const [stores, setStores] = useState<StoreOption[]>([]);
-  const [currentStoreIds, setCurrentStoreIds] = useState<string[]>([]);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+/* ========================= 担当エリア変更依頼フォーム ========================= */
+type AreaItem = { storeId: string; name: string; brandName?: string };
+
+function AreaChangeRequestForm({ onClose }: { onClose: () => void }) {
+  const [currentAreas, setCurrentAreas] = useState<AreaItem[]>([]);
+  const [toRemove, setToRemove] = useState<Set<string>>(new Set());
+  const [toAdd, setToAdd] = useState<AreaItem[]>([]);
+  const [allStores, setAllStores] = useState<StoreOption[]>([]);
+  const [showSearch, setShowSearch] = useState(false);
   const [query, setQuery] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -220,19 +222,15 @@ function StoreChangeRequestForm({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const load = async () => {
       try {
-        const [sRes, uRes] = await Promise.all([
-          fetch("/api/admin/qsc/stores", { cache: "no-store" }),
-          fetch("/api/auth/me", { cache: "no-store" }),
+        const [aRes, sRes] = await Promise.all([
+          fetch("/api/user/areas", { cache: "no-store" }),
+          fetch("/api/check/stores", { cache: "no-store" }),
         ]);
+        if (aRes.ok) { const d = await aRes.json(); setCurrentAreas(d.items ?? []); }
         if (sRes.ok) {
-          const sData = await sRes.json();
-          setStores((sData.items || []).map((s: StoreOption) => ({ storeId: s.storeId, name: s.name, brandName: s.brandName })));
-        }
-        if (uRes.ok) {
-          const uData = await uRes.json();
-          const current = uData.user?.assignedStoreIds || [];
-          setCurrentStoreIds(current);
-          setSelectedIds(current); // 現在の店舗を初期選択
+          const d = await sRes.json();
+          const items = Array.isArray(d?.items) ? d.items : Array.isArray(d) ? d : [];
+          setAllStores(items.map((s: StoreOption) => ({ storeId: s.storeId, name: s.name, brandName: s.brandName })));
         }
       } catch (e) { console.error(e); }
       finally { setFetching(false); }
@@ -240,23 +238,34 @@ function StoreChangeRequestForm({ onClose }: { onClose: () => void }) {
     load();
   }, []);
 
-  const filtered = stores.filter(s =>
-    !query || s.name.toLowerCase().includes(query.toLowerCase())
-  );
-
-  const toggle = (id: string) => {
-    setSelectedIds(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  const toggleRemove = (storeId: string) => {
+    setToRemove(prev => { const n = new Set(prev); n.has(storeId) ? n.delete(storeId) : n.add(storeId); return n; });
   };
+
+  const addStore = (store: StoreOption) => {
+    if (currentAreas.some(a => a.storeId === store.storeId)) return;
+    if (toAdd.some(a => a.storeId === store.storeId)) return;
+    setToAdd(prev => [...prev, store]);
+    setShowSearch(false);
+    setQuery("");
+  };
+
+  const removeFromAdd = (storeId: string) => setToAdd(prev => prev.filter(s => s.storeId !== storeId));
 
   const handleSubmit = async () => {
     setError(null);
-    if (selectedIds.length === 0) { setError("希望の担当店舗を選択してください"); return; }
+    const fromStoreIds = currentAreas.map(a => a.storeId);
+    const toStoreIds = [
+      ...currentAreas.filter(a => !toRemove.has(a.storeId)).map(a => a.storeId),
+      ...toAdd.map(a => a.storeId),
+    ];
+    if (toRemove.size === 0 && toAdd.length === 0) { setError("変更がありません"); return; }
     setLoading(true);
     try {
       const res = await fetch("/api/check/store-requests", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fromStoreIds: currentStoreIds, toStoreIds: selectedIds, note }),
+        body: JSON.stringify({ fromStoreIds, toStoreIds, note }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "申請に失敗しました");
@@ -279,58 +288,106 @@ function StoreChangeRequestForm({ onClose }: { onClose: () => void }) {
     );
   }
 
+  const currentIds = new Set([...currentAreas.map(a => a.storeId), ...toAdd.map(a => a.storeId)]);
+  const filtered = allStores.filter(s =>
+    !currentIds.has(s.storeId) && (!query || s.name.toLowerCase().includes(query.toLowerCase()))
+  );
+  const hasChanges = toRemove.size > 0 || toAdd.length > 0;
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {error && <div style={{ padding: "10px 14px", borderRadius: 12, background: "#fef2f2", color: "#dc2626", fontSize: 13, fontWeight: 700 }}>{error}</div>}
 
-      {/* 現在の担当店舗 */}
+      {/* 現在の担当エリア */}
       <div>
-        <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b", marginBottom: 8 }}>現在の担当店舗</div>
-        {currentStoreIds.length === 0 ? (
-          <div style={{ fontSize: 13, color: "#94a3b8", fontWeight: 600 }}>なし</div>
-        ) : (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-            {currentStoreIds.map(id => {
-              const s = stores.find(x => x.storeId === id);
-              return <span key={id} style={{ fontSize: 12, fontWeight: 700, padding: "4px 10px", borderRadius: 8, background: "#f1f5f9", color: "#475569" }}>{s?.name || id}</span>;
-            })}
-          </div>
-        )}
-      </div>
-
-      {/* 希望の担当店舗 */}
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b", marginBottom: 8 }}>希望の担当店舗（複数選択可）</div>
-        <div style={{ position: "relative", marginBottom: 10 }}>
-          <Search size={15} style={{ position: "absolute", left: 12, top: 14, color: "#94a3b8" }} />
-          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="店舗名で検索..."
-            style={{ width: "100%", boxSizing: "border-box", height: 44, borderRadius: 12, border: "1px solid #e2e8f0", paddingLeft: 36, fontSize: 14, fontWeight: 600, outline: "none" }} />
-        </div>
+        <div style={{ fontSize: 12, fontWeight: 900, color: "#64748b", marginBottom: 10 }}>現在の担当エリア</div>
         {fetching ? (
-          <div style={{ padding: 16, textAlign: "center", color: "#94a3b8", fontSize: 13 }}>読み込み中...</div>
+          <div style={{ display: "flex", justifyContent: "center", padding: 20 }}>
+            <Loader2 size={20} style={{ animation: "spin 1s linear infinite", color: "#6366f1" }} />
+          </div>
+        ) : currentAreas.length === 0 ? (
+          <div style={{ fontSize: 13, color: "#94a3b8", fontWeight: 600 }}>担当エリアはありません</div>
         ) : (
-          <div style={{ maxHeight: 220, overflowY: "auto", border: "1px solid #e2e8f0", borderRadius: 14, padding: 6 }}>
-            {filtered.map(s => {
-              const isSel = selectedIds.includes(s.storeId);
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {currentAreas.map(area => {
+              const isRemoving = toRemove.has(area.storeId);
               return (
-                <button key={s.storeId} type="button" onClick={() => toggle(s.storeId)}
-                  style={{ width: "100%", textAlign: "left", padding: "10px 12px", borderRadius: 10, border: "none", background: isSel ? "#f0fdf4" : "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 2 }}>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 800, color: "#1e293b" }}>{s.name}</div>
-                    {s.brandName && <div style={{ fontSize: 11, color: "#94a3b8" }}>{s.brandName}</div>}
+                <div key={area.storeId} onClick={() => toggleRemove(area.storeId)}
+                  style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: 14, cursor: "pointer", border: `1.5px solid ${isRemoving ? "#fca5a5" : "#e2e8f0"}`, background: isRemoving ? "#fef2f2" : "#f8fafc", transition: "all 0.15s" }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{ width: 20, height: 20, borderRadius: 6, border: `2px solid ${isRemoving ? "#dc2626" : "#e2e8f0"}`, background: isRemoving ? "#dc2626" : "#fff", display: "grid", placeItems: "center", flexShrink: 0 }}>
+                      {isRemoving && <X size={12} color="#fff" />}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 800, color: isRemoving ? "#dc2626" : "#1e293b" }}>{area.name}</div>
+                      {area.brandName && <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{area.brandName}</div>}
+                    </div>
                   </div>
-                  {isSel && <Check size={15} color="#059669" />}
-                </button>
+                  {isRemoving && <span style={{ fontSize: 11, fontWeight: 900, color: "#dc2626", background: "#fee2e2", padding: "2px 8px", borderRadius: 6 }}>削除</span>}
+                </div>
               );
             })}
           </div>
         )}
-        {selectedIds.length > 0 && (
-          <div style={{ fontSize: 12, fontWeight: 700, color: "#6366f1", marginTop: 6 }}>
-            {selectedIds.length}店舗選択中
-          </div>
-        )}
       </div>
+
+      {/* 追加エリア */}
+      {toAdd.length > 0 && (
+        <div>
+          <div style={{ fontSize: 12, fontWeight: 900, color: "#059669", marginBottom: 10 }}>追加するエリア</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {toAdd.map(store => (
+              <div key={store.storeId} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderRadius: 14, border: "1.5px solid #86efac", background: "#f0fdf4" }}>
+                <div>
+                  <div style={{ fontSize: 14, fontWeight: 800, color: "#059669" }}>{store.name}</div>
+                  {store.brandName && <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{store.brandName}</div>}
+                </div>
+                <button onClick={() => removeFromAdd(store.storeId)} style={{ width: 28, height: 28, borderRadius: 8, border: "none", background: "#dcfce7", color: "#059669", display: "grid", placeItems: "center", cursor: "pointer" }}>
+                  <X size={14} />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 新規追加 / 検索 */}
+      {!showSearch ? (
+        <button onClick={() => setShowSearch(true)} style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "12px", borderRadius: 14, border: "1.5px dashed #e2e8f0", background: "#f8fafc", fontSize: 13, fontWeight: 800, color: "#64748b", cursor: "pointer" }}>
+          <Plus size={16} /> 担当エリアを追加
+        </button>
+      ) : (
+        <div style={{ border: "1.5px solid #e2e8f0", borderRadius: 16, overflow: "hidden" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderBottom: "1px solid #f1f5f9" }}>
+            <Search size={15} color="#94a3b8" />
+            <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="店舗名で検索..."
+              style={{ flex: 1, border: "none", outline: "none", fontSize: 14, fontWeight: 600, color: "#1e293b", background: "transparent" }} />
+            <button onClick={() => { setShowSearch(false); setQuery(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8" }}>
+              <X size={16} />
+            </button>
+          </div>
+          <div style={{ maxHeight: 220, overflowY: "auto" }}>
+            {filtered.length === 0 ? (
+              <div style={{ padding: "16px", textAlign: "center", color: "#94a3b8", fontSize: 13 }}>
+                {query ? "該当する店舗がありません" : "店舗名を入力してください"}
+              </div>
+            ) : filtered.slice(0, 20).map(s => (
+              <button key={s.storeId} onClick={() => addStore(s)}
+                style={{ width: "100%", textAlign: "left", padding: "11px 14px", border: "none", background: "transparent", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #f8fafc" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "#f0fdf4")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+              >
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 800, color: "#1e293b" }}>{s.name}</div>
+                  {s.brandName && <div style={{ fontSize: 11, color: "#94a3b8" }}>{s.brandName}</div>}
+                </div>
+                <Plus size={14} color="#059669" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 備考 */}
       <div>
@@ -339,9 +396,20 @@ function StoreChangeRequestForm({ onClose }: { onClose: () => void }) {
           style={{ width: "100%", boxSizing: "border-box", minHeight: 64, borderRadius: 12, border: "1px solid #e2e8f0", padding: "10px 14px", fontSize: 14, fontWeight: 600, outline: "none", resize: "none" }} />
       </div>
 
-      <button onClick={handleSubmit} disabled={loading} style={{ width: "100%", height: 52, borderRadius: 16, border: "none", background: loading ? "#e2e8f0" : "#059669", color: "#fff", fontSize: 15, fontWeight: 900, cursor: loading ? "not-allowed" : "pointer" }}>
+      {/* 変更サマリー */}
+      {hasChanges && (
+        <div style={{ background: "#f8fafc", borderRadius: 14, padding: "12px 14px", fontSize: 12, color: "#64748b", display: "flex", flexDirection: "column", gap: 4 }}>
+          {toRemove.size > 0 && <div style={{ color: "#dc2626", fontWeight: 700 }}>削除: {Array.from(toRemove).map(id => currentAreas.find(a => a.storeId === id)?.name || id).join("、")}</div>}
+          {toAdd.length > 0 && <div style={{ color: "#059669", fontWeight: 700 }}>追加: {toAdd.map(a => a.name).join("、")}</div>}
+        </div>
+      )}
+
+      <button onClick={handleSubmit} disabled={loading || !hasChanges}
+        style={{ width: "100%", height: 52, borderRadius: 16, border: "none", background: loading || !hasChanges ? "#e2e8f0" : "#059669", color: "#fff", fontSize: 15, fontWeight: 900, cursor: loading || !hasChanges ? "not-allowed" : "pointer" }}>
         {loading ? "送信中..." : "変更依頼を送信する"}
       </button>
+
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
