@@ -204,9 +204,19 @@ export default function HomePage() {
       .then(data => {
         if (!data) return;
         setRankings({ overall: data.rankings?.overall ?? [], q: data.rankings?.q ?? [], s: data.rankings?.s ?? [], c: data.rankings?.c ?? [] });
-        const sId = (session as any)?.storeId;
-        const sEmail = (session as any)?.email;
-        const found = (data.all as RankRow[])?.find(d => d.storeId === sId || (d as any).email === sEmail);
+        // assignedStoreIds（配列）または assignedStoreId（単数）から自店舗を特定
+        const ids: string[] = [];
+        const multiIds = (session as any)?.assignedStoreIds;
+        const singleId = (session as any)?.assignedStoreId;
+        if (Array.isArray(multiIds) && multiIds.length > 0) {
+          ids.push(...multiIds);
+        } else if (singleId) {
+          ids.push(singleId);
+        }
+        const allRows = (data.all as RankRow[]) ?? [];
+        const found = ids.length > 0
+          ? allRows.find(d => ids.includes(d.storeId))
+          : null;
         setMyScore(found ?? null);
       })
       .catch(console.error)

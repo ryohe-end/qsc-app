@@ -60,7 +60,10 @@ export async function POST(req: NextRequest) {
     cookieStore.set("qsc_role", user.role || "inspector", opts);
     cookieStore.set("qsc_user_name", encodeURIComponent(user.name || "担当者"), opts);
     cookieStore.set("qsc_user_role", user.role || "inspector", opts);
-    cookieStore.set("qsc_user_id", user.storeId || lowerEmail, opts);
+    cookieStore.set("qsc_user_id", lowerEmail, opts);
+    if (user.storeId) {
+      cookieStore.set("qsc_store_id", user.storeId, opts);
+    }
 
     return NextResponse.json({
       ok: true,

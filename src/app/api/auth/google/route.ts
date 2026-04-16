@@ -68,7 +68,10 @@ export async function POST(req: Request) {
     cookieStore.set("qsc_role", user.role || "inspector", opts);
     cookieStore.set("qsc_user_name", encodeURIComponent(user.name || payload.name || "担当者"), opts);
     cookieStore.set("qsc_user_role", user.role || "inspector", opts);
-    cookieStore.set("qsc_user_id", user.storeId || email, opts);
+    cookieStore.set("qsc_user_id", email, opts);
+    if (user.storeId) {
+      cookieStore.set("qsc_store_id", user.storeId, opts);
+    }
 
     return NextResponse.json({
       ok: true,

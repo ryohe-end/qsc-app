@@ -112,9 +112,9 @@ export function UserMenu({ userName, role, onLogout }: Props) {
       </div>
 
       {sheet.open && typeof document !== "undefined" && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", flexDirection: "column", justifyContent: "flex-end" }}>
+        <div style={{ position: "absolute", inset: 0, zIndex: 9999, display: "flex", flexDirection: "column", justifyContent: "flex-end", borderRadius: "inherit", overflow: "hidden" }}>
           <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)" }} onClick={closeSheet} />
-          <div style={{ position: "relative", background: "#fff", borderRadius: "24px 24px 0 0", padding: "24px 20px 48px", maxHeight: "90vh", overflowY: "auto" }}>
+          <div style={{ position: "relative", background: "#fff", borderRadius: "24px 24px 0 0", padding: "24px 20px 40px", maxHeight: "80%", overflowY: "auto", width: "100%", boxSizing: "border-box" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
               <div style={{ fontSize: 18, fontWeight: 900, color: "#1e293b" }}>{sheet.title}</div>
               <button onClick={closeSheet} style={{ width: 36, height: 36, borderRadius: 10, background: "#f1f5f9", border: "none", cursor: "pointer", display: "grid", placeItems: "center" }}>
@@ -124,7 +124,7 @@ export function UserMenu({ userName, role, onLogout }: Props) {
             {sheet.content}
           </div>
         </div>,
-        document.body
+        document.querySelector(".qsc-frame-shell") ?? document.body
       )}
     </>
   );
@@ -230,7 +230,11 @@ function AreaChangeRequestForm({ onClose }: { onClose: () => void }) {
         if (sRes.ok) {
           const d = await sRes.json();
           const items = Array.isArray(d?.items) ? d.items : Array.isArray(d) ? d : [];
-          setAllStores(items.map((s: StoreOption) => ({ storeId: s.storeId, name: s.name, brandName: s.brandName })));
+          setAllStores(items.map((s: Record<string, string>) => ({
+            storeId: s.storeId || "",
+            name: s.storeName || s.name || "",
+            brandName: s.brandName || "",
+          })));
         }
       } catch (e) { console.error(e); }
       finally { setFetching(false); }

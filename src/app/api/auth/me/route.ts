@@ -35,6 +35,39 @@ async function findStoreByEmail(email: string): Promise<string[]> {
   }
 }
 
+/* inspector ロール: managers にメールが含まれる店舗を担当エリアとして検索 */
+async function findStoresByManagerEmail(email: string): Promise<string[]> {
+  if (!email) return [];
+  try {
+    const lowerEmail = email.toLowerCase();
+    const res = await docClient.send(new ScanCommand({
+      TableName: MASTER_TABLE,
+      FilterExpression: "SK = :sk AND #type = :type",
+      ExpressionAttributeNames: { "#type": "type" },
+      ExpressionAttributeValues: { ":sk": "METADATA", ":type": "STORE" },
+      ProjectionExpression: "storeId, managers",
+    }));
+
+    return (res.Items ?? [])
+      .filter(item => {
+        const managers = Array.isArray(item.managers) ? item.managers : [];
+        return managers.some((m: Record<string, unknown>) => {
+          // 通常形式: { email: "..." }
+          if (typeof m.email === "string" && m.email.toLowerCase() === lowerEmail) return true;
+          // DynamoDB Map形式: { M: { email: { S: "..." } } }
+          const inner = m.M as Record<string, { S?: string }> | undefined;
+          if (inner?.email?.S && inner.email.S.toLowerCase() === lowerEmail) return true;
+          return false;
+        });
+      })
+      .map(item => String(item.storeId || ""))
+      .filter(Boolean);
+  } catch (e) {
+    console.error("findStoresByManagerEmail error:", e);
+    return [];
+  }
+}
+
 export async function GET() {
   try {
     const cookieStore = await cookies();
@@ -58,6 +91,11 @@ export async function GET() {
     // ✅ store ロールで assignedStoreIds がない場合、メールアドレスから店舗を自動検索
     if (role === "store" && assignedStoreIds.length === 0) {
       assignedStoreIds = await findStoreByEmail(userEmail);
+    }
+
+    // ✅ inspector ロールで assignedStoreIds がない場合、managers.email から担当店舗を検索
+    if (role === "inspector" && assignedStoreIds.length === 0) {
+      assignedStoreIds = await findStoresByManagerEmail(userEmail);
     }
 
     return NextResponse.json({
