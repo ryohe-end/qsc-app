@@ -13,6 +13,7 @@ const s3 = new S3Client({ region: process.env.QSC_AWS_REGION || "us-east-1" });
 const BUCKET = process.env.QSC_PHOTOS_BUCKET || "qsc-check-photos-prod";
 
 const TABLE_NAME = process.env.QSC_CHECK_RESULTS_TABLE || "QSC_CheckResults";
+const SELF_CHECK_TABLE = process.env.QSC_SELF_CHECK_TABLE_NAME || "QSC_SelfCheckResults";
 
 type PhotoRecord = {
   id: string;
@@ -62,6 +63,8 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const storeId = searchParams.get("storeId");
     const resultId = searchParams.get("resultId");
+    const checkType = searchParams.get("checkType") || "official";
+    const tableName = checkType === "self" ? SELF_CHECK_TABLE : TABLE_NAME;
 
     if (!storeId || !resultId) {
       return NextResponse.json(
@@ -74,7 +77,7 @@ export async function GET(req: NextRequest) {
 
     const result = await ddb.send(
       new QueryCommand({
-        TableName: TABLE_NAME,
+        TableName: tableName,
         KeyConditionExpression: "PK = :pk",
         ExpressionAttributeValues: { ":pk": pk },
         ScanIndexForward: false,

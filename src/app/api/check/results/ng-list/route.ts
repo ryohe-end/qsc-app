@@ -202,9 +202,10 @@ export async function GET(req: NextRequest) {
       for (const [sIdx, sec] of (result.sections || []).entries()) {
         for (const item of sec.items || []) {
           const isNg = item.state === "ng";
+          const isHold = item.state === "hold";
           const isNotApproved = item.correctionStatus !== "approved";
 
-          if (!isNg || !isNotApproved) {
+          if ((!isNg && !isHold) || !isNotApproved) {
             continue;
           }
 
@@ -238,6 +239,7 @@ export async function GET(req: NextRequest) {
             resultPk: result.PK || "",
             resultSk: result.SK || "",
             resultId: result.resultId || "",
+            originalState: item.state || "ng",
           });
         }
       }

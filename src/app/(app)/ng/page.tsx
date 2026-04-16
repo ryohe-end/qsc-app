@@ -39,6 +39,7 @@ type NgIssue = {
   storeId?: string;
   storeName?: string;
   afterPhotos: AfterPhoto[]; // 複数対応
+  originalState?: string; // "ng" | "hold"
 };
 
 type NgStore = {
@@ -141,7 +142,8 @@ async function patchIssue(target: NgIssue, newStatus: CorrectionStatus = "submit
 async function patchCorrectionStatus(
   target: NgIssue,
   correctionStatus: CorrectionStatus,
-  reviewNote?: string
+  reviewNote?: string,
+  holdResolution?: "ok" | "ng"
 ) {
   const res = await fetch("/api/check/results/update-correction-status", {
     method: "PATCH",
@@ -150,6 +152,7 @@ async function patchCorrectionStatus(
       pk: target.resultPk, sk: target.resultSk,
       sectionIndex: target.sectionIndex, itemIndex: target.id,
       correctionStatus, reviewNote: reviewNote ?? "",
+      ...(holdResolution ? { holdResolution } : {}),
     }),
   });
   const json = await res.json().catch(() => ({}));
@@ -287,6 +290,9 @@ function IssueCard({
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px 12px", borderBottom: "1px solid #f1f5f9" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 11, fontWeight: 900, padding: "3px 8px", borderRadius: 7, background: "#f1f5f9", color: "#64748b" }}>{issue.category}</span>
+            {issue.originalState === "hold" && (
+              <span style={{ fontSize: 10, fontWeight: 900, padding: "2px 6px", borderRadius: 6, background: "#fef3c7", color: "#d97706" }}>保留</span>
+            )}
             <StatusBadge status={issue.correctionStatus} />
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontWeight: 700, color: "#94a3b8" }}>
@@ -530,17 +536,43 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
     });
   }, [issues, updateIssue]);
 
-  const handleApprove = useCallback((issueId: string) => {
+  const handleApprove = useCallback((issueId: string, holdResolution?: "ok" | "ng") => {
     const target = issues.find(i => i.id === issueId);
     if (!target) return;
+
+    // 保留項目の場合はOK/NG選択が必要
+    if (target.originalState === "hold" && !holdResolution) {
+      setSheet({
+        open: true, title: "保留項目の確定",
+        message: "この保留項目の最終判定を選択してください。",
+        primaryText: "OK（合格）",
+        secondaryText: "NG（不合格）",
+        cancelText: "キャンセル",
+        onPrimary: () => {
+          setSheet({ open: false });
+          handleApprove(issueId, "ok");
+        },
+        onSecondary: () => {
+          setSheet({ open: false });
+          handleApprove(issueId, "ng");
+        },
+        onCancel: () => setSheet({ open: false }),
+      });
+      return;
+    }
+
+    const confirmMsg = target.originalState === "hold"
+      ? `この保留項目を「${holdResolution === "ok" ? "OK" : "NG"}」として確定し、承認しますか？`
+      : "この改善報告を承認しますか？";
+
     setSheet({
-      open: true, title: "承認する", message: "この改善報告を承認しますか？",
+      open: true, title: "承認する", message: confirmMsg,
       primaryText: "承認する", cancelText: "キャンセル",
       onPrimary: async () => {
         setSheet({ open: false });
         updateIssue(issueId, { isSubmitting: true });
         try {
-          await patchCorrectionStatus(target, "approved");
+          await patchCorrectionStatus(target, "approved", undefined, holdResolution);
           updateIssue(issueId, { correctionStatus: "approved", isSubmitting: false });
         } catch (e) {
           console.error(e);

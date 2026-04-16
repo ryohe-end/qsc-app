@@ -135,8 +135,8 @@ function ScoreRing({ score, size = 72 }: { score: number; size?: number }) {
 }
 
 /* ========================= DetailPage ========================= */
-function DetailPage({ storeId, resultId, storeName, onBack }: {
-  storeId: string; resultId: string; storeName: string; onBack: () => void;
+function DetailPage({ storeId, resultId, storeName, onBack, checkType = "official" }: {
+  storeId: string; resultId: string; storeName: string; onBack: () => void; checkType?: "official" | "self";
 }) {
   const [detail, setDetail] = useState<DetailResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -144,12 +144,12 @@ function DetailPage({ storeId, resultId, storeName, onBack }: {
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    fetch(`/api/check/results/detail?storeId=${encodeURIComponent(storeId)}&resultId=${encodeURIComponent(resultId)}`, { cache: "no-store" })
+    fetch(`/api/check/results/detail?storeId=${encodeURIComponent(storeId)}&resultId=${encodeURIComponent(resultId)}&checkType=${checkType}`, { cache: "no-store" })
       .then(r => r.ok ? r.json() : null)
       .then(data => setDetail(data))
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [storeId, resultId]);
+  }, [storeId, resultId, checkType]);
 
   const toggleSection = (title: string) => {
     setExpandedSections(prev => {
@@ -314,8 +314,9 @@ function DetailPage({ storeId, resultId, storeName, onBack }: {
 }
 
 /* ========================= ResultList ========================= */
-function ResultList({ items, onSelect, title, loading }: {
+function ResultList({ items, onSelect, title, loading, activeTab, onTabChange, showTabs }: {
   items: HistoryItem[]; onSelect: (item: HistoryItem) => void; title: string; loading: boolean;
+  activeTab?: "official" | "self"; onTabChange?: (tab: "official" | "self") => void; showTabs?: boolean;
 }) {
   const [q, setQ] = useState("");
 
@@ -409,6 +410,38 @@ function ResultList({ items, onSelect, title, loading }: {
           style={{ width: "100%", boxSizing: "border-box", height: 46, background: "#fff", border: "1px solid #e2e8f0", borderRadius: 14, paddingLeft: 40, fontSize: 14, fontWeight: 700, outline: "none" }} />
       </div>
 
+      {/* 本番/セルフ タブ */}
+      {showTabs && onTabChange && (
+        <div style={{ display: "flex", gap: 0, background: "#f1f5f9", borderRadius: 14, padding: 4 }}>
+          <button
+            onClick={() => onTabChange("official")}
+            style={{
+              flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
+              background: activeTab === "official" ? "#fff" : "transparent",
+              color: activeTab === "official" ? "#1e293b" : "#94a3b8",
+              fontSize: 14, fontWeight: 900, cursor: "pointer",
+              boxShadow: activeTab === "official" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+              transition: "all 0.2s",
+            }}
+          >
+            本番
+          </button>
+          <button
+            onClick={() => onTabChange("self")}
+            style={{
+              flex: 1, padding: "10px 0", borderRadius: 10, border: "none",
+              background: activeTab === "self" ? "#fff" : "transparent",
+              color: activeTab === "self" ? "#1e293b" : "#94a3b8",
+              fontSize: 14, fontWeight: 900, cursor: "pointer",
+              boxShadow: activeTab === "self" ? "0 1px 3px rgba(0,0,0,0.1)" : "none",
+              transition: "all 0.2s",
+            }}
+          >
+            セルフ
+          </button>
+        </div>
+      )}
+
       <div style={{ background: "#fff", borderRadius: 20, border: "1px solid #e2e8f0", overflow: "hidden" }}>
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
@@ -447,8 +480,11 @@ function ResultList({ items, onSelect, title, loading }: {
 export default function ResultsPage() {
   const { session, loading: sessionLoading } = useSession();
   const [items, setItems] = useState<HistoryItem[]>([]);
+  const [selfItems, setSelfItems] = useState<HistoryItem[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
+  const [loadingSelfItems, setLoadingSelfItems] = useState(false);
   const [selected, setSelected] = useState<HistoryItem | null>(null);
+  const [activeTab, setActiveTab] = useState<"official" | "self">("official");
 
   const role = (session?.role as string) ?? "";
   const isStore = role === "store" || role === "manager";
@@ -460,9 +496,12 @@ export default function ResultsPage() {
       setLoadingItems(true);
       try {
         if (isStore) {
-          const assignedStoreIds = (session as Record<string, unknown>)?.assignedStoreIds as string[] | undefined;
-          const storeIds = Array.isArray(assignedStoreIds) && assignedStoreIds.length > 0 ? assignedStoreIds : [];
-          if (storeIds.length === 0) return;
+          const singleId = (session as Record<string, unknown>)?.assignedStoreId as string | undefined;
+          const multiIds = (session as Record<string, unknown>)?.assignedStoreIds as string[] | undefined;
+          const storeIds = Array.isArray(multiIds) && multiIds.length > 0
+            ? multiIds
+            : singleId ? [singleId] : [];
+          if (storeIds.length === 0) { setLoadingItems(false); return; }
           const allItems: HistoryItem[] = [];
           await Promise.allSettled(storeIds.map(async storeId => {
             const res = await fetch(`/api/check/results/history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" });
@@ -493,6 +532,38 @@ export default function ResultsPage() {
     fetch_();
   }, [sessionLoading, session, isStore, isInspector]);
 
+  // セルフチェック結果の取得（店舗アカウントのみ）
+  useEffect(() => {
+    if (sessionLoading || !isStore || activeTab !== "self") return;
+    const fetchSelf = async () => {
+      setLoadingSelfItems(true);
+      try {
+        const singleId = (session as Record<string, unknown>)?.assignedStoreId as string | undefined;
+        const multiIds = (session as Record<string, unknown>)?.assignedStoreIds as string[] | undefined;
+        const storeIds = Array.isArray(multiIds) && multiIds.length > 0
+          ? multiIds
+          : singleId ? [singleId] : [];
+        if (storeIds.length === 0) { setLoadingSelfItems(false); return; }
+        const allItems: HistoryItem[] = [];
+        await Promise.allSettled(storeIds.map(async storeId => {
+          const res = await fetch(`/api/check/results/self-history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" });
+          if (!res.ok) return;
+          const data = await res.json();
+          for (const item of (data.items ?? [])) {
+            allItems.push({ ...item, storeId, storeName: item.storeName || "自店舗" });
+          }
+        }));
+        allItems.sort((a, b) => String(b.submittedAt).localeCompare(String(a.submittedAt)));
+        setSelfItems(allItems);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoadingSelfItems(false);
+      }
+    };
+    fetchSelf();
+  }, [sessionLoading, session, isStore, activeTab]);
+
   if (sessionLoading) {
     return (
       <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "50vh" }}>
@@ -502,7 +573,9 @@ export default function ResultsPage() {
     );
   }
 
-  const listTitle = isStore ? "自店舗の点検結果" : isInspector ? "自分の点検結果" : "全店舗の点検結果";
+  const listTitle = isStore
+    ? (activeTab === "self" ? "セルフチェック結果" : "自店舗の点検結果")
+    : isInspector ? "自分の点検結果" : "全店舗の点検結果";
 
   if (selected) {
     return (
@@ -511,9 +584,23 @@ export default function ResultsPage() {
         resultId={selected.resultId}
         storeName={selected.storeName}
         onBack={() => setSelected(null)}
+        checkType={activeTab}
       />
     );
   }
 
-  return <ResultList items={items} onSelect={setSelected} title={listTitle} loading={loadingItems} />;
+  const displayItems = activeTab === "self" ? selfItems : items;
+  const displayLoading = activeTab === "self" ? loadingSelfItems : loadingItems;
+
+  return (
+    <ResultList
+      items={displayItems}
+      onSelect={setSelected}
+      title={listTitle}
+      loading={displayLoading}
+      showTabs={isStore}
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+    />
+  );
 }

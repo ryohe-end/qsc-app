@@ -64,7 +64,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ok: true,
-      user: { name: user.name, role: user.role },
+      user: {
+        email: lowerEmail,
+        name: user.name,
+        role: user.role,
+        storeId: user.storeId || "",
+      },
     });
 
   } catch (e: unknown) {

@@ -9,6 +9,7 @@ export const dynamic = "force-dynamic";
 
 const region = process.env.AWS_REGION || "us-east-1";
 const resultTableName = process.env.QSC_RESULT_TABLE_NAME || "QSC_CheckResults";
+const selfCheckTableName = process.env.QSC_SELF_CHECK_TABLE_NAME || "QSC_SelfCheckResults";
 const masterTableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
 const userTableName = process.env.QSC_USER_TABLE || "QSC_UserTable";
 const photoBucketName = process.env.QSC_PHOTO_BUCKET_NAME || "qsc-check-photos-prod";
@@ -95,8 +96,8 @@ async function sendCompletionEmail(params: {
   improvementDeadline: string;
   summary: {
     ok: number; ng: number; hold: number; na: number; unset: number;
-    maxScore: number; point: number; photoCount: number;
-    categoryScores: Record<string, { ok: number; maxScore: number; point: number }>;
+    maxScore: number; point: number | null; photoCount: number;
+    categoryScores: Record<string, { ok: number; maxScore: number; point: number | null }>;
   };
 }) {
   if (params.to.length === 0) return;
@@ -109,7 +110,7 @@ async function sendCompletionEmail(params: {
       <tr>
         <td style="padding:10px 16px;font-size:13px;font-weight:700;color:#64748b;border-bottom:1px solid #f1f5f9;">${cat}</td>
         <td style="padding:10px 16px;font-size:13px;font-weight:800;color:#1e293b;border-bottom:1px solid #f1f5f9;text-align:center;">${s.ok}/${s.maxScore}</td>
-        <td style="padding:10px 16px;font-size:13px;font-weight:900;border-bottom:1px solid #f1f5f9;text-align:center;color:${s.point >= 80 ? "#059669" : s.point >= 60 ? "#d97706" : "#dc2626"};">${s.point}点</td>
+        <td style="padding:10px 16px;font-size:13px;font-weight:900;border-bottom:1px solid #f1f5f9;text-align:center;color:${s.point === null ? "#94a3b8" : s.point >= 80 ? "#059669" : s.point >= 60 ? "#d97706" : "#dc2626"};">${s.point === null ? "未確定" : `${s.point}点`}</td>
       </tr>
     `).join("");
 
@@ -150,7 +151,7 @@ async function sendCompletionEmail(params: {
 
     <!-- スコア -->
     <div style="background:#f8fafc;border-radius:20px;padding:24px;margin-bottom:24px;text-align:center;">
-      <div style="font-size:52px;font-weight:950;color:${params.summary.point >= 80 ? "#059669" : params.summary.point >= 60 ? "#d97706" : "#dc2626"};">${params.summary.point}<span style="font-size:18px;font-weight:700;">点</span></div>
+      <div style="font-size:52px;font-weight:950;color:${params.summary.point === null ? "#94a3b8" : params.summary.point >= 80 ? "#059669" : params.summary.point >= 60 ? "#d97706" : "#dc2626"};">${params.summary.point === null ? "未確定" : `${params.summary.point}<span style="font-size:18px;font-weight:700;">点</span>`}</div>
       <div style="font-size:13px;font-weight:700;color:#94a3b8;margin-top:4px;">${params.summary.ok} / ${params.summary.maxScore} 項目クリア</div>
     </div>
 
@@ -195,7 +196,7 @@ async function sendCompletionEmail(params: {
 </html>`,
     text: `【QSC点検完了】${params.storeName}
 点検日: ${params.inspectionDate} / 担当: ${params.userName}
-スコア: ${params.summary.point}点 (${params.summary.ok}/${params.summary.maxScore})
+スコア: ${params.summary.point === null ? "未確定（保留項目あり）" : `${params.summary.point}点`} (${params.summary.ok}/${params.summary.maxScore})
 NG: ${params.summary.ng}件 / 保留: ${params.summary.hold}件
 ${hasNg ? `改善期限: ${params.improvementDeadline}` : "全項目クリアしました"}
 こちらのURLより結果を確認してください。
@@ -207,7 +208,9 @@ ${appUrl}/results`.trim(),
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { companyId = "", bizId = "", brandId = "", storeId, storeName, sendMail, inspectionDate, mode = "new", existingResultId = "" } = body;
+    const { companyId = "", bizId = "", brandId = "", storeId, storeName, sendMail, inspectionDate, mode = "new", existingResultId = "", checkType = "official" } = body;
+    const isSelfCheck = checkType === "self";
+    const targetTableName = isSelfCheck ? selfCheckTableName : resultTableName;
 
     if (!storeId || !String(storeId).trim()) {
       return NextResponse.json({ error: "storeId が不正です" }, { status: 400 });
@@ -234,7 +237,7 @@ export async function POST(req: NextRequest) {
     if (mode === "edit" && existingResultId) {
       // 既存レコードのSKを検索
       const existing = await docClient.send(new QueryCommand({
-        TableName: resultTableName,
+        TableName: targetTableName,
         KeyConditionExpression: "PK = :pk",
         ExpressionAttributeValues: { ":pk": `STORE#${cleanStoreId}` },
       }));
@@ -302,33 +305,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `NG項目のコメントが ${missingNotes} 件未入力です` }, { status: 400 });
     }
 
+    const hasHoldItems = counts.hold > 0;
+
     const categoryScoreSummary = Object.fromEntries(
       Object.entries(categoryScores).map(([cat, { score, maxScore }]) => [
-        cat, { ok: score, maxScore, point: maxScore > 0 ? Math.floor((score / maxScore) * 100) : 0 }
+        cat, { ok: score, maxScore, point: hasHoldItems ? null : (maxScore > 0 ? Math.floor((score / maxScore) * 100) : 0) }
       ])
     );
-    const totalPoint = totalMaxScore > 0 ? Math.floor((totalScore / totalMaxScore) * 100) : 0;
+    const totalPoint = hasHoldItems ? null : (totalMaxScore > 0 ? Math.floor((totalScore / totalMaxScore) * 100) : 0);
 
     const summary = {
       ...counts,
       total: counts.ok + counts.hold + counts.ng + counts.na + counts.unset,
       ok: totalScore, maxScore: totalMaxScore, point: totalPoint,
+      scoreFinalized: !hasHoldItems,
       photoCount: totalPhotoCount, inspectionDate: insDateStr,
       improvementDeadline: deadlineStr, categoryScores: categoryScoreSummary,
     };
 
     await docClient.send(new PutCommand({
-      TableName: resultTableName,
+      TableName: targetTableName,
       Item: {
         PK: `STORE#${cleanStoreId}`, SK: existingSK,
         type: "CHECK_RESULT", resultId, companyId, bizId, brandId,
         storeId: cleanStoreId, storeName, userName, summary,
         sections: storedSections, status: "done", createdAt: now, submittedAt: now,
+        checkType: isSelfCheck ? "self" : "official",
       },
     }));
 
-    // ✅ 点検完了メール送信
-    if (sendMail) {
+    // ✅ 点検完了メール送信（セルフチェックの場合は送信しない）
+    if (sendMail && !isSelfCheck) {
       try {
         const { emails, managerEmails } = await getStoreContacts(cleanStoreId);
         const allTo = [...new Set([...emails, ...managerEmails])].filter(Boolean);

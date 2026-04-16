@@ -154,6 +154,8 @@ export default function LoginPage() {
               <input
                 className="custom-input"
                 type="email"
+                name="email"
+                autoComplete="username"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="example@joyfit.jp"
@@ -169,6 +171,8 @@ export default function LoginPage() {
                 <input
                   className="custom-input password-input"
                   type={showPass ? "text" : "password"}
+                  name="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"

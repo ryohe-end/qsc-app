@@ -72,7 +72,12 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       ok: true,
-      user: { name: user.name, role: user.role, email },
+      user: {
+        email,
+        name: user.name,
+        role: user.role,
+        storeId: user.storeId || "",
+      },
     });
 
   } catch (e: unknown) {

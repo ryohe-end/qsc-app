@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import {
   Loader2, Home, ChevronRight, Printer,
   AlertCircle, MessageSquare, User, Calendar,
@@ -112,6 +112,8 @@ function CategoryScoreCard({
 export default function ResultPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const checkType = searchParams.get("checkType") || "official";
   const [data, setData] = useState<ResultData | null>(null);
   const [prevPoint, setPrevPoint] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -120,8 +122,8 @@ export default function ResultPage() {
     async function fetchResult() {
       if (!params?.id) return;
       try {
-        // 今回の結果を取得
-        const res = await fetch(`/api/check/results?storeId=${params.id}`);
+        // 今回の結果を取得（checkType をクエリに追加）
+        const res = await fetch(`/api/check/results?storeId=${params.id}&checkType=${checkType}`);
         if (!res.ok) throw new Error("Not Found");
         const json = await res.json();
         setData(json);
@@ -129,10 +131,10 @@ export default function ResultPage() {
         // 前回の結果を historyAPI から取得
         const storeId = String(json.storeId || "").replace(/^STORE#/, "");
         if (storeId) {
-          const histRes = await fetch(
-            `/api/check/results/history?storeId=${encodeURIComponent(storeId)}`,
-            { cache: "no-store" }
-          );
+          const historyUrl = checkType === "self"
+            ? `/api/check/results/self-history?storeId=${encodeURIComponent(storeId)}`
+            : `/api/check/results/history?storeId=${encodeURIComponent(storeId)}`;
+          const histRes = await fetch(historyUrl, { cache: "no-store" });
           if (histRes.ok) {
             const histJson = await histRes.json();
             const items: HistoryItem[] = Array.isArray(histJson?.items) ? histJson.items : [];
@@ -150,7 +152,7 @@ export default function ResultPage() {
       }
     }
     fetchResult();
-  }, [params?.id]);
+  }, [params?.id, checkType]);
 
   if (loading) {
     return (
@@ -172,11 +174,14 @@ export default function ResultPage() {
 
   const { summary, sections, storeName, userName } = data;
 
+  // スコアが null の場合は保留項目が未確定
+  const isScorePending = summary.point === null || summary.point === undefined;
+
   // 合計点数の色（切り捨て済みの point を使用）
   const totalPct = summary.point ?? 0;
-  const mainColor = totalPct >= 80 ? "#2563eb" : totalPct >= 60 ? "#d97706" : "#dc2626";
-  const mainBg    = totalPct >= 80 ? "#eff6ff" : totalPct >= 60 ? "#fffbeb" : "#fef2f2";
-  const mainBorder= totalPct >= 80 ? "#bfdbfe" : totalPct >= 60 ? "#fef3c7" : "#fee2e2";
+  const mainColor = isScorePending ? "#94a3b8" : totalPct >= 80 ? "#2563eb" : totalPct >= 60 ? "#d97706" : "#dc2626";
+  const mainBg    = isScorePending ? "#f8fafc" : totalPct >= 80 ? "#eff6ff" : totalPct >= 60 ? "#fffbeb" : "#fef2f2";
+  const mainBorder= isScorePending ? "#e2e8f0" : totalPct >= 80 ? "#bfdbfe" : totalPct >= 60 ? "#fef3c7" : "#fee2e2";
 
   // カテゴリ別にエリアを振り分け
   // 各エリアは「設問のcategoryの最多値」で1つのカテゴリに所属（重複なし）
@@ -271,6 +276,11 @@ export default function ResultPage() {
           <span>点検レポート</span>
           <ChevronRight size={12} />
           <span style={{ fontWeight: 800, color: "#1e293b" }}>{storeName}</span>
+          {checkType === "self" && (
+            <span style={{ marginLeft: "8px", padding: "2px 8px", borderRadius: "6px", background: "#fef3c7", color: "#d97706", fontSize: "11px", fontWeight: 900 }}>
+              セルフ
+            </span>
+          )}
         </div>
         <button
           onClick={() => window.print()}
@@ -297,10 +307,18 @@ export default function ResultPage() {
 
         {/* 合計点数（大きく） */}
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: "8px", marginBottom: "4px" }}>
-          <span style={{ fontSize: "80px", fontWeight: 900, color: mainColor, letterSpacing: "-4px", lineHeight: 1 }}>
-            {summary.point ?? 0}
-          </span>
-          <span style={{ fontSize: "24px", fontWeight: 700, color: "#94a3b8" }}>点</span>
+          {isScorePending ? (
+            <span style={{ fontSize: "36px", fontWeight: 900, color: "#94a3b8", lineHeight: 1 }}>
+              未確定
+            </span>
+          ) : (
+            <>
+              <span style={{ fontSize: "80px", fontWeight: 900, color: mainColor, letterSpacing: "-4px", lineHeight: 1 }}>
+                {summary.point ?? 0}
+              </span>
+              <span style={{ fontSize: "24px", fontWeight: 700, color: "#94a3b8" }}>点</span>
+            </>
+          )}
           {/* 前回比較 */}
           {prevPoint !== null && (
             <span style={{
@@ -312,6 +330,12 @@ export default function ResultPage() {
             </span>
           )}
         </div>
+        {/* 保留未確定の説明 */}
+        {isScorePending && summary.hold > 0 && (
+          <div style={{ fontSize: "12px", fontWeight: 700, color: "#d97706", marginBottom: "8px" }}>
+            保留項目が {summary.hold}件 残っているため、スコアは未確定です
+          </div>
+        )}
         {/* ◯数/分母 と 前回点数 */}
         <div style={{ fontSize: "13px", fontWeight: 700, color: "#94a3b8", marginBottom: "4px" }}>
           ◯ {summary.ok} / {summary.maxScore}問

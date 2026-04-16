@@ -148,12 +148,14 @@ function normalizeManagers(input: unknown): Manager[] {
 }
 
 function normalizeStore(input: Record<string, unknown>): StoreRow {
-  // emailsの正規化: email単数 or emails配列どちらでも対応
+  // emailsの正規化: email単数フィールドが編集された場合はそちらを優先
   let emails: string[] = [];
-  if (Array.isArray(input.emails)) {
+  const singleEmail = typeof input.email === "string" ? input.email.trim() : "";
+  if (singleEmail) {
+    // email（単数）が指定されている場合、それを正とする
+    emails = [singleEmail];
+  } else if (Array.isArray(input.emails)) {
     emails = input.emails.map((v: unknown) => String(v || "").trim()).filter(Boolean);
-  } else if (input.email && typeof input.email === "string" && input.email.trim()) {
-    emails = [input.email.trim()];
   }
 
   return {

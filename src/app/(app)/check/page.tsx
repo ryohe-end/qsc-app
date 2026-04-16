@@ -130,6 +130,8 @@ export default function CheckPage() {
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [resultHistory, setResultHistory] = useState<ResultHistoryItem[]>([]);
 
+  const [isCheckTypeModalOpen, setIsCheckTypeModalOpen] = useState(false);
+
   // [修正] localStorage の draft を読み込むロジックを関数化して再利用可能にする
   const loadDraftStoreIds = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -353,18 +355,29 @@ export default function CheckPage() {
 
     if (mode === "new") {
       setIsActionModalOpen(false);
-
-      if (typeof window !== "undefined") {
-        localStorage.removeItem(`qsc_draft_${selectedStore.storeId}`);
-        setDraftStoreIds((prev) => prev.filter((id) => id !== selectedStore.storeId));
-      }
-
-      router.push(`/check/run?storeId=${selectedStore.storeId}&mode=new`);
+      setIsCheckTypeModalOpen(true);
       return;
     }
 
     setIsActionModalOpen(false);
     await openHistoryModal(selectedStore.storeId);
+  };
+
+  const onSelectCheckType = (checkType: "official" | "self") => {
+    if (!selectedStore) return;
+    setIsCheckTypeModalOpen(false);
+
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(`qsc_draft_${selectedStore.storeId}`);
+      setDraftStoreIds((prev) => prev.filter((id) => id !== selectedStore.storeId));
+    }
+
+    router.push(`/check/run?storeId=${selectedStore.storeId}&mode=new&checkType=${checkType}`);
+  };
+
+  const closeCheckTypeModal = () => {
+    setIsCheckTypeModalOpen(false);
+    setSelectedStoreId("");
   };
 
   function onSelectHistory(item: ResultHistoryItem) {
@@ -998,6 +1011,130 @@ export default function CheckPage() {
             {/* [修正] closeHistoryModal で選択状態もリセット */}
             <button
               onClick={closeHistoryModal}
+              style={{
+                width: "100%",
+                marginTop: "24px",
+                padding: "18px",
+                borderRadius: "16px",
+                border: "none",
+                background: "#f1f5f9",
+                color: "#64748b",
+                fontWeight: 800,
+              }}
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Check Type Modal */}
+      {isCheckTypeModalOpen && selectedStore && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15, 23, 42, 0.6)",
+            backdropFilter: "blur(10px)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "flex-end",
+          }}
+          onClick={closeCheckTypeModal}
+        >
+          <div
+            style={{
+              width: "100%",
+              background: "#fff",
+              borderRadius: "32px 32px 0 0",
+              padding: "32px 24px 48px",
+              animation: "slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ textAlign: "center", marginBottom: "32px" }}>
+              <div style={{ fontSize: "22px", fontWeight: 950, color: "#1e293b" }}>
+                チェックタイプを選択
+              </div>
+              <p style={{ fontSize: "14px", fontWeight: 700, color: "#64748b", marginTop: "8px" }}>
+                {selectedStore.storeName}
+              </p>
+            </div>
+
+            <div style={{ display: "grid", gap: "12px" }}>
+              <button
+                onClick={() => onSelectCheckType("official")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  padding: "22px",
+                  borderRadius: "22px",
+                  border: "2px solid #1e293b",
+                  background: "#f8fafc",
+                  textAlign: "left",
+                }}
+              >
+                <div
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "14px",
+                    background: "#dbeafe",
+                    display: "grid",
+                    placeItems: "center",
+                  }}
+                >
+                  <CheckCircle2 size={24} color="#2563eb" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "16px", fontWeight: 900, color: "#1e293b" }}>
+                    本チェック
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>
+                    公式の点検結果として記録されます
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => onSelectCheckType("self")}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "16px",
+                  padding: "22px",
+                  borderRadius: "22px",
+                  border: "1px solid #e2e8f0",
+                  background: "#fff",
+                  textAlign: "left",
+                }}
+              >
+                <div
+                  style={{
+                    width: "48px",
+                    height: "48px",
+                    borderRadius: "14px",
+                    background: "#fef3c7",
+                    display: "grid",
+                    placeItems: "center",
+                  }}
+                >
+                  <Store size={24} color="#d97706" />
+                </div>
+                <div>
+                  <div style={{ fontSize: "16px", fontWeight: 900, color: "#1e293b" }}>
+                    セルフチェック
+                  </div>
+                  <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>
+                    店舗の自己点検用（ランキングに反映されません）
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <button
+              onClick={closeCheckTypeModal}
               style={{
                 width: "100%",
                 marginTop: "24px",
