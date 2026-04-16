@@ -55,6 +55,7 @@ type CheckResult = {
   SK?: string;
   resultId?: string;
   storeName?: string;
+  checkType?: string;
   summary?: {
     improvementDeadline?: string;
     inspectionDate?: string;
@@ -195,7 +196,7 @@ export async function GET(req: NextRequest) {
       })
     );
 
-    const results = (res.Items || []) as CheckResult[];
+    const results = ((res.Items || []) as CheckResult[]).filter(r => r.checkType !== "self");
     const ngList: any[] = [];
 
     for (const result of results) {

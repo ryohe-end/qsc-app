@@ -47,7 +47,7 @@ export async function GET(req: NextRequest) {
     );
 
     const items = (result.Items ?? [])
-      .filter((item) => item?.type === "CHECK_RESULT")
+      .filter((item) => item?.type === "CHECK_RESULT" && item?.checkType !== "self")
       .map<CheckResultHistoryItem>((item) => ({
         pk: item.PK ?? "",
         sk: item.SK ?? "",

@@ -11,11 +11,6 @@ import { saveSession } from "@/app/(app)/lib/auth";
 
 export const dynamic = "force-dynamic";
 
-declare global {
-  interface Window {
-    google?: any;
-  }
-}
 
 export default function LoginPage() {
   const router = useRouter();

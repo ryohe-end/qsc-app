@@ -71,9 +71,9 @@ export async function GET(req: NextRequest) {
     // DynamoDB から done のデータを全件取得
     const res = await docClient.send(new ScanCommand({
       TableName: TABLE_NAME,
-      FilterExpression: "#t = :type AND #st = :done",
+      FilterExpression: "#t = :type AND #st = :done AND (attribute_not_exists(checkType) OR checkType <> :self)",
       ExpressionAttributeNames: { "#t": "type", "#st": "status" },
-      ExpressionAttributeValues: { ":type": "CHECK_RESULT", ":done": "done" },
+      ExpressionAttributeValues: { ":type": "CHECK_RESULT", ":done": "done", ":self": "self" },
     }));
 
     const items = res.Items ?? [];

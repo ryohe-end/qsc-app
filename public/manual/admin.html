@@ -1,0 +1,2402 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QSC Check｜管理者マニュアル</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f6fa;--bg2:#ffffff;--bg3:#f0f1f6;--border:#e4e6ef;--text:#1a1d2e;--text-muted:#8b90a7;--accent:#e03e3e;--accent-light:#fdf0f0;--green:#0ea56e;--green-light:#e6f9f2;--yellow:#e88c0a;--yellow-light:#fef6e6;--red:#e03e3e;--red-light:#fdf0f0;--purple:#7c3aed;--purple-light:#f3eeff;--blue:#2563eb;--blue-light:#eff6ff;--sidebar-w:280px;--radius:16px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;display:flex;min-height:100vh;}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;z-index:100;}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);}
+.sidebar-logo .badge{font-size:10px;font-weight:700;letter-spacing:0.12em;color:var(--accent);background:var(--accent-light);padding:3px 8px;border-radius:6px;margin-bottom:10px;display:inline-block;text-transform:uppercase;}
+.sidebar-logo h1{font-size:16px;font-weight:900;color:var(--text);line-height:1.35;}
+.sidebar-logo p{font-size:11px;color:var(--text-muted);margin-top:3px;}
+.sidebar-section{padding:14px 12px 4px;}
+.sidebar-section-label{font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--text-muted);padding:0 8px;margin-bottom:4px;text-transform:uppercase;}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:all 0.15s;margin-bottom:1px;font-size:13px;font-weight:500;color:var(--text-muted);border:none;background:none;width:100%;text-align:left;font-family:'Noto Sans JP',sans-serif;}
+.sidebar-item:hover{background:var(--bg3);color:var(--text);}
+.sidebar-item.active{background:var(--accent-light);color:var(--accent);font-weight:700;}
+.sidebar-item .icon{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:13px;flex-shrink:0;}
+.sidebar-item.active .icon{background:var(--accent);filter:brightness(0) invert(1);}
+.sidebar-item:not(.active) .icon{background:var(--bg3);}
+.main, main.main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;}
+.topbar{position:sticky;top:0;background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;z-index:50;}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text-muted);}
+.topbar-title span{color:var(--text);font-weight:700;}
+.progress-bar{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-muted);font-weight:600;}
+.progress-dots{display:flex;gap:4px;}
+.progress-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all 0.3s;}
+.progress-dot.done{background:var(--accent);}
+.content{padding:40px;max-width:900px;}
+.page{display:none;}
+.page.active{display:block;animation:fadeUp 0.35s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#1e293b 0%,#334155 60%,#e03e3e 100%);border-radius:20px;padding:36px 40px;margin-bottom:36px;position:relative;overflow:hidden;color:#fff;}
+.hero::after{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:rgba(255,255,255,0.05);border-radius:50%;}
+.hero-tag{font-size:10px;font-weight:700;letter-spacing:0.15em;color:rgba(255,255,255,0.6);text-transform:uppercase;margin-bottom:10px;}
+.hero h2{font-size:28px;font-weight:900;color:#fff;line-height:1.25;margin-bottom:10px;}
+.hero p{font-size:14px;color:rgba(255,255,255,0.8);line-height:1.75;max-width:500px;}
+.hero-badges{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;}
+.badge-pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);}
+
+/* SECTIONS */
+.section-title{font-size:20px;font-weight:900;color:var(--text);margin-bottom:6px;margin-top:36px;}
+.section-title:first-child{margin-top:0;}
+.section-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.7;}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:12px;margin-bottom:32px;}
+.step{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;}
+.step.open{border-color:#f5b8b8;box-shadow:0 2px 12px rgba(224,62,62,0.07);}
+.step-header{display:flex;align-items:center;gap:14px;padding:18px 20px;cursor:pointer;user-select:none;}
+.step-num{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.step.open .step-num{background:var(--accent);}
+.step:not(.open) .step-num{background:var(--bg3);color:var(--text-muted);}
+.step-title{font-size:15px;font-weight:700;color:var(--text);}
+.step-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.step-arrow{margin-left:auto;color:var(--text-muted);transition:transform 0.2s;font-size:20px;line-height:1;}
+.step.open .step-arrow{transform:rotate(90deg);color:var(--accent);}
+.step-body{display:none;padding:0 20px 20px;border-top:1px solid var(--border);}
+.step.open .step-body{display:block;}
+.step-desc{font-size:13.5px;color:#4a4f68;line-height:1.85;margin-top:10px;}
+.step-desc strong{color:var(--text);font-weight:700;}
+
+/* ADMIN SCREEN MOCK */
+.admin-mock{background:#f8fafc;border-radius:16px;border:1px solid var(--border);overflow:hidden;margin:16px 0;}
+.admin-mock-header{background:#1e293b;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;}
+.admin-mock-title{font-size:13px;font-weight:900;color:#fff;}
+.admin-mock-body{padding:16px 20px;}
+.admin-table{width:100%;border-collapse:collapse;font-size:12px;}
+.admin-table th{padding:8px 12px;background:#f1f5f9;font-size:10px;font-weight:900;color:#64748b;text-align:left;letter-spacing:0.05em;}
+.admin-table td{padding:10px 12px;border-bottom:1px solid #f1f5f9;font-weight:600;color:#1e293b;}
+.admin-table tr:last-child td{border-bottom:none;}
+.admin-table tr:hover td{background:#f8fafc;}
+.status-pill{padding:3px 8px;border-radius:20px;font-size:10px;font-weight:900;display:inline-block;}
+.action-btn-sm{padding:5px 10px;border-radius:7px;border:none;font-size:11px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+
+/* TIPS */
+.tip{display:flex;gap:10px;padding:12px 14px;border-radius:10px;margin-top:12px;font-size:13px;line-height:1.65;}
+.tip.info{background:var(--blue-light);color:#1d4ed8;border:1px solid #bfdbfe;}
+.tip.warn{background:var(--yellow-light);color:#a06200;border:1px solid #fbd99a;}
+.tip.success{background:var(--green-light);color:#0a7a52;border:1px solid #9de8cc;}
+.tip.danger{background:var(--red-light);color:#b02020;border:1px solid #f5b8b8;}
+.tip.purple{background:var(--purple-light);color:#5b21b6;border:1px solid #d8b4fe;}
+.tip-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+
+/* STATUS */
+.status-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+
+/* FLOW */
+.flow{display:flex;flex-direction:column;margin:20px 0;}
+.flow-item{display:flex;gap:14px;align-items:flex-start;}
+.flow-left{display:flex;flex-direction:column;align-items:center;width:30px;flex-shrink:0;}
+.flow-dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.flow-line{width:2px;flex:1;min-height:20px;background:var(--border);margin:3px 0;}
+.flow-content{padding:4px 0 22px;flex:1;}
+.flow-label{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.flow-text{font-size:12.5px;color:var(--text-muted);line-height:1.65;}
+.divider{height:1px;background:var(--border);margin:28px 0;}
+
+/* TILE GRID */
+.tile-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin:16px 0;}
+.tile{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);padding:20px;transition:all 0.15s;cursor:pointer;}
+.tile:hover{border-color:#f5b8b8;box-shadow:0 4px 12px rgba(224,62,62,0.08);}
+.tile-icon{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:20px;margin-bottom:12px;}
+.tile-title{font-size:15px;font-weight:800;color:var(--text);margin-bottom:4px;}
+.tile-desc{font-size:12px;color:var(--text-muted);line-height:1.6;}
+
+/* NAV FOOTER */
+.nav-footer{display:flex;justify-content:space-between;margin-top:40px;padding-top:20px;border-top:1px solid var(--border);}
+.nav-btn{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+.nav-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.nav-btn.primary:hover{background:#c02020;}
+.nav-btn:disabled{opacity:0.3;cursor:default;pointer-events:none;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media(max-width:768px){:root{--sidebar-w:0px;}.sidebar{display:none;}.content{padding:20px;}.tile-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="badge">Admin</div>
+    <h1>管理者マニュアル</h1>
+    <p>QSC Check / ver 1.0</p>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">はじめに</div>
+    <button class="sidebar-item active" onclick="goPage('overview')"><span class="icon">📋</span>概要・機能一覧</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">Master Management</div>
+    <button class="sidebar-item" onclick="goPage('stores')"><span class="icon">🏢</span>店舗管理</button>
+    <button class="sidebar-item" onclick="goPage('users')"><span class="icon">👥</span>ユーザー管理</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">QSC Operations</div>
+    <button class="sidebar-item" onclick="goPage('improvements')"><span class="icon">✅</span>改善報告管理</button>
+    <button class="sidebar-item" onclick="goPage('analytics')"><span class="icon">📈</span>是正状況分析</button>
+    <button class="sidebar-item" onclick="goPage('store-requests')"><span class="icon">🏪</span>担当エリア変更申請</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">QSC Standards</div>
+    <button class="sidebar-item" onclick="goPage('questions')"><span class="icon">📝</span>設問マスタ</button>
+    <button class="sidebar-item" onclick="goPage('assets')"><span class="icon">📦</span>アセット構成</button>
+    <button class="sidebar-item" onclick="goPage('settings')"><span class="icon">⚙️</span>設定</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">System & Support</div>
+    <button class="sidebar-item" onclick="goPage('news')"><span class="icon">📢</span>お知らせ</button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span id="topbar-title">概要・機能一覧</span></div>
+    <div class="progress-bar">
+      <span id="progress-text">1 / 11</span>
+      <div class="progress-dots" id="progress-dots"></div>
+    </div>
+  </div>
+  <div class="content">
+
+<!-- ===== OVERVIEW ===== -->
+<div class="page active" id="page-overview">
+  <div class="hero">
+    <div class="hero-tag">QSC Check — Admin Manual</div>
+    <h2>管理者マニュアル</h2>
+    <p>QSCシステムの管理者向け操作マニュアルです。ユーザー管理・店舗管理・是正承認・設問設定などの操作方法を説明します。</p>
+    <div class="hero-badges">
+      <span class="badge-pill">🔐 管理者専用</span>
+      <span class="badge-pill">📊 全店舗管理</span>
+      <span class="badge-pill">✅ 是正承認</span>
+      <span class="badge-pill">⚙️ システム設定</span>
+    </div>
+  </div>
+
+  <div class="section-title">管理者ダッシュボード</div>
+  <div class="section-sub">ログイン後はAdmin Consoleのダッシュボードに遷移します。各機能へのリンクが表示されます。</div>
+
+  <div class="admin-mock">
+    <div class="admin-mock-header">
+      <div class="admin-mock-title">⚡ Admin Console</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);">システム管理者</div>
+    </div>
+    <div class="admin-mock-body">
+      <div style="font-size:10px;font-weight:900;color:#94a3b8;letter-spacing:0.08em;margin-bottom:12px;">MASTER MANAGEMENT</div>
+      <div class="tile-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
+        <div class="tile" onclick="goPage('stores')" style="padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">🏢</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">店舗管理</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">拠点マスタ・稼働状態の管理</div>
+        </div>
+        <div class="tile" onclick="goPage('users')" style="padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">👥</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">ユーザー管理</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">アカウント発行・権限ロール設定</div>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:900;color:#94a3b8;letter-spacing:0.08em;margin-bottom:12px;">QSC OPERATIONS</div>
+      <div class="tile-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
+        <div class="tile" onclick="goPage('improvements')" style="padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">✅</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">改善報告管理</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">指摘事項の是正進捗と完了承認</div>
+        </div>
+        <div class="tile" onclick="goPage('analytics')" style="padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">📈</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">是正状況分析</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">統計グラフ・店舗別状況の可視化</div>
+        </div>
+        <div class="tile" onclick="goPage('store-requests')" style="padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">🏪</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">担当エリア変更申請</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">検査員からの担当エリア変更依頼の承認</div>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:900;color:#94a3b8;letter-spacing:0.08em;margin-bottom:12px;">QSC STANDARDS</div>
+      <div class="tile-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
+        <div class="tile" onclick="goPage('questions')" style="padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">📝</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">設問マスタ</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">QSCチェック項目の作成・編集</div>
+        </div>
+        <div class="tile" onclick="goPage('assets')" style="padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">📦</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">アセット構成</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">設問をパッケージ化し店舗へ配信</div>
+        </div>
+        <div class="tile" onclick="goPage('settings')" style="padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">⚙️</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">設定</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">メールテスト・システム設定</div>
+        </div>
+      </div>
+      <div style="font-size:10px;font-weight:900;color:#94a3b8;letter-spacing:0.08em;margin-bottom:12px;">SYSTEM & SUPPORT</div>
+      <div class="tile-grid" style="grid-template-columns:repeat(2,1fr);gap:10px;">
+        <div class="tile" onclick="goPage('news')" style="padding:14px;">
+          <div style="font-size:18px;margin-bottom:6px;">📢</div>
+          <div style="font-size:12px;font-weight:800;color:var(--text);">お知らせ</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">全店配信情報の管理</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip info"><span class="tip-icon">💡</span><span>管理者アカウントは <strong>role: admin</strong> が付与されています。通常の店舗・点検員アカウントとは別URLでログインします。</span></div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" disabled>← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('improvements')">次へ：改善報告管理 →</button>
+  </div>
+</div>
+
+<!-- ===== IMPROVEMENTS ===== -->
+<div class="page" id="page-improvements">
+  <div class="section-title">改善報告管理</div>
+  <div class="section-sub">店舗から提出された是正報告を確認・承認・差し戻しします。年度・クォーターで絞り込んで管理できます。</div>
+
+  <div id="imp-mock" style="background:#f8fafc;border-radius:20px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:24px;">
+
+    <!-- ===== 店舗一覧 ===== -->
+    <div id="imp-stores" style="padding:28px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:22px;font-weight:950;color:#1e293b;">改善報告管理</div>
+          <div style="font-size:13px;color:#64748b;font-weight:600;margin-top:4px;">是正対応が必要な店舗を選択してください</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <select style="height:40px;border-radius:12px;border:1px solid #e2e8f0;padding:0 12px;font-size:13px;font-weight:700;color:#1e293b;background:#fff;outline:none;">
+            <option>2026年度</option><option>2025年度</option>
+          </select>
+          <select style="height:40px;border-radius:12px;border:1px solid #e2e8f0;padding:0 12px;font-size:13px;font-weight:700;color:#1e293b;background:#fff;outline:none;">
+            <option>全Q</option><option>Q1（4-6月）</option><option>Q2（7-9月）</option><option>Q3（10-12月）</option><option>Q4（1-3月）</option>
+          </select>
+          <div style="position:relative;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input placeholder="店舗名で検索..." style="width:240px;height:40px;border-radius:12px;border:1px solid #e2e8f0;padding:0 12px 0 36px;font-size:13px;outline:none;" />
+          </div>
+        </div>
+      </div>
+      <div id="imp-store-cards" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;"></div>
+    </div>
+
+    <!-- ===== 指摘一覧 ===== -->
+    <div id="imp-issues" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 300px;min-height:600px;">
+
+        <!-- 左：メイン -->
+        <div style="padding:24px 24px;overflow-y:auto;">
+          <div onclick="impShowStores()" style="display:inline-flex;align-items:center;gap:6px;color:#64748b;font-weight:700;font-size:13px;cursor:pointer;margin-bottom:18px;">
+            ← 改善報告管理
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px;">
+            <div style="width:44px;height:44px;background:#1e293b;border-radius:13px;display:grid;place-items:center;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+              <div style="font-size:20px;font-weight:950;color:#1e293b;" id="imp-store-title">FIT365神戸エコール・リラ</div>
+              <div style="font-size:12px;color:#64748b;font-weight:700;margin-top:2px;">指摘 8件 · 未対応 8件 · 報告済み 0件</div>
+            </div>
+          </div>
+
+          <!-- 一括操作 -->
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="imp-select-all" onchange="impSelectAll(this)" style="width:17px;height:17px;accent-color:#6366f1;cursor:pointer;" />
+              <span id="imp-select-label" style="font-size:13px;font-weight:800;color:#64748b;">すべて選択</span>
+            </label>
+            <button id="imp-bulk-btn" onclick="impBulkApprove()" style="display:none;padding:9px 16px;border-radius:11px;border:none;background:#059669;color:#fff;font-size:13px;font-weight:900;cursor:pointer;align-items:center;gap:6px;font-family:'Noto Sans JP',sans-serif;">
+              ✓ まとめて承認
+            </button>
+          </div>
+
+          <!-- フィルタータブ -->
+          <div style="display:flex;gap:7px;margin-bottom:18px;overflow-x:auto;scrollbar-width:none;padding-bottom:3px;">
+            <button onclick="impFilter('all',this)" class="imp-tab imp-tab-active" style="flex-shrink:0;padding:7px 13px;border-radius:9px;border:1.5px solid #1e293b;background:#1e293b;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">すべて (8)</button>
+            <button onclick="impFilter('pending',this)" class="imp-tab" style="flex-shrink:0;padding:7px 13px;border-radius:9px;border:1.5px solid #e2e8f0;background:#fff;color:#dc2626;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">未対応 (8)</button>
+            <button onclick="impFilter('submitted',this)" class="imp-tab" style="flex-shrink:0;padding:7px 13px;border-radius:9px;border:1.5px solid #e2e8f0;background:#fff;color:#d97706;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">報告済み</button>
+            <button onclick="impFilter('reviewing',this)" class="imp-tab" style="flex-shrink:0;padding:7px 13px;border-radius:9px;border:1.5px solid #e2e8f0;background:#fff;color:#2563eb;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">確認中</button>
+            <button onclick="impFilter('approved',this)" class="imp-tab" style="flex-shrink:0;padding:7px 13px;border-radius:9px;border:1.5px solid #e2e8f0;background:#fff;color:#059669;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">承認済み</button>
+            <button onclick="impFilter('rejected',this)" class="imp-tab" style="flex-shrink:0;padding:7px 13px;border-radius:9px;border:1.5px solid #e2e8f0;background:#fff;color:#7c3aed;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">差し戻し</button>
+          </div>
+
+          <!-- 指摘カード一覧 -->
+          <div id="imp-issue-cards" style="display:flex;flex-direction:column;gap:14px;"></div>
+        </div>
+
+        <!-- 右：ステータスパネル -->
+        <div style="background:#fff;border-left:1px solid #f1f5f9;display:flex;flex-direction:column;">
+          <!-- サマリー -->
+          <div style="padding:20px 18px 14px;border-bottom:1px solid #f1f5f9;">
+            <div style="font-size:12px;font-weight:900;color:#1e293b;margin-bottom:10px;">FIT365神戸エコール・リラ</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;" id="imp-summary-grid"></div>
+          </div>
+          <!-- 是正フロー -->
+          <div style="padding:16px 18px;border-bottom:1px solid #f1f5f9;">
+            <div style="font-size:10px;font-weight:900;color:#94a3b8;letter-spacing:0.08em;margin-bottom:12px;">是正フロー</div>
+            <div id="imp-timeline" style="display:flex;flex-direction:column;"></div>
+          </div>
+          <!-- 指摘一覧 -->
+          <div style="flex:1;overflow-y:auto;padding:12px 18px;">
+            <div style="font-size:10px;font-weight:900;color:#94a3b8;letter-spacing:0.08em;margin-bottom:8px;">指摘一覧</div>
+            <div id="imp-side-list" style="display:flex;flex-direction:column;gap:4px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 承認/差し戻しシート -->
+  <div id="imp-sheet" style="display:none;position:fixed;inset:0;z-index:9000;">
+    <div onclick="impCloseSheet()" style="position:absolute;inset:0;background:rgba(0,0,0,0.4);backdrop-filter:blur(2px);"></div>
+    <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#fff;border-radius:24px 24px 0 0;padding:24px 24px 40px;display:flex;flex-direction:column;gap:12px;">
+      <div style="width:36px;height:4px;border-radius:2px;background:#e2e8f0;margin:0 auto 8px;"></div>
+      <div id="imp-sheet-title" style="font-size:17px;font-weight:900;color:#1e293b;text-align:center;"></div>
+      <div id="imp-sheet-msg" style="font-size:13px;color:#64748b;text-align:center;line-height:1.5;"></div>
+      <div id="imp-sheet-input-wrap" style="display:none;">
+        <div style="font-size:12px;font-weight:800;color:#64748b;margin-bottom:6px;">差し戻し理由</div>
+        <textarea id="imp-sheet-input" placeholder="コメントを入力..." style="width:100%;box-sizing:border-box;min-height:80px;border-radius:12px;border:1.5px solid #e2e8f0;padding:10px 12px;font-size:14px;outline:none;resize:none;font-family:'Noto Sans JP',sans-serif;"></textarea>
+      </div>
+      <button id="imp-sheet-primary" style="width:100%;padding:16px;border-radius:14px;border:none;background:#1e293b;color:#fff;font-size:15px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;"></button>
+      <button onclick="impCloseSheet()" style="width:100%;padding:14px;border-radius:14px;border:none;background:transparent;color:#94a3b8;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">店舗を選択して指摘を確認</div><div class="step-sub">年度・Q・店舗名で絞り込み可能</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          上部のフィルターで年度・クォーター・店舗名を絞り込み、対象店舗をクリックすると指摘一覧に遷移します。<br><br>
+          指摘一覧ではタブで「未対応／報告済み／確認中／承認済み／差し戻し」に絞り込み可能。右パネルに進捗タイムラインが表示されます。
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div><div class="step-title">承認・差し戻し・一括承認</div><div class="step-sub">報告済みカードのみ操作可能</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          • <strong>承認</strong>（緑）：是正完了として記録<br>
+          • <strong>差し戻し</strong>（紫）：理由を入力して店舗に通知<br>
+          • チェックボックスで複数選択 →「まとめて承認」で一括処理
+        </div>
+        <div class="tip info"><span class="tip-icon">💡</span><span>ボタンは「報告済み・確認中」のみ有効。未対応はグレーアウトされます。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('overview')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('store-requests')">次へ：担当エリア変更申請 →</button>
+  </div>
+</div>
+
+<script>
+
+/* ===== IMPROVEMENTS ===== */
+const IMP_STATUS = {
+  pending:   { label:'未対応',   color:'#dc2626', bg:'#fef2f2', border:'#fee2e2' },
+  submitted: { label:'報告済み', color:'#d97706', bg:'#fffbeb', border:'#fef3c7' },
+  reviewing: { label:'確認中',   color:'#2563eb', bg:'#eff6ff', border:'#dbeafe' },
+  approved:  { label:'承認済み', color:'#059669', bg:'#f0fdf4', border:'#d1fae5' },
+  rejected:  { label:'差し戻し', color:'#7c3aed', bg:'#f5f3ff', border:'#ede9fe' },
+};
+
+const IMP_STORES = [
+  { id:'S001', name:'FIT365神戸エコール・リラ', pending:8, date:'2026-04-14', fy:'2026年度 Q1', user:'三寺' },
+  { id:'S002', name:'MINANO分倍河原', pending:3, date:'2026-04-13', fy:'2026年度 Q1', user:'山田' },
+  { id:'S003', name:'イオンタウン新船橋', pending:1, date:'2026-04-10', fy:'2026年度 Q1', user:'三寺' },
+];
+
+const IMP_ISSUES = [
+  { id:'i1', category:'館外',       question:'のぼり旗や土台に汚れはないか',         note:'埃あり',                     status:'pending',   comment:'', reviewNote:'' },
+  { id:'i2', category:'エントランス', question:'キオスク端末の画面は指紋等で汚れていないか', note:'裏に埃あり',              status:'pending',   comment:'', reviewNote:'' },
+  { id:'i3', category:'ジムエリア',   question:'有酸素マシンの肌が触れる部分に汚れや埃はないか', note:'本体に埃あり、足元に砂あり', status:'submitted', comment:'清掃しました', reviewNote:'' },
+  { id:'i4', category:'掲示物',      question:'掲示物の期限は切れていないか',          note:'ラミネート剥がれあり',          status:'rejected',  comment:'交換しました', reviewNote:'写真が不鮮明です。再度提出してください' },
+];
+
+let impCurrentFilter = 'all';
+let impChecked = new Set();
+let impSheetAction = null;
+
+function impRenderStores() {
+  const el = document.getElementById('imp-store-cards');
+  if (!el) return;
+  el.innerHTML = IMP_STORES.map(s => `
+    <div onclick="impShowIssues('${s.id}','${s.name}')" style="background:#fff;border:1px solid #e2e8f0;border-radius:20px;padding:20px;cursor:pointer;transition:all 0.2s;" onmouseenter="this.style.borderColor='#6366f1';this.style.transform='translateY(-2px)'" onmouseleave="this.style.borderColor='#e2e8f0';this.style.transform='translateY(0)'">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="width:38px;height:38px;background:#f1f5f9;border-radius:11px;display:grid;place-items:center;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <span style="font-size:11px;font-weight:900;padding:3px 9px;border-radius:20px;background:#fef2f2;color:#dc2626;">未対応 ${s.pending}件</span>
+      </div>
+      <div style="font-size:15px;font-weight:900;color:#1e293b;margin-bottom:5px;">${s.name}</div>
+      <div style="display:flex;gap:7px;align-items:center;margin-bottom:10px;">
+        <span style="font-size:11px;color:#94a3b8;">最終点検: ${s.date}</span>
+        <span style="font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px;background:#eef2ff;color:#6366f1;">${s.fy}</span>
+      </div>
+      <div style="border-top:1px solid #f1f5f9;padding-top:10px;font-size:11px;color:#64748b;font-weight:700;display:flex;align-items:center;gap:5px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>${s.user}
+      </div>
+    </div>`).join('');
+}
+
+function impShowIssues(storeId, storeName) {
+  document.getElementById('imp-stores').style.display = 'none';
+  document.getElementById('imp-issues').style.display = 'block';
+  document.getElementById('imp-store-title').textContent = storeName;
+  impChecked = new Set();
+  impCurrentFilter = 'all';
+  impRenderIssues();
+  impRenderSidePanel();
+}
+
+function impShowStores() {
+  document.getElementById('imp-issues').style.display = 'none';
+  document.getElementById('imp-stores').style.display = 'block';
+}
+
+function impGetFiltered() {
+  if (impCurrentFilter === 'all') return IMP_ISSUES;
+  return IMP_ISSUES.filter(i => i.status === impCurrentFilter);
+}
+
+function impRenderIssues() {
+  const el = document.getElementById('imp-issue-cards');
+  if (!el) return;
+  const filtered = impGetFiltered();
+  if (filtered.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:48px;background:#fff;border-radius:20px;border:2px dashed #e2e8f0;color:#94a3b8;font-weight:700;">該当する指摘はありません</div>';
+    return;
+  }
+  el.innerHTML = filtered.map(issue => {
+    const s = IMP_STATUS[issue.status];
+    const canApprove = issue.status === 'submitted' || issue.status === 'reviewing';
+    const canReject  = issue.status === 'submitted' || issue.status === 'reviewing' || issue.status === 'approved';
+    return `
+    <div style="background:#fff;border-radius:18px;border:1.5px solid ${s.border};overflow:hidden;">
+      <div style="padding:18px 20px 0;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:10px;">
+          <div style="display:flex;align-items:flex-start;gap:9px;flex:1;">
+            <input type="checkbox" ${impChecked.has(issue.id)?'checked':''} onchange="impToggle('${issue.id}',this)" style="width:16px;height:16px;margin-top:3px;accent-color:#6366f1;cursor:pointer;flex-shrink:0;" />
+            <div style="flex:1;">
+              <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">
+                <span style="font-size:11px;font-weight:900;color:#6366f1;background:#f5f3ff;padding:2px 7px;border-radius:5px;">${issue.category}</span>
+              </div>
+              <div style="font-size:14px;font-weight:900;color:#1e293b;line-height:1.5;">${issue.question}</div>
+            </div>
+          </div>
+          <span style="font-size:11px;font-weight:900;padding:3px 9px;border-radius:7px;background:${s.bg};color:${s.color};border:1px solid ${s.border};white-space:nowrap;flex-shrink:0;">${s.label}</span>
+        </div>
+        <div style="background:#fff7f7;border-left:3px solid #dc2626;border-radius:0 8px 8px 0;padding:7px 11px;margin-bottom:9px;">
+          <div style="font-size:10px;font-weight:900;color:#dc2626;margin-bottom:2px;">指摘内容</div>
+          <div style="font-size:12px;font-weight:600;color:#7f1d1d;">${issue.note}</div>
+        </div>
+        ${issue.comment ? `<div style="background:#f8fafc;border-radius:9px;padding:8px 11px;margin-bottom:9px;"><div style="font-size:10px;font-weight:900;color:#64748b;margin-bottom:2px;">店舗の改善コメント</div><div style="font-size:12px;font-weight:600;color:#1e293b;">${issue.comment}</div></div>` : ''}
+        ${issue.status === 'rejected' && issue.reviewNote ? `<div style="background:#f5f3ff;border-left:3px solid #7c3aed;border-radius:0 8px 8px 0;padding:7px 11px;margin-bottom:9px;"><div style="font-size:10px;font-weight:900;color:#7c3aed;margin-bottom:2px;">差し戻し理由</div><div style="font-size:12px;font-weight:600;color:#4c1d95;">${issue.reviewNote}</div></div>` : ''}
+        ${issue.status === 'approved' ? `<div style="display:flex;align-items:center;gap:7px;padding:7px 11px;background:#f0fdf4;border-radius:9px;margin-bottom:9px;"><span style="color:#059669;">✓</span><span style="font-size:12px;font-weight:900;color:#059669;">承認済み</span></div>` : ''}
+        <!-- BEFORE/AFTER写真エリア（簡略表示） -->
+        <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;margin-bottom:0;padding-bottom:12px;">
+          <div>
+            <div style="font-size:9px;font-weight:900;color:#64748b;margin-bottom:4px;">指摘時（BEFORE）</div>
+            <div style="width:100%;aspect-ratio:21/9;background:linear-gradient(135deg,#e2e8f0,#cbd5e1);border-radius:8px;display:grid;place-items:center;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            </div>
+          </div>
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          <div>
+            <div style="font-size:9px;font-weight:900;color:#64748b;margin-bottom:4px;">改善後（AFTER）</div>
+            <div style="width:100%;aspect-ratio:21/9;background:#f1f5f9;border-radius:8px;display:flex;align-items:center;justify-content:center;">
+              <span style="font-size:10px;color:#94a3b8;font-weight:700;">写真なし</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="padding:10px 20px 14px;border-top:1px solid #f1f5f9;display:flex;gap:9px;">
+        <button onclick="impReject('${issue.id}')" ${canReject?'':'disabled'} style="flex:1;height:40px;border-radius:10px;font-weight:900;font-size:12px;cursor:${canReject?'pointer':'not-allowed'};font-family:\"Noto Sans JP\",sans-serif;background:${canReject?'#fff':'#f8fafc'};color:${canReject?'#7c3aed':'#cbd5e1'};border:${canReject?'1.5px solid #7c3aed':'1.5px solid #e2e8f0'};">
+          ↩ 差し戻し
+        </button>
+        <button onclick="impApprove('${issue.id}')" ${canApprove?'':'disabled'} style="flex:2;height:40px;border-radius:10px;border:none;font-weight:900;font-size:13px;cursor:${canApprove?'pointer':'not-allowed'};font-family:\"Noto Sans JP\",sans-serif;background:${canApprove?'#059669':'#e2e8f0'};color:${canApprove?'#fff':'#94a3b8'};">
+          ✓ 承認
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+
+  // 一括ボタン更新
+  const bulkBtn = document.getElementById('imp-bulk-btn');
+  const label = document.getElementById('imp-select-label');
+  if (bulkBtn) { bulkBtn.style.display = impChecked.size > 0 ? 'inline-flex' : 'none'; bulkBtn.textContent = `✓ ${impChecked.size}件まとめて承認`; }
+  if (label) label.textContent = impChecked.size > 0 ? `${impChecked.size}件選択中` : 'すべて選択';
+}
+
+function impRenderSidePanel() {
+  // サマリーグリッド
+  const grid = document.getElementById('imp-summary-grid');
+  if (grid) {
+    const counts = {};
+    IMP_ISSUES.forEach(i => counts[i.status] = (counts[i.status]||0)+1);
+    grid.innerHTML = ['pending','submitted','reviewing','approved'].map(k => {
+      const s = IMP_STATUS[k]; const c = counts[k]||0;
+      return `<div style="background:${s.bg};border-radius:9px;padding:9px 10px;border:1px solid ${s.border};"><div style="font-size:18px;font-weight:900;color:${s.color};">${c}</div><div style="font-size:9px;font-weight:800;color:${s.color};margin-top:1px;">${s.label}</div></div>`;
+    }).join('');
+  }
+  // タイムライン
+  const tl = document.getElementById('imp-timeline');
+  if (tl) {
+    const counts = {};
+    IMP_ISSUES.forEach(i => counts[i.status] = (counts[i.status]||0)+1);
+    const steps = ['pending','submitted','reviewing','approved'];
+    const total = IMP_ISSUES.length || 1;
+    tl.innerHTML = steps.map((k,i) => {
+      const s = IMP_STATUS[k]; const c = counts[k]||0; const pct = Math.round(c/total*100);
+      return `<div style="display:flex;gap:10px;align-items:flex-start;">
+        <div style="display:flex;flex-direction:column;align-items:center;width:18px;flex-shrink:0;">
+          <div style="width:18px;height:18px;border-radius:50%;background:${c>0?s.bg:'#f8fafc'};border:2px solid ${c>0?s.color:'#e2e8f0'};display:grid;place-items:center;">${c>0?`<div style="width:7px;height:7px;border-radius:50%;background:${s.color};"></div>`:''}</div>
+          ${i<steps.length-1?`<div style="width:2px;height:28px;background:${c>0?s.color:'#e2e8f0'};margin:2px 0;opacity:0.35;"></div>`:''}
+        </div>
+        <div style="padding-bottom:${i<steps.length-1?'18':'0'}px;flex:1;padding-top:1px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;${c>0?'margin-bottom:4px;':''}">
+            <span style="font-size:11px;font-weight:700;color:${c>0?s.color:'#94a3b8'};">${s.label}</span>
+            <span style="font-size:11px;font-weight:900;color:${c>0?s.color:'#94a3b8'};">${c}件</span>
+          </div>
+          ${c>0?`<div style="height:3px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${s.color};border-radius:2px;"></div></div>`:''}
+        </div>
+      </div>`;
+    }).join('');
+  }
+  // 指摘一覧
+  const sl = document.getElementById('imp-side-list');
+  if (sl) {
+    sl.innerHTML = IMP_ISSUES.map(issue => {
+      const s = IMP_STATUS[issue.status];
+      return `<div style="padding:7px 9px;border-radius:7px;background:${s.bg};border:1px solid ${s.border};display:flex;justify-content:space-between;align-items:center;gap:6px;"><span style="font-size:11px;font-weight:700;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;">${issue.category}</span><span style="font-size:10px;font-weight:900;color:${s.color};flex-shrink:0;">${s.label}</span></div>`;
+    }).join('');
+  }
+}
+
+function impToggle(id, cb) {
+  if (cb.checked) impChecked.add(id); else impChecked.delete(id);
+  impRenderIssues();
+}
+
+function impSelectAll(cb) {
+  const filtered = impGetFiltered();
+  if (cb.checked) filtered.forEach(i => impChecked.add(i.id));
+  else impChecked.clear();
+  impRenderIssues();
+}
+
+function impFilter(status, btn) {
+  impCurrentFilter = status;
+  document.querySelectorAll('.imp-tab').forEach(b => {
+    b.style.background = '#fff'; b.style.borderColor = '#e2e8f0';
+  });
+  btn.style.background = '#1e293b'; btn.style.color = '#fff'; btn.style.borderColor = '#1e293b';
+  impRenderIssues();
+}
+
+function impApprove(id) {
+  impSheetAction = () => {
+    const issue = IMP_ISSUES.find(i => i.id === id);
+    if (issue) issue.status = 'approved';
+    impCloseSheet(); impRenderIssues(); impRenderSidePanel();
+  };
+  document.getElementById('imp-sheet-title').textContent = '承認する';
+  document.getElementById('imp-sheet-msg').textContent = 'この改善報告を承認しますか？';
+  document.getElementById('imp-sheet-input-wrap').style.display = 'none';
+  document.getElementById('imp-sheet-primary').textContent = '承認する';
+  document.getElementById('imp-sheet-primary').onclick = impSheetAction;
+  document.getElementById('imp-sheet').style.display = 'block';
+}
+
+function impReject(id) {
+  impSheetAction = () => {
+    const issue = IMP_ISSUES.find(i => i.id === id);
+    const note = document.getElementById('imp-sheet-input').value;
+    if (issue) { issue.status = 'rejected'; issue.reviewNote = note || '差し戻しされました'; }
+    impCloseSheet(); impRenderIssues(); impRenderSidePanel();
+  };
+  document.getElementById('imp-sheet-title').textContent = '差し戻し';
+  document.getElementById('imp-sheet-msg').textContent = '差し戻し理由を入力してください。';
+  document.getElementById('imp-sheet-input-wrap').style.display = 'block';
+  document.getElementById('imp-sheet-input').value = '';
+  document.getElementById('imp-sheet-primary').textContent = '差し戻す';
+  document.getElementById('imp-sheet-primary').onclick = impSheetAction;
+  document.getElementById('imp-sheet').style.display = 'block';
+}
+
+function impBulkApprove() {
+  impSheetAction = () => {
+    impChecked.forEach(id => { const i = IMP_ISSUES.find(x=>x.id===id); if(i&&(i.status==='submitted'||i.status==='reviewing')) i.status='approved'; });
+    impChecked.clear();
+    impCloseSheet(); impRenderIssues(); impRenderSidePanel();
+  };
+  document.getElementById('imp-sheet-title').textContent = `${impChecked.size}件をまとめて承認`;
+  document.getElementById('imp-sheet-msg').textContent = '選択した改善報告をまとめて承認しますか？';
+  document.getElementById('imp-sheet-input-wrap').style.display = 'none';
+  document.getElementById('imp-sheet-primary').textContent = `${impChecked.size}件承認する`;
+  document.getElementById('imp-sheet-primary').onclick = impSheetAction;
+  document.getElementById('imp-sheet').style.display = 'block';
+}
+
+function impCloseSheet() {
+  document.getElementById('imp-sheet').style.display = 'none';
+}
+
+function initImp() {
+  impRenderStores();
+  document.getElementById('imp-stores').style.display = 'block';
+  document.getElementById('imp-issues').style.display = 'none';
+}
+
+</script>
+
+
+<!-- ===== STORE-REQUESTS ===== -->
+<div class="page" id="page-store-requests">
+  <div class="section-title">担当エリア変更申請</div>
+  <div class="section-sub">点検員から申請された担当エリア変更を承認・却下します。承認後は自動的に担当が変更されます。</div>
+
+  <div class="admin-mock">
+    <div class="admin-mock-header">
+      <div class="admin-mock-title">🏪 担当店舗変更申請</div>
+      <div style="font-size:11px;color:rgba(255,255,255,0.5);">承認待ち 2件</div>
+    </div>
+    <div class="admin-mock-body">
+      <div style="display:flex;gap:6px;margin-bottom:14px;">
+        <div style="padding:5px 12px;border-radius:8px;font-size:11px;font-weight:800;background:#1e293b;color:#fff;">すべて</div>
+        <div style="padding:5px 12px;border-radius:8px;font-size:11px;font-weight:800;border:1px solid #e2e8f0;background:#fff;color:#64748b;">承認待ち (2)</div>
+        <div style="padding:5px 12px;border-radius:8px;font-size:11px;font-weight:800;border:1px solid #e2e8f0;background:#fff;color:#64748b;">承認済み</div>
+        <button onclick="srBulkApprove()" style="margin-left:auto;padding:5px 12px;border-radius:8px;border:none;background:#059669;color:#fff;font-size:11px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">まとめて承認</button>
+      </div>
+      <!-- 申請カード -->
+      <div id="sr-list"></div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">変更内容を確認する</div><div class="step-sub">現在→希望の担当店舗</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          各カードに<strong>現在の担当店舗 → 希望の担当店舗</strong>が表示されます。<br><br>
+          • 削除する店舗（現在担当からはずれる）<br>
+          • 追加する店舗（新たに担当になる）<br>
+          • 備考欄に理由が記載されている場合もあります
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div><div class="step-title">承認 または 却下</div><div class="step-sub">承認後は自動反映</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          • <strong>承認</strong>：QSC_MasterTableのmanagersフィールドが自動更新されます<br>
+          • <strong>却下</strong>：変更は反映されません
+        </div>
+        <div class="tip info"><span class="tip-icon">💡</span><span>複数選択して「まとめて承認」で一括承認もできます。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('improvements')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('analytics')">次へ：是正状況分析 →</button>
+  </div>
+</div>
+
+<!-- ===== ANALYTICS ===== -->
+<div class="page" id="page-analytics">
+  <div class="section-title">是正状況分析</div>
+  <div class="section-sub">QSCランキング分析では年度・クォーター別スコアを比較し、店舗の弱点や改善傾向を分析できます。</div>
+
+  <!-- モックコンテナ -->
+  <div id="analytics-mock" style="background:#f8fafc;border-radius:20px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:24px;">
+
+    <!-- ===== ランキング画面 ===== -->
+    <div id="aq-ranking" style="padding:28px;">
+      <!-- ヘッダー -->
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;flex-wrap:wrap;gap:12px;">
+        <div>
+          <div style="font-size:22px;font-weight:950;color:#1e293b;">QSCランキング分析</div>
+          <div style="font-size:13px;color:#64748b;font-weight:600;margin-top:4px;">各店舗のクォーター評価と重点改善項目の特定</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <div style="height:40px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:#1e293b;cursor:pointer;">
+            2026年度 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div style="height:40px;border-radius:10px;background:#1e293b;color:#fff;padding:0 16px;display:flex;align-items:center;font-size:13px;font-weight:800;">2026 Q1</div>
+          <div style="height:40px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:13px;font-weight:700;color:#64748b;">2025 Q4</div>
+          <div style="height:40px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;gap:6px;font-size:13px;font-weight:800;color:#1e293b;cursor:pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>CSV出力
+          </div>
+        </div>
+      </div>
+
+      <!-- サマリー -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;">
+        <div style="background:#fff;padding:22px;border-radius:18px;border:1px solid #e2e8f0;">
+          <div style="font-size:12px;color:#64748b;font-weight:700;margin-bottom:8px;">クォーター平均スコア</div>
+          <div style="font-size:32px;font-weight:950;color:#4f46e5;">90<span style="font-size:15px;font-weight:700;color:#94a3b8;"> 点</span></div>
+        </div>
+        <div style="background:#fff;padding:22px;border-radius:18px;border:1px solid #e2e8f0;">
+          <div style="font-size:12px;color:#64748b;font-weight:700;margin-bottom:8px;">対象店舗数</div>
+          <div style="font-size:32px;font-weight:950;color:#0ea5e9;">1<span style="font-size:15px;font-weight:700;color:#94a3b8;"> 店舗</span></div>
+        </div>
+        <div style="background:#fff;padding:22px;border-radius:18px;border:1px solid #e2e8f0;">
+          <div style="font-size:12px;color:#64748b;font-weight:700;margin-bottom:8px;">No.1 店舗</div>
+          <div style="font-size:17px;font-weight:950;color:#1e293b;margin-top:6px;display:flex;align-items:center;gap:7px;">🏆 FIT365神戸エコール・リラ</div>
+        </div>
+      </div>
+
+      <!-- ランキングテーブル -->
+      <div style="background:#fff;border-radius:18px;border:1px solid #e2e8f0;overflow:hidden;">
+        <div style="padding:16px 22px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
+          <div style="font-size:14px;font-weight:900;color:#1e293b;">ランキング順</div>
+          <div style="font-size:12px;color:#94a3b8;font-weight:700;">2026 Q1（4〜6月）</div>
+        </div>
+        <div style="padding:0 22px 6px;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr style="border-bottom:1px solid #e2e8f0;">
+              <th style="padding:12px 8px 10px;font-size:10px;font-weight:900;color:#94a3b8;text-align:left;">RANK</th>
+              <th style="padding:12px 8px 10px;font-size:10px;font-weight:900;color:#94a3b8;text-align:left;">店舗名</th>
+              <th style="padding:12px 8px 10px;font-size:10px;font-weight:900;color:#94a3b8;">QSCスコア</th>
+              <th style="padding:12px 8px 10px;font-size:10px;font-weight:900;color:#94a3b8;">Q</th>
+              <th style="padding:12px 8px 10px;font-size:10px;font-weight:900;color:#94a3b8;">S</th>
+              <th style="padding:12px 8px 10px;font-size:10px;font-weight:900;color:#94a3b8;">C</th>
+              <th style="padding:12px 8px 10px;font-size:10px;font-weight:900;color:#94a3b8;">点検日</th>
+              <th></th>
+            </tr></thead>
+            <tbody>
+              <tr onclick="aqShowDetail()" style="cursor:pointer;transition:background 0.1s;" onmouseenter="this.style.background='#f8fafc'" onmouseleave="this.style.background='#fff'">
+                <td style="padding:16px 8px;"><span style="width:26px;height:26px;border-radius:50%;display:inline-grid;place-items:center;font-size:12px;font-weight:950;background:#fffbeb;color:#d97706;">1</span></td>
+                <td style="padding:16px 8px;font-weight:800;font-size:14px;">FIT365神戸エコール・リラ</td>
+                <td style="padding:16px 8px;">
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:20px;font-weight:950;color:#059669;">90</span>
+                    <div style="width:68px;height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="width:90%;height:100%;background:#059669;border-radius:3px;"></div></div>
+                  </div>
+                </td>
+                <td style="padding:16px 8px;font-weight:800;font-size:14px;color:#0ea5e9;">91</td>
+                <td style="padding:16px 8px;font-weight:800;font-size:14px;color:#10b981;">88</td>
+                <td style="padding:16px 8px;font-weight:800;font-size:14px;color:#f59e0b;">88</td>
+                <td style="padding:16px 8px;font-size:12px;color:#94a3b8;">2026-04-14</td>
+                <td style="padding:16px 8px;text-align:right;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 詳細画面 ===== -->
+    <div id="aq-detail" style="display:none;padding:28px;">
+      <!-- 戻るリンク -->
+      <div onclick="aqShowRanking()" style="display:inline-flex;align-items:center;gap:7px;color:#4f46e5;font-weight:800;font-size:14px;cursor:pointer;margin-bottom:20px;">
+        ← ランキングに戻る
+      </div>
+
+      <div style="display:grid;grid-template-columns:300px 1fr;gap:20px;align-items:start;">
+
+        <!-- 左：スコアサイドバー -->
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <!-- スコアカード -->
+          <div style="background:#fff;border-radius:18px;border:1px solid #e2e8f0;padding:22px;">
+            <div style="font-size:11px;font-weight:900;color:#4f46e5;margin-bottom:5px;">2026 Q1（4〜6月）</div>
+            <div style="font-size:19px;font-weight:950;color:#1e293b;margin-bottom:18px;line-height:1.3;">FIT365神戸エコール・リラ</div>
+            <div style="text-align:center;padding:16px 0;border-top:1px solid #f1f5f9;border-bottom:1px solid #f1f5f9;margin-bottom:14px;">
+              <div style="font-size:52px;font-weight:950;color:#059669;line-height:1;">90</div>
+              <div style="font-size:12px;color:#94a3b8;font-weight:700;margin-top:4px;">総合スコア（点）</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:3px;">点検日: 2026-04-14</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:14px;">
+              <div style="background:#f8fafc;padding:11px 13px;border-radius:12px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;margin-bottom:5px;"><span style="color:#475569;">Q — Quality（品質）</span><span style="color:#0ea5e9;">91点</span></div>
+                <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="width:91%;height:100%;background:#0ea5e9;border-radius:3px;"></div></div>
+              </div>
+              <div style="background:#f8fafc;padding:11px 13px;border-radius:12px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;margin-bottom:5px;"><span style="color:#475569;">S — Service（接客）</span><span style="color:#10b981;">88点</span></div>
+                <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="width:88%;height:100%;background:#10b981;border-radius:3px;"></div></div>
+              </div>
+              <div style="background:#f8fafc;padding:11px 13px;border-radius:12px;">
+                <div style="display:flex;justify-content:space-between;font-size:11px;font-weight:800;margin-bottom:5px;"><span style="color:#475569;">C — Cleanliness（清潔）</span><span style="color:#f59e0b;">88点</span></div>
+                <div style="height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden;"><div style="width:88%;height:100%;background:#f59e0b;border-radius:3px;"></div></div>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:7px;">
+              <div style="background:#f0fdf4;border-radius:10px;padding:10px;text-align:center;border:1px solid #d1fae5;"><div style="font-size:18px;font-weight:900;color:#059669;">120</div><div style="font-size:9px;font-weight:800;color:#059669;">OK</div></div>
+              <div style="background:#fef2f2;border-radius:10px;padding:10px;text-align:center;border:1px solid #fee2e2;"><div style="font-size:18px;font-weight:900;color:#dc2626;">8</div><div style="font-size:9px;font-weight:800;color:#dc2626;">NG</div></div>
+              <div style="background:#fffbeb;border-radius:10px;padding:10px;text-align:center;border:1px solid #fef3c7;"><div style="font-size:18px;font-weight:900;color:#d97706;">5</div><div style="font-size:9px;font-weight:800;color:#d97706;">保留</div></div>
+            </div>
+          </div>
+          <!-- 点検履歴 -->
+          <div style="background:#fff;border-radius:14px;border:1px solid #e2e8f0;padding:16px;">
+            <div style="font-size:11px;font-weight:900;color:#64748b;margin-bottom:11px;display:flex;align-items:center;gap:5px;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg> 点検履歴
+            </div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              <div style="display:flex;align-items:center;gap:8px;">
+                <div style="font-size:9px;color:#94a3b8;width:58px;flex-shrink:0;">2026-04-14</div>
+                <div style="flex:1;height:5px;background:#f1f5f9;border-radius:2px;overflow:hidden;"><div style="width:90%;height:100%;background:#059669;"></div></div>
+                <div style="font-size:11px;font-weight:900;color:#059669;width:22px;text-align:right;">90</div>
+                <span style="font-size:8px;font-weight:800;background:#eef2ff;color:#6366f1;padding:1px 4px;border-radius:3px;">最新</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 右：タブ + コンテンツ -->
+        <div>
+          <!-- タブバー -->
+          <div style="display:flex;gap:2px;margin-bottom:16px;background:#fff;padding:5px;border-radius:14px;border:1px solid #e2e8f0;width:fit-content;">
+            <button onclick="aqTab('ng')" id="aq-tab-ng" style="padding:8px 16px;border-radius:10px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:#fef2f2;color:#dc2626;font-family:'Noto Sans JP',sans-serif;display:flex;align-items:center;gap:5px;">
+              NG項目 <span style="font-size:10px;font-weight:900;background:#dc2626;color:#fff;padding:1px 5px;border-radius:5px;">8</span>
+            </button>
+            <button onclick="aqTab('hold')" id="aq-tab-hold" style="padding:8px 16px;border-radius:10px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:#94a3b8;font-family:'Noto Sans JP',sans-serif;">
+              保留 <span style="font-size:10px;font-weight:900;background:#f1f5f9;color:#94a3b8;padding:1px 5px;border-radius:5px;">5</span>
+            </button>
+            <button onclick="aqTab('ok')" id="aq-tab-ok" style="padding:8px 16px;border-radius:10px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:#94a3b8;font-family:'Noto Sans JP',sans-serif;">
+              OK項目 <span style="font-size:10px;font-weight:900;background:#f1f5f9;color:#94a3b8;padding:1px 5px;border-radius:5px;">120</span>
+            </button>
+            <button onclick="aqTab('analysis')" id="aq-tab-analysis" style="padding:8px 16px;border-radius:10px;border:none;font-size:13px;font-weight:800;cursor:pointer;background:transparent;color:#94a3b8;font-family:'Noto Sans JP',sans-serif;">
+              分析
+            </button>
+          </div>
+
+          <!-- NGタブ -->
+          <div id="aq-content-ng" style="background:#fff;border-radius:18px;border:1px solid #e2e8f0;padding:22px;">
+            <div style="font-size:15px;font-weight:950;color:#1e293b;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+              ⚠️ 最新点検のNG項目
+              <span style="font-size:11px;font-weight:900;padding:2px 8px;border-radius:6px;background:#fee2e2;color:#dc2626;">8件</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:12px;" id="aq-ng-cards">
+              <!-- NGカードはJSで描画 -->
+            </div>
+          </div>
+
+          <!-- 保留タブ -->
+          <div id="aq-content-hold" style="display:none;background:#fff;border-radius:18px;border:1px solid #e2e8f0;padding:22px;">
+            <div style="font-size:15px;font-weight:950;color:#1e293b;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+              ⏸ 保留項目
+              <span style="font-size:11px;font-weight:900;padding:2px 8px;border-radius:6px;background:#fef3c7;color:#d97706;">5件</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div style="padding:14px;border-radius:12px;border:1.5px solid #fef3c7;background:#fffdf5;display:flex;gap:12px;">
+                <div style="width:30px;height:30px;border-radius:8px;background:#fef3c7;display:grid;place-items:center;flex-shrink:0;font-size:14px;">⏸</div>
+                <div><div style="font-size:10px;color:#94a3b8;margin-bottom:3px;">ジムエリア</div><div style="font-size:13px;font-weight:800;color:#1e293b;">エアコンのフィルターに汚れはないか</div><div style="font-size:11px;color:#d97706;font-weight:600;background:#fef3c7;border-radius:6px;padding:3px 8px;margin-top:5px;display:inline-block;">担当者に確認中</div></div>
+              </div>
+              <div style="padding:14px;border-radius:12px;border:1.5px solid #fef3c7;background:#fffdf5;display:flex;gap:12px;">
+                <div style="width:30px;height:30px;border-radius:8px;background:#fef3c7;display:grid;place-items:center;flex-shrink:0;font-size:14px;">⏸</div>
+                <div><div style="font-size:10px;color:#94a3b8;margin-bottom:3px;">事務所</div><div style="font-size:13px;font-weight:800;color:#1e293b;">緊急連絡先は最新のものか</div><div style="font-size:11px;color:#d97706;font-weight:600;background:#fef3c7;border-radius:6px;padding:3px 8px;margin-top:5px;display:inline-block;">本部に確認中</div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- OKタブ -->
+          <div id="aq-content-ok" style="display:none;background:#fff;border-radius:18px;border:1px solid #e2e8f0;padding:22px;">
+            <div style="font-size:15px;font-weight:950;color:#1e293b;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+              ✅ OK項目
+              <span style="font-size:11px;font-weight:900;padding:2px 8px;border-radius:6px;background:#d1fae5;color:#059669;">120件</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;">
+              <div style="padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;gap:10px;"><span style="color:#94a3b8;font-size:14px;">✓</span><div><div style="font-size:10px;color:#94a3b8;">館外</div><div style="font-size:12px;font-weight:700;color:#1e293b;">駐輪場の整理整頓はできているか</div></div></div>
+              <div style="padding:10px 14px;border-radius:10px;border:1px solid #86efac;background:#f0fdf4;display:flex;align-items:center;gap:10px;"><span style="color:#059669;font-size:14px;">✓</span><div><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><span style="font-size:10px;color:#94a3b8;">エントランス</span><span style="font-size:10px;font-weight:900;background:#d1fae5;color:#059669;padding:1px 5px;border-radius:3px;">✨ 改善</span></div><div style="font-size:12px;font-weight:700;color:#1e293b;">自動ドアに汚れや傷はないか</div></div></div>
+              <div style="padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;gap:10px;"><span style="color:#94a3b8;font-size:14px;">✓</span><div><div style="font-size:10px;color:#94a3b8;">ジムエリア</div><div style="font-size:12px;font-weight:700;color:#1e293b;">マシンの配置は正しく整列されているか</div></div></div>
+              <div style="padding:10px 14px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;color:#94a3b8;justify-content:center;">… 他117件</div>
+            </div>
+          </div>
+
+          <!-- 分析タブ -->
+          <div id="aq-content-analysis" style="display:none;background:#fff;border-radius:18px;border:1px solid #e2e8f0;padding:22px;">
+            <div style="font-size:15px;font-weight:950;color:#1e293b;margin-bottom:18px;display:flex;align-items:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              この店舗の弱点分析
+            </div>
+            <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:12px;">エリア別NG集計</div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:24px;">
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fff7f7;border:1px solid #fee2e2;">
+                <div style="font-size:13px;font-weight:700;color:#1e293b;width:110px;flex-shrink:0;">ジムエリア</div>
+                <div style="flex:1;height:7px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="width:14%;height:100%;background:#dc2626;border-radius:3px;"></div></div>
+                <div style="font-size:12px;font-weight:900;color:#dc2626;width:70px;text-align:right;flex-shrink:0;">NG 2/14</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fff7f7;border:1px solid #fee2e2;">
+                <div style="font-size:13px;font-weight:700;color:#1e293b;width:110px;flex-shrink:0;">館外</div>
+                <div style="flex:1;height:7px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="width:12%;height:100%;background:#dc2626;border-radius:3px;"></div></div>
+                <div style="font-size:12px;font-weight:900;color:#dc2626;width:70px;text-align:right;flex-shrink:0;">NG 1/8</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fff7f7;border:1px solid #fee2e2;">
+                <div style="font-size:13px;font-weight:700;color:#1e293b;width:110px;flex-shrink:0;">エントランス</div>
+                <div style="flex:1;height:7px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="width:10%;height:100%;background:#dc2626;border-radius:3px;"></div></div>
+                <div style="font-size:12px;font-weight:900;color:#dc2626;width:70px;text-align:right;flex-shrink:0;">NG 1/10</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fff7f7;border:1px solid #fee2e2;">
+                <div style="font-size:13px;font-weight:700;color:#1e293b;width:110px;flex-shrink:0;">レディースエリア</div>
+                <div style="flex:1;height:7px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="width:10%;height:100%;background:#dc2626;border-radius:3px;"></div></div>
+                <div style="font-size:12px;font-weight:900;color:#dc2626;width:70px;text-align:right;flex-shrink:0;">NG 1/10</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fff7f7;border:1px solid #fee2e2;">
+                <div style="font-size:13px;font-weight:700;color:#1e293b;width:110px;flex-shrink:0;">掲示物</div>
+                <div style="flex:1;height:7px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="width:11%;height:100%;background:#dc2626;border-radius:3px;"></div></div>
+                <div style="font-size:12px;font-weight:900;color:#dc2626;width:70px;text-align:right;flex-shrink:0;">NG 1/9</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fff7f7;border:1px solid #fee2e2;">
+                <div style="font-size:13px;font-weight:700;color:#1e293b;width:110px;flex-shrink:0;">館内</div>
+                <div style="flex:1;height:7px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="width:4%;height:100%;background:#dc2626;border-radius:3px;"></div></div>
+                <div style="font-size:12px;font-weight:900;color:#dc2626;width:70px;text-align:right;flex-shrink:0;">NG 1/27</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#fff7f7;border:1px solid #fee2e2;">
+                <div style="font-size:13px;font-weight:700;color:#1e293b;width:110px;flex-shrink:0;">事務所</div>
+                <div style="flex:1;height:7px;background:#f1f5f9;border-radius:3px;overflow:hidden;"><div style="width:6%;height:100%;background:#dc2626;border-radius:3px;"></div></div>
+                <div style="font-size:12px;font-weight:900;color:#dc2626;width:70px;text-align:right;flex-shrink:0;">NG 1/18</div>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;background:#f8fafc;border:1px solid #e2e8f0;">
+                <div style="font-size:13px;font-weight:700;color:#94a3b8;width:110px;flex-shrink:0;">館内</div>
+                <div style="flex:1;height:7px;background:#f1f5f9;border-radius:3px;overflow:hidden;"></div>
+                <div style="font-size:12px;font-weight:700;color:#94a3b8;width:70px;text-align:right;flex-shrink:0;">NG 0/27</div>
+              </div>
+            </div>
+            <div style="padding:16px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;text-align:center;color:#94a3b8;font-size:13px;font-weight:700;">
+              前回の点検データがないため比較分析できません
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 写真ライトボックス -->
+  <div id="aq-lightbox" onclick="aqCloseLightbox()" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,0.95);backdrop-filter:blur(12px);place-items:center;">
+    <button onclick="aqCloseLightbox()" style="position:absolute;top:24px;right:24px;background:#fff;border:none;border-radius:50%;width:48px;height:48px;cursor:pointer;display:grid;place-items:center;font-size:20px;">✕</button>
+    <img id="aq-lightbox-img" src="" style="max-width:90%;max-height:85vh;border-radius:16px;object-fit:contain;box-shadow:0 30px 60px rgba(0,0,0,0.5);" onclick="event.stopPropagation()" />
+  </div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">年度・クォーターで絞り込む</div><div class="step-sub">CSV出力で帳票作成も可能</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          年度セレクト（4月始まり）とクォータータブで絞り込めます。過去8クォーター分（2年分）が選択可能です。<br><br>
+          • <strong>CSV出力</strong>：選択中のクォーターの店舗名/総合/Q/S/C/点検日をCSV出力（BOM付きUTF-8）
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div><div class="step-title">「›」ボタンで詳細を開く</div><div class="step-sub">NG・保留・OK・分析の4タブ</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          ランキング行右端の「›」をクリックすると詳細画面に遷移します：<br><br>
+          • <strong>NGタブ</strong>：「🔁 常習NG」「🆕 新規NG」バッジ付き。写真がある場合は「写真を表示」ボタン<br>
+          • <strong>保留タブ</strong>：保留理由付きで一覧表示<br>
+          • <strong>OKタブ</strong>：前回NGが解消された項目は「✨ 改善」バッジ<br>
+          • <strong>分析タブ</strong>：エリア別NG集計グラフ・常習NG一覧
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div><div class="step-title">写真を表示ボタンで証拠確認</div><div class="step-sub">クリックで展開・カルーセル対応</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          NGカードに写真がある場合「写真を表示（N枚）」ボタンが表示されます。クリックすると写真がカード内に展開します。複数枚はカルーセルで表示、写真クリックでライトボックス拡大。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('store-requests')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('stores')">次へ：店舗管理 →</button>
+  </div>
+</div>
+
+<script>
+
+/* ===== ANALYTICS ===== */
+const AQ_NG_DATA = [
+  { section:'館外', cat:'C', label:'のぼり旗や土台に汚れはないか', note:'埃あり', photos:1 },
+  { section:'エントランス', cat:'C', label:'キオスク端末の画面は指紋等で汚れていないか、端末裏は埃や落ち葉で汚れていないか', note:'裏に埃あり', photos:1 },
+  { section:'ジムエリア', cat:'C', label:'有酸素マシンの肌が触れる部分、足元・骨組み、マシン下、ドリンクホルダーに汚れ（汗など）や埃はないか', note:'本体に埃あり、足元に砂あり', photos:4 },
+  { section:'ジムエリア', cat:'Q', label:'マシンに劣化や破損はないか、マシンシートなどに亀裂や破れはないか', note:'アブコースターに亀裂あり', photos:0 },
+  { section:'レディースエリア', cat:'C', label:'有酸素マシンの肌が触れる部分、足元・骨組み、マシン下、ドリンクホルダーに埃や汚れはないか', note:'本体に埃あり、足元に砂あり', photos:4 },
+  { section:'掲示物', cat:'Q', label:'掲示物の期限は切れていないか、テープは見えていないか、ラミネートは剥がれていないか', note:'ラミネート剥がれあり（→気づき）長期掲示物の繋ぎ合わせNG、掲示位置が低い', photos:2 },
+  { section:'館内', cat:'Q', label:'ゴミ箱はフタ付きで、ゴミ袋が見えていないか', note:'袋見えています', photos:0 },
+  { section:'事務所', cat:'Q', label:'会社の経営理念・事業理念などを唱和しているか、または確認しているか', note:'朝礼の実施なし', photos:0 },
+];
+
+const aqPhotoState = {};
+
+function aqRenderNgCards() {
+  const el = document.getElementById('aq-ng-cards');
+  if (!el) return;
+  el.innerHTML = AQ_NG_DATA.map((item, i) => {
+    const catColor = item.cat === 'Q' ? '#0ea5e9' : item.cat === 'S' ? '#10b981' : '#f59e0b';
+    const photoBtn = item.photos > 0 ? `
+      <button onclick="aqTogglePhoto(${i})" id="aq-photo-btn-${i}"
+        style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;font-size:11px;font-weight:700;color:#475569;cursor:pointer;margin-top:7px;font-family:sans-serif;">
+        🖼 写真を表示（${item.photos}枚）
+      </button>
+      <div id="aq-photos-${i}" style="display:none;margin-top:10px;">
+        <div style="position:relative;border-radius:10px;overflow:hidden;aspect-ratio:16/9;background:#e2e8f0;max-width:340px;">
+          <div id="aq-carousel-${i}" style="width:100%;height:100%;background:linear-gradient(135deg,#e2e8f0,#cbd5e1);display:flex;align-items:center;justify-content:center;color:#94a3b8;font-size:12px;font-weight:700;">
+            📷 写真 1/${item.photos}
+          </div>
+          ${item.photos > 1 ? `
+          <button onclick="aqCarouselPrev(${i})" style="position:absolute;left:4px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);border:none;border-radius:5px;color:#fff;cursor:pointer;padding:4px 7px;font-size:14px;">‹</button>
+          <button onclick="aqCarouselNext(${i},${item.photos})" style="position:absolute;right:4px;top:50%;transform:translateY(-50%);background:rgba(0,0,0,0.5);border:none;border-radius:5px;color:#fff;cursor:pointer;padding:4px 7px;font-size:14px;">›</button>
+          <div id="aq-pg-${i}" style="position:absolute;bottom:5px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:800;color:#fff;background:rgba(0,0,0,0.5);padding:1px 6px;border-radius:4px;">1/${item.photos}</div>
+          ` : ''}
+        </div>
+      </div>
+    ` : '';
+    return `
+      <div style="padding:16px;border-radius:14px;border:1.5px solid #fee2e2;background:#fff;display:flex;gap:12px;align-items:flex-start;">
+        <div style="width:32px;height:32px;border-radius:9px;background:#fee2e2;display:grid;place-items:center;flex-shrink:0;font-size:14px;">🎯</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;flex-wrap:wrap;">
+            <span style="font-size:11px;font-weight:900;background:#f1f5f9;padding:2px 7px;border-radius:4px;color:#64748b;">${item.section}</span>
+            <span style="font-size:11px;font-weight:900;color:${catColor};">${item.cat}</span>
+          </div>
+          <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:6px;line-height:1.4;">${item.label}</div>
+          <div style="font-size:12px;color:#dc2626;font-weight:600;background:#fee2e2;border-radius:7px;padding:4px 9px;display:inline-block;">${item.note}</div>
+          ${photoBtn}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function aqTogglePhoto(i) {
+  const el = document.getElementById(`aq-photos-${i}`);
+  const btn = document.getElementById(`aq-photo-btn-${i}`);
+  const item = AQ_NG_DATA[i];
+  if (!aqPhotoState[i]) aqPhotoState[i] = 1;
+  if (el.style.display === 'none') {
+    el.style.display = 'block';
+    btn.textContent = '写真を閉じる';
+  } else {
+    el.style.display = 'none';
+    btn.innerHTML = `🖼 写真を表示（${item.photos}枚）`;
+  }
+}
+
+function aqCarouselPrev(i) {
+  if (!aqPhotoState[i] || aqPhotoState[i] <= 1) return;
+  aqPhotoState[i]--;
+  aqUpdateCarousel(i);
+}
+function aqCarouselNext(i, total) {
+  if (!aqPhotoState[i]) aqPhotoState[i] = 1;
+  if (aqPhotoState[i] >= total) return;
+  aqPhotoState[i]++;
+  aqUpdateCarousel(i);
+}
+function aqUpdateCarousel(i) {
+  const cur = aqPhotoState[i];
+  const total = AQ_NG_DATA[i].photos;
+  const c = document.getElementById(`aq-carousel-${i}`);
+  const pg = document.getElementById(`aq-pg-${i}`);
+  if (c) c.innerHTML = `📷 写真 ${cur}/${total}`;
+  if (pg) pg.textContent = `${cur}/${total}`;
+}
+
+function aqShowDetail() {
+  document.getElementById('aq-ranking').style.display = 'none';
+  document.getElementById('aq-detail').style.display = 'block';
+  aqRenderNgCards();
+}
+function aqShowRanking() {
+  document.getElementById('aq-detail').style.display = 'none';
+  document.getElementById('aq-ranking').style.display = 'block';
+}
+
+function aqTab(name) {
+  ['ng','hold','ok','analysis'].forEach(t => {
+    const c = document.getElementById(`aq-content-${t}`);
+    const b = document.getElementById(`aq-tab-${t}`);
+    if (!c || !b) return;
+    const isActive = t === name;
+    c.style.display = isActive ? 'block' : 'none';
+    const colors = { ng:['#fef2f2','#dc2626'], hold:['#fffbeb','#d97706'], ok:['#f0fdf4','#059669'], analysis:['#eef2ff','#6366f1'] };
+    b.style.background = isActive ? colors[t][0] : 'transparent';
+    b.style.color = isActive ? colors[t][1] : '#94a3b8';
+  });
+}
+
+function aqCloseLightbox() {
+  document.getElementById('aq-lightbox').style.display = 'none';
+}
+function initAnalytics() {}
+
+</script>
+
+<!-- ===== STORES ===== -->
+<div class="page" id="page-stores">
+  <div class="section-title">店舗管理</div>
+  <div class="section-sub">店舗情報の登録・編集・担当者・アセットの設定を行います。357店舗（稼働中）が登録されています。</div>
+
+  <!-- 店舗管理モック -->
+  <div style="background:#fff;border-radius:20px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:24px;">
+    <!-- ヘッダー -->
+    <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:#eef2ff;display:grid;place-items:center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        </div>
+        <div>
+          <div style="font-size:18px;font-weight:900;color:#1e293b;">店舗マスター管理</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:1px;">拠点の紐付け設定</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:1.5px solid #e2e8f0;background:#fff;font-size:12px;font-weight:800;color:#475569;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>CSV一括登録
+        </button>
+        <button onclick="storeOpenAdd()" style="display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:10px;border:none;background:#1e293b;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+          + 店舗を追加
+        </button>
+      </div>
+    </div>
+    <!-- フィルター -->
+    <div style="padding:16px 24px;border-bottom:1px solid #f1f5f9;">
+      <div style="height:40px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;padding:0 14px;gap:8px;font-size:12px;color:#94a3b8;margin-bottom:14px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        店舗名・コード・業態・ブランド・法人・ステータス・メールで検索...
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div><div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">業態</div><div style="height:36px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;padding:0 10px;display:flex;align-items:center;font-size:12px;color:#1e293b;">すべて</div></div>
+        <div><div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">ブランド</div><div style="height:36px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;padding:0 10px;display:flex;align-items:center;font-size:12px;color:#1e293b;">すべて</div></div>
+        <div><div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">法人</div><div style="height:36px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;padding:0 10px;display:flex;align-items:center;font-size:12px;color:#1e293b;">すべて</div></div>
+        <div><div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">ステータス</div><div style="height:36px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;padding:0 10px;display:flex;align-items:center;font-size:12px;color:#1e293b;">すべて</div></div>
+        <div><div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">アセット</div><div style="height:36px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;padding:0 10px;display:flex;align-items:center;font-size:12px;color:#1e293b;">すべて</div></div>
+        <div><div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px;">通知先メール</div><div style="height:36px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;padding:0 10px;display:flex;align-items:center;font-size:12px;color:#1e293b;">すべて</div></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;">
+        <div style="font-size:12px;font-weight:700;color:#64748b;">絞り込み結果: <strong style="color:#1e293b;">357件</strong></div>
+        <div style="display:flex;gap:8px;">
+          <button style="padding:7px 14px;border-radius:8px;border:1.5px solid #e2e8f0;background:#fff;font-size:12px;font-weight:700;color:#475569;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">フィルターをクリア</button>
+          <button onclick="storeBulkAsset()" id="store-bulk-btn" style="padding:7px 14px;border-radius:8px;border:none;background:#6366f1;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;display:none;">アセットを一括適用</button>
+          <button onclick="storeSelectAll()" style="padding:7px 14px;border-radius:8px;border:none;background:#1e293b;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">絞り込み結果を全て選択</button>
+        </div>
+      </div>
+    </div>
+    <!-- 店舗リスト -->
+    <div style="padding:12px 16px;display:flex;flex-direction:column;gap:8px;" id="store-list">
+      <!-- JS描画 -->
+    </div>
+  </div>
+
+  <!-- 新規登録モーダル -->
+  <div id="store-add-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.4);backdrop-filter:blur(4px);">
+    <div style="position:absolute;right:0;top:0;bottom:0;width:480px;background:#fff;box-shadow:-8px 0 32px rgba(0,0,0,0.12);display:flex;flex-direction:column;">
+      <!-- モーダルヘッダー -->
+      <div style="padding:24px 28px 20px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
+        <div style="font-size:20px;font-weight:900;color:#1e293b;">店舗新規登録</div>
+        <button onclick="storeCloseAdd()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;display:grid;place-items:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <!-- フォーム -->
+      <div style="flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">適用アセット</div>
+          <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:13px;color:#94a3b8;">選択...</div>
+          <div style="margin-top:6px;padding:10px 12px;background:#fffbeb;border-radius:8px;border:1px solid #fef3c7;font-size:11px;color:#92400e;line-height:1.6;">
+            💡 <strong>アセット</strong>とは設問セットのパッケージです。店舗の業態に合ったアセットを選択してください。（例：JOYFIT標準・FIT365・YOGA など）
+          </div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">店舗名</div>
+          <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:13px;color:#94a3b8;"></div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">クラブコード</div>
+          <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:13px;color:#94a3b8;"></div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">運営法人</div>
+          <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:13px;color:#94a3b8;">法人を選択...</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">所属ブランド</div>
+          <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:13px;color:#94a3b8;">ブランドを選択...</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">業態</div>
+          <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:13px;color:#94a3b8;">業態を選択...</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">ステータス</div>
+          <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:13px;font-weight:700;color:#059669;">稼働中</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">通知先メール</div>
+          <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;font-size:13px;color:#94a3b8;">mail@example.com</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">担当者</div>
+          <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;padding:0 14px;display:flex;align-items:center;gap:8px;font-size:13px;color:#94a3b8;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>名前またはメールアドレスで検索...
+          </div>
+          <div style="font-size:11px;color:#94a3b8;margin-top:4px;">点検員ユーザーを担当者として紐づけます</div>
+        </div>
+      </div>
+      <!-- フッター -->
+      <div style="padding:16px 28px;border-top:1px solid #f1f5f9;display:grid;grid-template-columns:1fr 2fr;gap:10px;">
+        <button onclick="storeCloseAdd()" style="height:48px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:14px;font-weight:800;color:#475569;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+        <button onclick="storeSaveAdd()" style="height:48px;border-radius:12px;border:none;background:#1e293b;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">保存する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- アセット一括適用モーダル -->
+  <div id="store-bulk-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:20px;width:480px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <div style="padding:24px 24px 16px;text-align:center;border-bottom:1px solid #f1f5f9;">
+        <div style="font-size:18px;font-weight:900;color:#1e293b;margin-bottom:4px;">アセットを一括適用</div>
+        <div style="font-size:13px;color:#6366f1;font-weight:700;">選択中の 3 店舗に適用するアセットを選んでください</div>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;" id="bulk-asset-list"></div>
+      <div style="padding:16px 24px;border-top:1px solid #f1f5f9;display:grid;grid-template-columns:1fr 2fr;gap:10px;">
+        <button onclick="storeBulkClose()" style="height:48px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:14px;font-weight:800;color:#475569;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">戻る</button>
+        <button onclick="storeBulkApply()" style="height:48px;border-radius:12px;border:none;background:#6366f1;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">適用する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">店舗を検索・絞り込む</div><div class="step-sub">業態・ブランド・法人・ステータスで絞り込み</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          検索ボックスで店舗名・コード・業態・ブランド・法人・メールなど幅広く検索できます。<br><br>
+          フィルターで業態・ブランド・法人・ステータス・アセット・通知先メールで絞り込みが可能です。
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div><div class="step-title">新規店舗を登録する</div><div class="step-sub">右上「+ 店舗を追加」から</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          「+ 店舗を追加」ボタンで新規登録画面が開きます。入力項目：<br><br>
+          • <strong>適用アセット</strong>：店舗の業態に合ったチェックリストセットを選択<br>
+          • <strong>店舗名・クラブコード</strong><br>
+          • <strong>運営法人・所属ブランド・業態</strong><br>
+          • <strong>ステータス</strong>：稼働中 / 休止中 / アーカイブ<br>
+          • <strong>通知先メール</strong>：点検完了メールの送信先<br>
+          • <strong>担当者</strong>：点検員アカウントを紐づけ
+        </div>
+        <div class="tip info"><span class="tip-icon">💡</span><span><strong>アセット</strong>とは設問セットのパッケージです。業態ごとに異なるアセットを設定することで、店舗に合ったチェックリストが使われます。（例：JOYFIT標準・FIT365・YOGA・赤SP LITE など）</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div><div class="step-title">アセットを一括適用する</div><div class="step-sub">複数店舗に同じアセットを一度に設定</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          チェックボックスで複数店舗を選択すると「アセットを一括適用」ボタンが表示されます。<br><br>
+          クリックするとアセット選択モーダルが開き、選択した全店舗に同じアセットを一括で設定できます。<br><br>
+          利用できるアセット例：
+        </div>
+        <div class="status-row" style="flex-wrap:wrap;">
+          <span class="status-badge" style="background:#f1f5f9;color:#475569;">FIT365</span>
+          <span class="status-badge" style="background:#f1f5f9;color:#475569;">YOGA</span>
+          <span class="status-badge" style="background:#f1f5f9;color:#475569;">赤SP/赤SP LITE</span>
+          <span class="status-badge" style="background:#f1f5f9;color:#475569;">青/青LITE</span>
+          <span class="status-badge" style="background:#f1f5f9;color:#475569;">赤LITE/無人</span>
+          <span class="status-badge" style="background:#f1f5f9;color:#475569;">GH（赤）</span>
+          <span class="status-badge" style="background:#f1f5f9;color:#475569;">JOYFIT+</span>
+          <span class="status-badge" style="background:#f1f5f9;color:#475569;">メディカル</span>
+        </div>
+        <div class="tip warn"><span class="tip-icon">⚠️</span><span>アセットを変更すると次回点検から新しいチェックリストが適用されます。進行中の点検には影響しません。</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">4</div>
+        <div><div class="step-title">CSV一括登録</div><div class="step-sub">多数の店舗を一括でインポート</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          右上の「CSV一括登録」から店舗情報をCSVファイルでまとめてインポートできます。<br><br>
+          大量の店舗を一度に登録する際に利用してください。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('analytics')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('users')">次へ：ユーザー管理 →</button>
+  </div>
+</div>
+
+<!-- ===== USERS ===== -->
+<div class="page" id="page-users">
+  <div class="section-title">ユーザー管理</div>
+  <div class="section-sub">組織アカウントの発行・権限設定・所属管理を行います。全50件登録されています。</div>
+
+  <!-- ユーザー管理モック -->
+  <div style="background:#fff;border-radius:20px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:24px;">
+    <!-- ヘッダー -->
+    <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:#eef2ff;display:grid;place-items:center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        </div>
+        <div>
+          <div style="font-size:18px;font-weight:900;color:#1e293b;">ユーザー管理</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:1px;">組織アカウントの発行・権限設定・所属管理</div>
+        </div>
+      </div>
+      <button onclick="userOpenAdd()" style="display:flex;align-items:center;gap:8px;padding:10px 18px;border-radius:12px;border:none;background:#1e293b;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>新規ユーザー作成
+      </button>
+    </div>
+
+    <!-- 検索 -->
+    <div style="padding:16px 24px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;gap:12px;">
+      <div style="display:flex;align-items:center;gap:10px;flex:1;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <div style="height:36px;flex:1;max-width:320px;border-radius:8px;border:1px solid #e2e8f0;padding:0 12px;display:flex;align-items:center;font-size:12px;color:#94a3b8;">名前、メール、所属先で検索...</div>
+      </div>
+      <div style="font-size:12px;font-weight:700;color:#94a3b8;">全 <strong style="color:#1e293b;">50</strong> 件</div>
+    </div>
+
+    <!-- テーブルヘッダー -->
+    <div style="padding:10px 24px;display:grid;grid-template-columns:1fr 160px 120px 100px 30px;gap:12px;align-items:center;border-bottom:1px solid #f1f5f9;">
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;">ユーザー詳細</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;">権限ロール</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;">所属法人</div>
+      <div style="font-size:11px;font-weight:700;color:#94a3b8;">ステータス</div>
+      <div></div>
+    </div>
+
+    <!-- ユーザーリスト -->
+    <div id="user-list" style="display:flex;flex-direction:column;"></div>
+  </div>
+
+  <!-- ロール説明 -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px;">
+    <div style="background:#fef2f2;border-radius:14px;padding:14px 16px;border:1px solid #fee2e2;">
+      <div style="font-size:10px;font-weight:900;color:#dc2626;letter-spacing:0.08em;margin-bottom:4px;">ADMIN</div>
+      <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:3px;">システム管理者</div>
+      <div style="font-size:11px;color:#94a3b8;line-height:1.6;">全機能へのアクセス権限。ユーザー管理・店舗管理・設問管理など全操作が可能。</div>
+    </div>
+    <div style="background:#eff6ff;border-radius:14px;padding:14px 16px;border:1px solid #bfdbfe;">
+      <div style="font-size:10px;font-weight:900;color:#2563eb;letter-spacing:0.08em;margin-bottom:4px;">INSPECTOR</div>
+      <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:3px;">検査員</div>
+      <div style="font-size:11px;color:#94a3b8;line-height:1.6;">QSC点検の実施と結果送信が可能。担当店舗のみにアクセスできる。</div>
+    </div>
+    <div style="background:#eef2ff;border-radius:14px;padding:14px 16px;border:1px solid #c7c9f4;">
+      <div style="font-size:10px;font-weight:900;color:#6366f1;letter-spacing:0.08em;margin-bottom:4px;">STORE</div>
+      <div style="font-size:13px;font-weight:800;color:#1e293b;margin-bottom:3px;">店舗担当</div>
+      <div style="font-size:11px;color:#94a3b8;line-height:1.6;">自店舗の点検結果閲覧と是正報告の提出が可能。</div>
+    </div>
+  </div>
+
+  <!-- 新規アカウント作成パネル -->
+  <div id="user-add-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px);">
+    <div style="position:absolute;right:0;top:0;bottom:0;width:420px;background:#fff;box-shadow:-8px 0 32px rgba(0,0,0,0.12);display:flex;flex-direction:column;">
+      <div style="padding:24px 28px 20px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f1f5f9;">
+        <div style="font-size:18px;font-weight:900;color:#1e293b;">新規アカウント作成</div>
+        <button onclick="userCloseAdd()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;display:grid;place-items:center;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:20px;">
+        <!-- 氏名 -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:8px;">氏名 <span style="color:#dc2626;">*</span></div>
+          <div style="display:flex;align-items:center;gap:8px;border-bottom:1.5px solid #e2e8f0;padding-bottom:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <div style="font-size:13px;color:#94a3b8;">例: 山田 太郎</div>
+          </div>
+        </div>
+        <!-- メール -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:8px;">メールアドレス <span style="color:#dc2626;">*</span></div>
+          <div style="display:flex;align-items:center;gap:8px;border-bottom:1.5px solid #e2e8f0;padding-bottom:8px;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            <div style="font-size:13px;color:#94a3b8;">example@joyfit.jp</div>
+          </div>
+        </div>
+        <!-- パスワード -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:8px;">ログインパスワード <span style="color:#dc2626;">*</span></div>
+          <div style="display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid #e2e8f0;padding-bottom:8px;">
+            <div style="display:flex;align-items:center;gap:8px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              <div style="font-size:13px;color:#94a3b8;">パスワードを設定</div>
+            </div>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+        </div>
+        <!-- 権限ロール・所属法人 -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:8px;">権限ロール <span style="color:#dc2626;">*</span></div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><circle cx="12" cy="12" r="10"/></svg>
+              <div style="height:36px;flex:1;border-radius:8px;border:1px solid #e2e8f0;padding:0 10px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:#1e293b;">
+                検査員
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:8px;">所属法人 <span style="color:#dc2626;">*</span></div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+              <div style="height:36px;flex:1;border-radius:8px;border:1px solid #e2e8f0;padding:0 10px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:#1e293b;">
+                H3
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- 担当店舗 -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:4px;">担当店舗</div>
+          <div style="font-size:11px;color:#f59e0b;font-weight:600;margin-bottom:8px;">選択した店舗の担当者欄に自動で反映されます</div>
+          <div style="height:40px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;padding:0 12px;display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>店舗名で検索して選択...
+          </div>
+        </div>
+        <!-- アカウント状態 -->
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:10px;">アカウント状態</div>
+          <div style="display:flex;border:1px solid #e2e8f0;border-radius:10px;overflow:hidden;">
+            <div style="flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;color:#94a3b8;cursor:pointer;background:#fff;">有効</div>
+            <div style="flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;color:#f59e0b;cursor:pointer;background:#fffbeb;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">招待中</div>
+            <div style="flex:1;padding:10px;text-align:center;font-size:12px;font-weight:700;color:#94a3b8;cursor:pointer;background:#fff;">停止</div>
+          </div>
+          <div style="font-size:11px;color:#f59e0b;font-weight:600;margin-top:6px;">招待メール送信後、ログインすると「有効」に切り替わります</div>
+        </div>
+      </div>
+      <!-- 保存ボタン -->
+      <div style="padding:16px 28px;border-top:1px solid #f1f5f9;">
+        <button onclick="userSaveAdd()" style="width:100%;height:48px;border-radius:12px;border:none;background:#1e293b;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">作成する</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">ユーザー一覧の見方</div><div class="step-sub">権限ロール・所属法人・ステータス</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          ユーザー一覧には以下の情報が表示されます：<br><br>
+          • <strong>ユーザー詳細</strong>：名前・メールアドレス<br>
+          • <strong>権限ロール</strong>：検査員 / 店舗担当 / システム管理者<br>
+          • <strong>所属法人</strong>：未割当 または法人名<br>
+          • <strong>ステータス</strong>：有効（青）/ 招待中（黄）/ 停止（赤）
+        </div>
+        <div class="status-row">
+          <span class="status-badge" style="background:#eff6ff;color:#2563eb;">検査員</span>
+          <span class="status-badge" style="background:#eef2ff;color:#6366f1;">店舗担当</span>
+          <span class="status-badge" style="background:#fef2f2;color:#dc2626;">管理者</span>
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div><div class="step-title">新規アカウントを作成する</div><div class="step-sub">右上「新規ユーザー作成」から</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          「新規ユーザー作成」ボタンで右側にパネルが開きます。入力項目：<br><br>
+          • <strong>氏名・メールアドレス・ログインパスワード</strong>（必須）<br>
+          • <strong>権限ロール</strong>：検査員 / 店舗担当 / 管理者<br>
+          • <strong>所属法人</strong><br>
+          • <strong>担当店舗</strong>：選択すると店舗の担当者欄に自動反映<br>
+          • <strong>アカウント状態</strong>：有効 / 招待中 / 停止
+        </div>
+        <div class="tip info"><span class="tip-icon">💡</span><span>作成後、対象メールアドレスにアカウント作成通知メールが自動送信されます。招待中ステータスでログインすると「有効」に切り替わります。</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div><div class="step-title">ステータスと権限を変更する</div><div class="step-sub">行をクリックして編集</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          ユーザー行の右端「›」をクリックすると編集パネルが開きます。<br><br>
+          • <strong>停止</strong>：ログイン不可になります（アカウント削除ではない）<br>
+          • <strong>ロール変更</strong>：利用できる機能が変わります
+        </div>
+        <div class="tip danger"><span class="tip-icon">⚠️</span><span>管理者ロールは慎重に付与してください。全店舗・全ユーザーの管理権限が与えられます。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('stores')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('questions')">次へ：設問マスタ →</button>
+  </div>
+</div>
+
+<!-- ===== QUESTIONS ===== -->
+<div class="page" id="page-questions">
+  <div class="section-title">設問マスタ</div>
+  <div class="section-sub">QSCチェック項目の作成・編集を行います。設問は場所・カテゴリ・重み・必須回答の4軸で管理されます。</div>
+
+  <div style="background:#f8fafc;border-radius:20px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:24px;">
+    <div style="display:grid;grid-template-columns:280px 1fr 300px;min-height:560px;">
+
+      <!-- 左：設問リスト -->
+      <div style="background:#fff;border-right:1px solid #f1f5f9;padding:16px;display:flex;flex-direction:column;gap:10px;">
+        <div style="height:36px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;padding:0 12px;gap:7px;font-size:12px;color:#94a3b8;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>設問内容やIDで検索...
+        </div>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;">
+          <div style="padding:5px 12px;border-radius:20px;background:#1e293b;color:#fff;font-size:11px;font-weight:800;cursor:pointer;">全場所</div>
+          <div style="padding:5px 12px;border-radius:20px;background:#f1f5f9;color:#64748b;font-size:11px;font-weight:700;cursor:pointer;">館外</div>
+          <div style="padding:5px 12px;border-radius:20px;background:#f1f5f9;color:#64748b;font-size:11px;font-weight:700;cursor:pointer;">エントランス</div>
+          <div style="padding:5px 12px;border-radius:20px;background:#f1f5f9;color:#64748b;font-size:11px;font-weight:700;cursor:pointer;">FW</div>
+          <div style="padding:5px 12px;border-radius:20px;background:#f1f5f9;color:#64748b;font-size:11px;font-weight:700;cursor:pointer;">ジムエリア</div>
+        </div>
+        <div style="display:flex;gap:5px;">
+          <div style="padding:5px 12px;border-radius:20px;background:#1e293b;color:#fff;font-size:11px;font-weight:800;cursor:pointer;">全種別</div>
+          <div style="padding:5px 12px;border-radius:20px;background:#f1f5f9;color:#0ea5e9;font-size:11px;font-weight:900;cursor:pointer;">Q</div>
+          <div style="padding:5px 12px;border-radius:20px;background:#f1f5f9;color:#10b981;font-size:11px;font-weight:900;cursor:pointer;">S</div>
+          <div style="padding:5px 12px;border-radius:20px;background:#f1f5f9;color:#f59e0b;font-size:11px;font-weight:900;cursor:pointer;">C</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:4px;">
+          <!-- 選択中 -->
+          <div style="padding:12px;border-radius:12px;border:2px solid #6366f1;background:#eef2ff;">
+            <div style="display:flex;gap:5px;margin-bottom:6px;flex-wrap:wrap;">
+              <span style="font-size:10px;font-weight:900;background:#0ea5e9;color:#fff;padding:2px 6px;border-radius:4px;">Q</span>
+              <span style="font-size:10px;font-weight:700;background:#f1f5f9;color:#64748b;padding:2px 6px;border-radius:4px;">FW</span>
+              <span style="font-size:10px;font-weight:700;background:#f1f5f9;color:#64748b;padding:2px 6px;border-radius:4px;">重み 1</span>
+              <span style="font-size:10px;font-weight:700;background:#d1fae5;color:#059669;padding:2px 6px;border-radius:4px;">必須</span>
+            </div>
+            <div style="font-size:13px;font-weight:800;color:#1e293b;">鏡は割れ等の破損はないか</div>
+          </div>
+          <div style="padding:12px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;" onmouseenter="this.style.borderColor='#6366f1'" onmouseleave="this.style.borderColor='#e2e8f0'">
+            <div style="display:flex;gap:5px;margin-bottom:6px;">
+              <span style="font-size:10px;font-weight:900;background:#f59e0b;color:#fff;padding:2px 6px;border-radius:4px;">C</span>
+              <span style="font-size:10px;font-weight:700;background:#f1f5f9;color:#64748b;padding:2px 6px;border-radius:4px;">FW</span>
+              <span style="font-size:10px;font-weight:700;background:#f1f5f9;color:#64748b;padding:2px 6px;border-radius:4px;">重み 1</span>
+              <span style="font-size:10px;font-weight:700;background:#d1fae5;color:#059669;padding:2px 6px;border-radius:4px;">必須</span>
+            </div>
+            <div style="font-size:13px;font-weight:800;color:#1e293b;">鏡の段差に埃、鏡表面に手垢等の汚れがないか</div>
+          </div>
+          <div style="padding:12px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;cursor:pointer;" onmouseenter="this.style.borderColor='#6366f1'" onmouseleave="this.style.borderColor='#e2e8f0'">
+            <div style="display:flex;gap:5px;margin-bottom:6px;">
+              <span style="font-size:10px;font-weight:900;background:#0ea5e9;color:#fff;padding:2px 6px;border-radius:4px;">Q</span>
+              <span style="font-size:10px;font-weight:700;background:#f1f5f9;color:#64748b;padding:2px 6px;border-radius:4px;">FW</span>
+              <span style="font-size:10px;font-weight:700;background:#f1f5f9;color:#64748b;padding:2px 6px;border-radius:4px;">重み 1</span>
+              <span style="font-size:10px;font-weight:700;background:#d1fae5;color:#059669;padding:2px 6px;border-radius:4px;">必須</span>
+            </div>
+            <div style="font-size:13px;font-weight:800;color:#1e293b;">床（ラバーマット）や壁に劣化や破損はないか</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 中：編集フォーム -->
+      <div style="padding:24px;background:#fff;border-right:1px solid #f1f5f9;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div style="font-size:17px;font-weight:900;color:#1e293b;">設問の詳細編集</div>
+          <button style="padding:10px 18px;border-radius:12px;border:none;background:#6366f1;color:#fff;font-size:13px;font-weight:900;cursor:pointer;">保存して確定</button>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">設問内容</div>
+          <div style="min-height:80px;border-radius:12px;border:1px solid #e2e8f0;padding:12px 14px;font-size:14px;font-weight:700;color:#1e293b;">鏡は割れ等の破損はないか</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">点検場所（Place）</div>
+            <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;padding:0 12px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:#1e293b;">
+              FW <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">QSCカテゴリ</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;border-radius:10px;overflow:hidden;border:1px solid #e2e8f0;height:44px;">
+              <div style="display:grid;place-items:center;background:#0ea5e9;color:#fff;font-size:13px;font-weight:900;cursor:pointer;">Q</div>
+              <div style="display:grid;place-items:center;background:#fff;color:#94a3b8;font-size:13px;font-weight:900;cursor:pointer;border-left:1px solid #e2e8f0;">S</div>
+              <div style="display:grid;place-items:center;background:#fff;color:#94a3b8;font-size:13px;font-weight:900;cursor:pointer;border-left:1px solid #e2e8f0;">C</div>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">重み</div>
+            <div style="height:44px;border-radius:10px;border:1px solid #e2e8f0;padding:0 14px;display:flex;align-items:center;font-size:14px;font-weight:700;color:#1e293b;">1</div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">必須回答</div>
+            <div style="height:44px;border-radius:10px;background:#059669;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:900;color:#fff;cursor:pointer;">必須</div>
+          </div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;margin-bottom:16px;">
+          <div>
+            <div style="font-size:13px;font-weight:800;color:#1e293b;">公開ステータス</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;">「停止中」にすると点検フォームの選択肢から除外されます</div>
+          </div>
+          <div style="padding:8px 14px;border-radius:10px;background:#059669;color:#fff;font-size:13px;font-weight:900;cursor:pointer;">公開中</div>
+        </div>
+        <div style="text-align:center;padding:12px;color:#dc2626;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>マスタから削除
+        </div>
+      </div>
+
+      <!-- 右：フォームプレビュー -->
+      <div style="padding:20px;background:#f8fafc;">
+        <div style="font-size:13px;font-weight:900;color:#1e293b;margin-bottom:14px;display:flex;align-items:center;gap:7px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>フォームプレビュー
+        </div>
+        <div style="background:#fff;border-radius:16px;padding:16px;border:1px solid #e2e8f0;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+            <span style="font-size:11px;font-weight:900;background:#f1f5f9;color:#64748b;padding:2px 8px;border-radius:6px;">FW</span>
+            <span style="font-size:11px;font-weight:900;background:#0ea5e9;color:#fff;padding:2px 8px;border-radius:6px;">Q</span>
+          </div>
+          <div style="font-size:15px;font-weight:900;color:#1e293b;margin-bottom:10px;">鏡は割れ等の破損はないか</div>
+          <div style="display:flex;gap:5px;margin-bottom:12px;">
+            <span style="font-size:10px;font-weight:800;background:#f1f5f9;color:#64748b;padding:2px 7px;border-radius:5px;">重み 1</span>
+            <span style="font-size:10px;font-weight:800;background:#d1fae5;color:#059669;padding:2px 7px;border-radius:5px;">必須回答</span>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+            <div style="padding:10px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;font-size:13px;font-weight:700;color:#94a3b8;">OK</div>
+            <div style="padding:10px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;font-size:13px;font-weight:700;color:#94a3b8;">NG</div>
+            <div style="padding:10px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;font-size:13px;font-weight:700;color:#94a3b8;">保留</div>
+            <div style="padding:10px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;font-size:13px;font-weight:700;color:#94a3b8;">該当なし</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <div style="padding:10px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;font-size:16px;">📷</div>
+            <div style="padding:10px;border-radius:10px;border:1px solid #e2e8f0;text-align:center;font-size:16px;">💬</div>
+          </div>
+          <div style="font-size:10px;color:#94a3b8;text-align:center;margin-top:10px;">※ 実際の点検画面での見え方をシミュレートしています</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">設問を編集する</div><div class="step-sub">左リストから選択 → 中央で編集 → 保存して確定</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          左リストの設問をクリックすると中央に編集フォームが開きます。<br><br>
+          • <strong>点検場所（Place）</strong>：館外・エントランス・FW・ジムエリアなど<br>
+          • <strong>QSCカテゴリ</strong>：Q（品質）/ S（接客）/ C（清潔）<br>
+          • <strong>重み</strong>：スコア計算時の重要度<br>
+          • <strong>必須回答</strong>：ON の場合、未回答では点検を完了できない<br>
+          • <strong>公開ステータス</strong>：停止中にすると点検フォームから除外
+        </div>
+        <div class="tip info"><span class="tip-icon">💡</span><span>右側の「フォームプレビュー」で点検員が見る実際の画面イメージを確認できます。</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div><div class="step-title">新規設問を追加する</div><div class="step-sub">右上「+ 新規設問追加」から</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">「+ 新規設問追加」ボタンで空の編集フォームが開きます。設問内容・場所・カテゴリ・重み・必須を入力して「保存して確定」で追加されます。</div>
+        <div class="tip warn"><span class="tip-icon">⚠️</span><span>設問マスタへの追加だけではアセットに反映されません。アセット構成で設問を追加する必要があります。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('stores')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('assets')">次へ：アセット構成 →</button>
+  </div>
+</div>
+
+
+<div class="page" id="page-assets">
+  <div class="section-title">アセット構成</div>
+  <div class="section-sub">設問をパッケージ化して店舗へ配信します。業態ごとに異なるアセットを設定することで、各店舗に最適なチェックリストが使われます。</div>
+
+  <div style="background:#f8fafc;border-radius:20px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:24px;">
+    <div style="display:grid;grid-template-columns:260px 1fr 300px;min-height:560px;">
+
+      <!-- 左：アセット一覧 -->
+      <div style="background:#fff;border-right:1px solid #f1f5f9;padding:16px;display:flex;flex-direction:column;gap:6px;">
+        <div style="height:36px;border-radius:10px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;padding:0 12px;gap:7px;font-size:12px;color:#94a3b8;margin-bottom:6px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>アセットを検索...
+        </div>
+        <div style="padding:12px 14px;border-radius:12px;border:1px solid #e2e8f0;cursor:pointer;" onmouseenter="this.style.borderColor='#6366f1'" onmouseleave="this.style.borderColor='#e2e8f0'">
+          <div style="font-size:13px;font-weight:800;color:#1e293b;">FIT365</div>
+          <div style="display:flex;gap:5px;margin-top:4px;"><span style="font-size:10px;font-weight:700;background:#d1fae5;color:#059669;padding:1px 6px;border-radius:4px;">有効</span><span style="font-size:10px;color:#94a3b8;">187 設問</span></div>
+        </div>
+        <div style="padding:12px 14px;border-radius:12px;border:1px solid #e2e8f0;cursor:pointer;" onmouseenter="this.style.borderColor='#6366f1'" onmouseleave="this.style.borderColor='#e2e8f0'">
+          <div style="font-size:13px;font-weight:800;color:#1e293b;">プール（瀬戸内SS）</div>
+          <div style="display:flex;gap:5px;margin-top:4px;"><span style="font-size:10px;font-weight:700;background:#d1fae5;color:#059669;padding:1px 6px;border-radius:4px;">有効</span><span style="font-size:10px;color:#94a3b8;">164 設問</span></div>
+        </div>
+        <div style="padding:12px 14px;border-radius:12px;border:1px solid #e2e8f0;cursor:pointer;" onmouseenter="this.style.borderColor='#6366f1'" onmouseleave="this.style.borderColor='#e2e8f0'">
+          <div style="font-size:13px;font-weight:800;color:#1e293b;">YOGA</div>
+          <div style="display:flex;gap:5px;margin-top:4px;"><span style="font-size:10px;font-weight:700;background:#d1fae5;color:#059669;padding:1px 6px;border-radius:4px;">有効</span><span style="font-size:10px;color:#94a3b8;">160 設問</span></div>
+        </div>
+        <div style="padding:12px 14px;border-radius:12px;border:1px solid #e2e8f0;cursor:pointer;" onmouseenter="this.style.borderColor='#6366f1'" onmouseleave="this.style.borderColor='#e2e8f0'">
+          <div style="font-size:13px;font-weight:800;color:#1e293b;">赤SP/赤SP LITE</div>
+          <div style="display:flex;gap:5px;margin-top:4px;"><span style="font-size:10px;font-weight:700;background:#d1fae5;color:#059669;padding:1px 6px;border-radius:4px;">有効</span><span style="font-size:10px;color:#94a3b8;">241 設問</span></div>
+        </div>
+        <div style="padding:12px 14px;border-radius:12px;border:1px solid #e2e8f0;cursor:pointer;" onmouseenter="this.style.borderColor='#6366f1'" onmouseleave="this.style.borderColor='#e2e8f0'">
+          <div style="font-size:13px;font-weight:800;color:#1e293b;">青/青LITE</div>
+          <div style="display:flex;gap:5px;margin-top:4px;"><span style="font-size:10px;font-weight:700;background:#d1fae5;color:#059669;padding:1px 6px;border-radius:4px;">有効</span><span style="font-size:10px;color:#94a3b8;">237 設問</span></div>
+        </div>
+        <!-- 選択中 -->
+        <div style="padding:12px 14px;border-radius:12px;border:2px solid #6366f1;background:#eef2ff;cursor:pointer;">
+          <div style="font-size:13px;font-weight:800;color:#6366f1;">メディカル</div>
+          <div style="display:flex;gap:5px;margin-top:4px;"><span style="font-size:10px;font-weight:700;background:#d1fae5;color:#059669;padding:1px 6px;border-radius:4px;">有効</span><span style="font-size:10px;color:#94a3b8;">145 設問</span></div>
+        </div>
+      </div>
+
+      <!-- 中：構成編集 -->
+      <div style="padding:24px;background:#fff;border-right:1px solid #f1f5f9;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+          <div style="font-size:17px;font-weight:900;color:#1e293b;">構成を編集</div>
+          <div style="display:flex;gap:8px;">
+            <button style="display:flex;align-items:center;gap:5px;padding:8px 14px;border-radius:10px;border:1.5px solid #dc2626;background:#fff;color:#dc2626;font-size:12px;font-weight:800;cursor:pointer;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>削除
+            </button>
+            <button style="display:flex;align-items:center;gap:5px;padding:8px 16px;border-radius:10px;border:none;background:#6366f1;color:#fff;font-size:12px;font-weight:800;cursor:pointer;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v14a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>保存
+            </button>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;">
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px;">アセット名</div>
+          <div style="height:44px;border-radius:12px;border:1px solid #e2e8f0;padding:0 14px;display:flex;align-items:center;font-size:15px;font-weight:800;color:#1e293b;">メディカル</div>
+        </div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <div style="font-size:13px;font-weight:800;color:#1e293b;">構成設問一覧</div>
+            <span style="font-size:11px;font-weight:900;background:#eef2ff;color:#6366f1;padding:2px 8px;border-radius:6px;">145</span>
+          </div>
+          <button style="display:flex;align-items:center;gap:5px;padding:7px 14px;border-radius:10px;border:1.5px solid #6366f1;background:#fff;color:#6366f1;font-size:12px;font-weight:800;cursor:pointer;">+ 設問を追加</button>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;">
+            <span style="color:#94a3b8;font-size:16px;cursor:grab;">⋮⋮</span>
+            <span style="font-size:11px;font-weight:900;color:#6366f1;background:#eef2ff;padding:1px 7px;border-radius:5px;">#1</span>
+            <div style="flex:1;">
+              <div style="display:flex;gap:5px;margin-bottom:3px;">
+                <span style="font-size:10px;font-weight:900;background:#0ea5e9;color:#fff;padding:1px 5px;border-radius:3px;">Q : Quality</span>
+                <span style="font-size:10px;color:#94a3b8;">FW · 重み 1</span>
+              </div>
+              <div style="font-size:12px;font-weight:700;color:#1e293b;">鏡は割れ等の破損はないか</div>
+            </div>
+            <button style="color:#dc2626;background:none;border:none;cursor:pointer;font-size:16px;">✕</button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;">
+            <span style="color:#94a3b8;font-size:16px;cursor:grab;">⋮⋮</span>
+            <span style="font-size:11px;font-weight:900;color:#6366f1;background:#eef2ff;padding:1px 7px;border-radius:5px;">#2</span>
+            <div style="flex:1;">
+              <div style="display:flex;gap:5px;margin-bottom:3px;">
+                <span style="font-size:10px;font-weight:900;background:#f59e0b;color:#fff;padding:1px 5px;border-radius:3px;">C : Cleanliness</span>
+                <span style="font-size:10px;color:#94a3b8;">FW · 重み 1</span>
+              </div>
+              <div style="font-size:12px;font-weight:700;color:#1e293b;">鏡の段差に埃、鏡表面に手垢等の汚れがないか</div>
+            </div>
+            <button style="color:#dc2626;background:none;border:none;cursor:pointer;font-size:16px;">✕</button>
+          </div>
+          <div style="text-align:center;padding:8px;font-size:11px;color:#94a3b8;font-weight:600;">… 他143件</div>
+        </div>
+      </div>
+
+      <!-- 右：実施プレビュー -->
+      <div style="padding:20px;background:#f8fafc;">
+        <div style="font-size:13px;font-weight:900;color:#1e293b;margin-bottom:14px;display:flex;align-items:center;gap:7px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>実施プレビュー
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:14px;border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:10px;">
+          <div style="font-size:11px;font-weight:900;color:#dc2626;display:flex;align-items:center;gap:4px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>FW
+          </div>
+          <div style="padding:10px;border-radius:10px;border:1px solid #e2e8f0;">
+            <div style="font-size:12px;font-weight:800;color:#1e293b;margin-bottom:6px;">1. 鏡は割れ等の破損はないか</div>
+            <div style="display:flex;gap:4px;margin-bottom:6px;">
+              <span style="font-size:9px;background:#f1f5f9;color:#64748b;padding:1px 5px;border-radius:3px;">重み 1</span>
+              <span style="font-size:9px;background:#d1fae5;color:#059669;padding:1px 5px;border-radius:3px;">必須</span>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+              <div style="padding:6px;border-radius:7px;border:1px solid #e2e8f0;text-align:center;font-size:11px;color:#94a3b8;">OK</div>
+              <div style="padding:6px;border-radius:7px;border:1px solid #e2e8f0;text-align:center;font-size:11px;color:#94a3b8;">NG</div>
+            </div>
+          </div>
+          <div style="padding:10px;border-radius:10px;border:1px solid #e2e8f0;">
+            <div style="font-size:12px;font-weight:800;color:#1e293b;margin-bottom:6px;">2. 鏡の段差に埃、鏡表面に手垢等の汚れがないか</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;">
+              <div style="padding:6px;border-radius:7px;border:1px solid #e2e8f0;text-align:center;font-size:11px;color:#94a3b8;">OK</div>
+              <div style="padding:6px;border-radius:7px;border:1px solid #e2e8f0;text-align:center;font-size:11px;color:#94a3b8;">NG</div>
+            </div>
+          </div>
+          <div style="text-align:center;font-size:10px;color:#94a3b8;">… 他143件</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">アセットを編集する</div><div class="step-sub">左リスト選択 → 設問追加・並び替え → 保存</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          左リストでアセットを選択すると中央に構成設問一覧が表示されます。<br><br>
+          • <strong>設問を追加</strong>：「+ 設問を追加」ボタンで設問ライブラリが開きます<br>
+          • <strong>並び替え</strong>：⋮⋮ アイコンのドラッグで設問の順番を変更<br>
+          • <strong>設問を削除</strong>：✕ ボタンでアセットから除外（設問マスタは残ります）
+        </div>
+        <div class="tip warn"><span class="tip-icon">⚠️</span><span>アセットを変更すると次回の点検から新しい構成が適用されます。進行中の点検には影響しません。</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div><div class="step-title">新規アセットを作成する</div><div class="step-sub">右上「+ 新規アセット」から</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">「+ 新規アセット」でアセット名を入力し、設問ライブラリから必要な設問を追加します。作成後、店舗管理でそのアセットを店舗に割り当てます。</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('questions')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('settings')">次へ：設定 →</button>
+  </div>
+</div>
+
+
+<div class="page" id="page-news">
+  <div class="section-title">お知らせ</div>
+  <div class="section-sub">全店舗へのお知らせを作成・管理します。重要なお知らせはピン留めでトップに固定できます。</div>
+
+  <!-- お知らせ一覧モック -->
+  <div style="background:#fff;border-radius:20px;border:1px solid #e2e8f0;overflow:hidden;margin-bottom:24px;" id="news-list-view">
+    <div style="padding:20px 24px;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:#eef2ff;display:grid;place-items:center;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="1.5"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>
+        </div>
+        <div>
+          <div style="font-size:18px;font-weight:900;color:#1e293b;">お知らせ管理</div>
+          <div style="font-size:12px;color:#94a3b8;margin-top:1px;">全店舗への通知制御</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button style="display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:11px;border:1.5px solid #e2e8f0;background:#fff;font-size:13px;font-weight:700;color:#475569;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">⠿ 並び替え</button>
+        <button onclick="newsOpenCreate()" style="display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:11px;border:none;background:#1e293b;color:#fff;font-size:13px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">+ 新規作成</button>
+      </div>
+    </div>
+    <div style="padding:14px 24px;border-bottom:1px solid #f1f5f9;">
+      <div style="height:40px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;padding:0 14px;gap:8px;font-size:13px;color:#94a3b8;">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>キーワードやIDで検索...
+      </div>
+    </div>
+    <div style="padding:8px 16px;display:flex;flex-direction:column;gap:0;" id="news-items">
+      <div onclick="newsOpenEdit()" style="display:flex;align-items:center;gap:14px;padding:16px 10px;border-bottom:1px solid #f8fafc;cursor:pointer;transition:background 0.1s;" onmouseenter="this.style.background='#f8fafc'" onmouseleave="this.style.background='transparent'">
+        <div style="width:36px;height:36px;border-radius:10px;background:#eef2ff;display:grid;place-items:center;flex-shrink:0;">📌</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">
+            <span style="font-size:10px;font-weight:900;background:#fef2f2;color:#dc2626;padding:1px 7px;border-radius:4px;">重要</span>
+            <span style="font-size:14px;font-weight:800;color:#1e293b;">【重要】2/10 システムメンテナンスのお知らせ</span>
+          </div>
+          <div style="font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:7px;">
+            <span>ID: N001</span><span>•</span><span style="color:#059669;font-weight:700;">公開中</span>
+          </div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;padding:16px 10px;cursor:pointer;transition:background 0.1s;" onmouseenter="this.style.background='#f8fafc'" onmouseleave="this.style.background='transparent'">
+        <div style="width:36px;height:36px;border-radius:10px;background:#f1f5f9;display:grid;place-items:center;flex-shrink:0;opacity:0.5;">📌</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:7px;margin-bottom:3px;">
+            <span style="font-size:10px;font-weight:900;background:#eff6ff;color:#2563eb;padding:1px 7px;border-radius:4px;">運営</span>
+            <span style="font-size:14px;font-weight:800;color:#1e293b;">QSC：写真レビューの表示を改善</span>
+          </div>
+          <div style="font-size:11px;color:#94a3b8;display:flex;align-items:center;gap:7px;">
+            <span>ID: N002</span><span>•</span><span style="color:#94a3b8;font-weight:700;">下書き</span>
+          </div>
+        </div>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- 新規作成パネル -->
+  <div id="news-create-panel" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px);">
+    <div style="position:absolute;right:0;top:0;bottom:0;width:500px;background:#fff;box-shadow:-8px 0 32px rgba(0,0,0,0.12);display:flex;flex-direction:column;">
+      <div style="padding:24px 28px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f1f5f9;">
+        <div style="font-size:18px;font-weight:900;color:#1e293b;">新規作成</div>
+        <button onclick="newsCloseCreate()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;display:grid;place-items:center;">✕</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:7px;">タイトル</div>
+          <div style="height:48px;border-radius:12px;border:1px solid #e2e8f0;padding:0 14px;display:flex;align-items:center;font-size:13px;color:#94a3b8;">タイトル...</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:7px;">本文</div>
+          <div style="min-height:140px;border-radius:12px;border:1px solid #e2e8f0;padding:12px 14px;font-size:13px;color:#94a3b8;">本文...</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:7px;">カテゴリ</div>
+            <div style="height:44px;border-radius:12px;border:1px solid #e2e8f0;padding:0 12px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#1e293b;">
+              運営 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:7px;">ステータス</div>
+            <div style="height:44px;border-radius:12px;border:1px solid #e2e8f0;padding:0 12px;display:flex;align-items:center;justify-content:space-between;font-size:13px;color:#1e293b;">
+              下書き <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px;border-radius:12px;border:1px solid #e2e8f0;display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" style="width:16px;height:16px;accent-color:#6366f1;" />
+          <span style="font-size:13px;font-weight:700;color:#1e293b;">一覧のトップに固定（ピン留め）</span>
+        </div>
+      </div>
+      <div style="padding:16px 28px;border-top:1px solid #f1f5f9;display:grid;grid-template-columns:1fr 2fr;gap:10px;">
+        <button onclick="newsCloseCreate()" style="height:48px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:13px;font-weight:800;color:#475569;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+        <button onclick="newsSave()" style="height:48px;border-radius:12px;border:none;background:#1e293b;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">お知らせを保存</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 編集パネル -->
+  <div id="news-edit-panel" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.3);backdrop-filter:blur(4px);">
+    <div style="position:absolute;right:0;top:0;bottom:0;width:500px;background:#fff;box-shadow:-8px 0 32px rgba(0,0,0,0.12);display:flex;flex-direction:column;">
+      <div style="padding:24px 28px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #f1f5f9;">
+        <div style="font-size:18px;font-weight:900;color:#1e293b;">お知らせの編集</div>
+        <button onclick="newsCloseEdit()" style="width:32px;height:32px;border-radius:8px;border:none;background:#f1f5f9;cursor:pointer;display:grid;place-items:center;">✕</button>
+      </div>
+      <div style="flex:1;overflow-y:auto;padding:24px 28px;display:flex;flex-direction:column;gap:18px;">
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:7px;">タイトル</div>
+          <div style="height:48px;border-radius:12px;border:1px solid #e2e8f0;padding:0 14px;display:flex;align-items:center;font-size:13px;font-weight:700;color:#1e293b;">【重要】2/10 システムメンテナンスのお知らせ</div>
+        </div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:7px;">本文</div>
+          <div style="min-height:100px;border-radius:12px;border:1px solid #e2e8f0;padding:12px 14px;font-size:13px;font-weight:600;color:#1e293b;">2/10（火）02:00〜04:00にメンテナンスを実施します。</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:7px;">カテゴリ</div>
+            <div style="height:44px;border-radius:12px;border:1px solid #e2e8f0;padding:0 12px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:#1e293b;">
+              重要 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:7px;">ステータス</div>
+            <div style="height:44px;border-radius:12px;border:1px solid #e2e8f0;padding:0 12px;display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:700;color:#1e293b;">
+              今すぐ公開 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+          </div>
+        </div>
+        <div style="padding:14px;border-radius:12px;border:1px solid #6366f1;background:#eef2ff;display:flex;align-items:center;gap:10px;">
+          <input type="checkbox" checked style="width:16px;height:16px;accent-color:#6366f1;" />
+          <span style="font-size:13px;font-weight:700;color:#1e293b;">一覧のトップに固定（ピン留め）</span>
+        </div>
+        <div style="padding:16px;border-radius:12px;background:#fef2f2;border:1px solid #fee2e2;text-align:center;cursor:pointer;color:#dc2626;font-size:13px;font-weight:700;">🗑 お知らせを削除</div>
+      </div>
+      <div style="padding:16px 28px;border-top:1px solid #f1f5f9;display:grid;grid-template-columns:1fr 2fr;gap:10px;">
+        <button onclick="newsCloseEdit()" style="height:48px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;font-size:13px;font-weight:800;color:#475569;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+        <button onclick="newsSave()" style="height:48px;border-radius:12px;border:none;background:#1e293b;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">お知らせを保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">お知らせを作成・編集する</div><div class="step-sub">タイトル・本文・カテゴリ・ステータス</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          「+ 新規作成」で右側にパネルが開きます。既存のお知らせをクリックすると編集パネルが開きます。<br><br>
+          • <strong>カテゴリ</strong>：重要 / 運営 など<br>
+          • <strong>ステータス</strong>：下書き / 今すぐ公開<br>
+          • <strong>ピン留め</strong>：チェックするとお知らせ一覧のトップに固定表示
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('settings')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('overview')">最初に戻る ↩</button>
+  </div>
+</div>
+
+<script>
+
+function newsOpenCreate() { document.getElementById("news-create-panel").style.display = "block"; }
+function newsCloseCreate() { document.getElementById("news-create-panel").style.display = "none"; }
+function newsOpenEdit() { document.getElementById("news-edit-panel").style.display = "block"; }
+function newsCloseEdit() { document.getElementById("news-edit-panel").style.display = "none"; }
+function newsSave() {
+  newsCloseCreate(); newsCloseEdit();
+  const t = document.createElement("div");
+  t.style.cssText = "position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:800;z-index:99999;font-family:sans-serif;";
+  t.textContent = "✓ 保存しました";
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2000);
+}
+
+</script>
+
+
+<div class="page" id="page-settings">
+  <div class="section-title">設定</div>
+  <div class="section-sub">メールテンプレートのテスト送信ができます。本番環境に影響はありません。</div>
+
+  <div style="background:#fff;border-radius:20px;border:1px solid #e2e8f0;padding:28px;margin-bottom:24px;max-width:700px;">
+    <div style="font-size:18px;font-weight:900;color:#1e293b;margin-bottom:4px;">メール送信テスト</div>
+    <div style="font-size:13px;color:#64748b;margin-bottom:20px;">各メールテンプレートのテスト送信ができます</div>
+
+    <div style="margin-bottom:20px;">
+      <div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:7px;">送信先メールアドレス</div>
+      <div style="height:48px;border-radius:12px;border:1px solid #e2e8f0;padding:0 16px;display:flex;align-items:center;font-size:14px;color:#94a3b8;">test@example.com</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;">
+        <div><div style="font-size:14px;font-weight:800;color:#1e293b;">アカウント作成</div><div style="font-size:12px;color:#94a3b8;margin-top:2px;">ログイン情報を送信</div></div>
+        <button style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:none;background:#1e293b;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">✈ テスト送信</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;">
+        <div><div style="font-size:14px;font-weight:800;color:#1e293b;">点検完了</div><div style="font-size:12px;color:#94a3b8;margin-top:2px;">スコア・NG件数サマリー</div></div>
+        <button style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:none;background:#1e293b;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">✈ テスト送信</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;">
+        <div><div style="font-size:14px;font-weight:800;color:#1e293b;">是正報告提出</div><div style="font-size:12px;color:#94a3b8;margin-top:2px;">管理者への通知</div></div>
+        <button style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:none;background:#1e293b;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">✈ テスト送信</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;">
+        <div><div style="font-size:14px;font-weight:800;color:#1e293b;">承認通知</div><div style="font-size:12px;color:#94a3b8;margin-top:2px;">店舗への承認通知</div></div>
+        <button style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:none;background:#1e293b;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">✈ テスト送信</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;">
+        <div><div style="font-size:14px;font-weight:800;color:#1e293b;">差し戻し通知</div><div style="font-size:12px;color:#94a3b8;margin-top:2px;">店舗への差し戻し通知</div></div>
+        <button style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:none;background:#1e293b;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">✈ テスト送信</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;">
+        <div><div style="font-size:14px;font-weight:800;color:#1e293b;">改善期限リマインダー</div><div style="font-size:12px;color:#94a3b8;margin-top:2px;">期限3日前の通知</div></div>
+        <button style="display:flex;align-items:center;gap:6px;padding:8px 16px;border-radius:10px;border:none;background:#1e293b;color:#fff;font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">✈ テスト送信</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">メールテスト送信の手順</div><div class="step-sub">本番環境には影響しません</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          送信先メールアドレスを入力し、確認したいテンプレートの「テスト送信」ボタンを押すだけです。<br><br>
+          テスト可能な6種類のメール：アカウント作成 / 点検完了 / 是正報告提出 / 承認通知 / 差し戻し通知 / 改善期限リマインダー
+        </div>
+        <div class="tip info"><span class="tip-icon">💡</span><span>店舗担当者にメールが届いているか確認したい場合、送信先に店舗のメールアドレスを入力してテスト送信してください。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('assets')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('news')">次へ：お知らせ →</button>
+  </div>
+</div>
+
+
+<script>
+
+const PAGES = ['overview','improvements','store-requests','analytics','stores','users','questions','assets','settings','news'];
+
+function goPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(b=>b.classList.remove('active'));
+  const pg=document.getElementById('page-'+id); if(pg)pg.classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(b=>{
+    if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes("'"+id+"'"))b.classList.add('active');
+  });
+  const idx=PAGES.indexOf(id);
+  document.querySelectorAll('.progress-dot').forEach((d,i)=>{
+    d.classList.toggle('active',i===idx);
+  });
+  window.scrollTo(0,0);
+  if(id==='improvements') initImp();
+  if(id==='store-requests') initSR();
+  if(id==='stores') initStores();
+  if(id==='users') initUsers();
+  if(id==='analytics'){ if(typeof aqShowRanking==='function') aqShowRanking(); }
+}
+
+function toggleStep(header){
+  const step=header.parentElement;
+  const wasOpen=step.classList.contains('open');
+  step.closest('.steps').querySelectorAll('.step').forEach(s=>s.classList.remove('open'));
+  if(!wasOpen) step.classList.add('open');
+}
+
+function initDots(){
+  const dots=document.getElementById('progress-dots');
+  if(!dots)return;
+  dots.innerHTML=PAGES.map(p=>`<div class="progress-dot" id="dot-${p}"></div>`).join('');
+}
+
+/* ===== STORES ===== */
+const storeData = [
+  {id:'S001',name:'平岡公園',brand:'JOYFIT',biz:'青',code:'101',corp:'オカモト',asset:'青/青LITE',email:'hiraoka-joyfit@okamoto-group.co.jp',status:'稼働中',checked:false},
+  {id:'S002',name:'札幌北',brand:'JOYFIT',biz:'青',code:'102',corp:'オカモト',asset:'青/青LITE',email:'未設定',status:'稼働中',checked:false},
+  {id:'S003',name:'０１',brand:'JOYFIT',biz:'赤SP LITE',code:'103',corp:'オカモト',asset:'青/青LITE',email:'未設定',status:'稼働中',checked:false},
+  {id:'S004',name:'旭川',brand:'JOYFIT',biz:'赤SP LITE',code:'104',corp:'オカモト',asset:'青/青LITE',email:'未設定',status:'稼働中',checked:false},
+];
+const bulkAssets=[
+  {name:'FIT365',id:'A1774082151517'},{name:'プール（瀬戸内SS）',id:'A1774080778885'},
+  {name:'YOGA',id:'A1774082724341'},{name:'赤SP/赤SP LITE',id:'A1774172397519'},
+  {name:'青/青LITE',id:'A1774243730376'},{name:'メディカル',id:'A001',desc:'全店共通の標準的なQSCチェックアセット'},
+  {name:'GH（赤）',id:'A1774169026935'},{name:'JOYFIT+',id:'A1774083186282'},
+];
+let selectedBulkAsset=null;
+
+function storeRender(){
+  const el=document.getElementById('store-list'); if(!el)return;
+  el.innerHTML=storeData.map(s=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 16px;background:#fff;border-radius:14px;border:1.5px solid ${s.checked?'#6366f1':'#e2e8f0'};">
+      <input type="checkbox" ${s.checked?'checked':''} onchange="storeToggle('${s.id}')" style="width:16px;height:16px;accent-color:#6366f1;flex-shrink:0;cursor:pointer;">
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+          <span style="font-size:15px;font-weight:900;color:#1e293b;">${s.name}</span>
+          <span style="padding:2px 7px;border-radius:6px;background:#eef2ff;color:#6366f1;font-size:10px;font-weight:800;">${s.brand}</span>
+          <span style="padding:2px 7px;border-radius:6px;background:#f1f5f9;color:#475569;font-size:10px;font-weight:700;">${s.biz}</span>
+          <span style="padding:2px 7px;border-radius:6px;background:#f1f5f9;color:#475569;font-size:10px;font-weight:700;">Code:${s.code}</span>
+          <span style="padding:2px 7px;border-radius:6px;background:#d1fae5;color:#059669;font-size:10px;font-weight:800;">${s.status}</span>
+        </div>
+        <div style="font-size:11px;color:#94a3b8;">${s.corp} &nbsp;·&nbsp; ${s.asset} &nbsp;·&nbsp; ${s.email}</div>
+      </div>
+      <button style="width:32px;height:32px;border-radius:8px;border:none;background:#f8fafc;color:#94a3b8;display:grid;place-items:center;cursor:pointer;">✏️</button>
+    </div>`).join('');
+}
+
+function storeToggle(id){
+  const s=storeData.find(x=>x.id===id); if(!s)return;
+  s.checked=!s.checked;
+  const cnt=storeData.filter(x=>x.checked).length;
+  const btn=document.getElementById('store-bulk-btn');
+  if(btn){btn.style.display=cnt>0?'block':'none';btn.textContent=cnt+'件選択中 → アセットを一括適用';}
+  storeRender();
+}
+function storeSelectAll(){
+  const allChecked=storeData.every(x=>x.checked);
+  storeData.forEach(x=>x.checked=!allChecked);
+  const cnt=storeData.filter(x=>x.checked).length;
+  const btn=document.getElementById('store-bulk-btn');
+  if(btn){btn.style.display=cnt>0?'block':'none';btn.textContent=cnt+'件選択中 → アセットを一括適用';}
+  storeRender();
+}
+function storeOpenAdd(){document.getElementById('store-add-modal').style.display='block';}
+function storeCloseAdd(){document.getElementById('store-add-modal').style.display='none';}
+function storeSaveAdd(){
+  storeCloseAdd();
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:800;z-index:99999;';
+  t.textContent='✓ 店舗を登録しました';document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
+}
+function storeBulkAsset(){
+  const modal=document.getElementById('store-bulk-modal'); if(!modal)return;
+  modal.style.display='flex';selectedBulkAsset=null;
+  const list=document.getElementById('bulk-asset-list');
+  if(list){list.innerHTML=bulkAssets.map(a=>`
+    <div onclick="selectBulkAsset('${a.id}',this)" style="padding:14px 16px;border-radius:12px;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;">
+      <div style="font-size:14px;font-weight:800;color:#1e293b;">${a.name}</div>
+      <div style="font-size:11px;color:#94a3b8;margin-top:2px;">${a.id}</div>
+      ${a.desc?`<div style="font-size:11px;color:#6366f1;margin-top:2px;">${a.desc}</div>`:''}
+    </div>`).join('');}
+}
+function selectBulkAsset(id,el){
+  selectedBulkAsset=id;
+  document.querySelectorAll('#bulk-asset-list > div').forEach(d=>{d.style.borderColor='#e2e8f0';d.style.background='#fff';});
+  el.style.borderColor='#6366f1';el.style.background='#eef2ff';
+}
+function storeBulkClose(){document.getElementById('store-bulk-modal').style.display='none';}
+function storeBulkApply(){
+  storeBulkClose();storeData.forEach(x=>x.checked=false);
+  const btn=document.getElementById('store-bulk-btn');if(btn)btn.style.display='none';
+  storeRender();
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#6366f1;color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:800;z-index:99999;';
+  t.textContent='✓ アセットを一括適用しました';document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
+}
+function initStores(){storeRender();}
+
+/* ===== USERS ===== */
+const userData=[
+  {name:'FIT365イオンタウン松ヶ崎',email:'fit365-aeonmatsugasaki@okamoto-group.co.jp',role:'店舗担当',corp:'未割当',status:'停止'},
+  {name:'FIT365イオン八街',email:'fit365-aeonyachimata@okamoto-group.co.jp',role:'店舗担当',corp:'未割当',status:'停止'},
+  {name:'三寺 健太',email:'k-mitera@example.com',role:'検査員',corp:'H3',status:'有効'},
+  {name:'遠藤 陵平',email:'r-endo@example.com',role:'管理者',corp:'H3',status:'有効'},
+];
+const roleStyle={'店舗担当':{bg:'#eef2ff',c:'#6366f1'},'検査員':{bg:'#eff6ff',c:'#2563eb'},'管理者':{bg:'#fef2f2',c:'#dc2626'}};
+const statusStyle={'有効':{bg:'#eff6ff',c:'#2563eb'},'招待中':{bg:'#fffbeb',c:'#d97706'},'停止':{c:'#dc2626',bg:'#fff'}};
+
+function userRender(){
+  const el=document.getElementById('user-list'); if(!el)return;
+  el.innerHTML=userData.map(u=>{
+    const rs=roleStyle[u.role]||{bg:'#f1f5f9',c:'#475569'};
+    const ss=statusStyle[u.status]||{c:'#94a3b8',bg:'#fff'};
+    return `<div style="padding:14px 24px;display:grid;grid-template-columns:1fr 160px 120px 100px 30px;gap:12px;align-items:center;border-bottom:1px solid #f8fafc;cursor:pointer;" onmouseenter="this.style.background='#f8fafc'" onmouseleave="this.style.background='#fff'">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:10px;background:#eef2ff;display:grid;place-items:center;font-size:13px;font-weight:900;color:#6366f1;">${u.name.charAt(0)}</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#1e293b;">${u.name}</div>
+          <div style="font-size:11px;color:#94a3b8;">${u.email}</div>
+        </div>
+      </div>
+      <div><span style="padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;background:${rs.bg};color:${rs.c};">${u.role}</span></div>
+      <div style="font-size:12px;color:#94a3b8;">${u.corp}</div>
+      <div style="font-size:12px;font-weight:800;color:${ss.c};">${u.status}</div>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+    </div>`;
+  }).join('');
+}
+function userOpenAdd(){document.getElementById('user-add-modal').style.display='block';}
+function userCloseAdd(){document.getElementById('user-add-modal').style.display='none';}
+function userSaveAdd(){
+  userCloseAdd();
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:800;z-index:99999;';
+  t.textContent='✓ アカウントを作成しました';document.body.appendChild(t);setTimeout(()=>t.remove(),2500);
+}
+function initUsers(){userRender();}
+
+/* ===== STORE REQUESTS ===== */
+const srItems=[
+  {id:'SR001',name:'三寺 健太',email:'k-mitera@example.com',from:['MINANO分倍河原'],to:['MINANO分倍河原','FIT365神戸エコール・リラ'],note:'担当範囲拡大のため',status:'pending',date:'2026-04-15'},
+  {id:'SR002',name:'山田 一郎',email:'i-yamada@example.com',from:['イオンタウン新船橋'],to:['JR西宮駅前'],note:'異動のため',status:'pending',date:'2026-04-14'},
+];
+function srRender(){
+  const list=document.getElementById('sr-list'); if(!list)return;
+  const pending=srItems.filter(x=>x.status==='pending');
+  if(pending.length===0){list.innerHTML='<div style="text-align:center;padding:24px;color:#94a3b8;font-size:13px;font-weight:700;">承認待ちの申請はありません ✓</div>';return;}
+  list.innerHTML=pending.map(item=>`
+    <div style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:18px;margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div style="font-size:14px;font-weight:900;color:#1e293b;">${item.name}</div>
+          <div style="font-size:11px;color:#94a3b8;">${item.email}</div>
+        </div>
+        <span style="font-size:10px;font-weight:800;background:#fffbeb;color:#d97706;padding:2px 8px;border-radius:6px;border:1px solid #fef3c7;">${item.date}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center;margin-bottom:12px;">
+        <div style="background:#fef2f2;border-radius:10px;padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:#dc2626;margin-bottom:4px;">現在の担当</div>
+          ${item.from.map(s=>`<div style="font-size:11px;font-weight:700;color:#1e293b;">🏪 ${s}</div>`).join('')}
+        </div>
+        <div style="color:#94a3b8;font-size:18px;">→</div>
+        <div style="background:#f0fdf4;border-radius:10px;padding:10px 12px;">
+          <div style="font-size:10px;font-weight:700;color:#059669;margin-bottom:4px;">希望の担当</div>
+          ${item.to.map(s=>`<div style="font-size:11px;font-weight:700;color:#1e293b;">🏪 ${s}</div>`).join('')}
+        </div>
+      </div>
+      ${item.note?`<div style="font-size:11px;color:#64748b;background:#f8fafc;border-radius:8px;padding:8px 10px;margin-bottom:10px;">備考: ${item.note}</div>`:''}
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button onclick="srReject('${item.id}')" style="padding:8px 16px;border-radius:10px;border:1.5px solid #7c3aed;background:#fff;color:#7c3aed;font-size:12px;font-weight:900;cursor:pointer;">↩ 却下</button>
+        <button onclick="srApprove('${item.id}')" style="padding:8px 16px;border-radius:10px;border:none;background:#059669;color:#fff;font-size:12px;font-weight:900;cursor:pointer;">✓ 承認</button>
+      </div>
+    </div>`).join('');
+}
+function srApprove(id){
+  const item=srItems.find(x=>x.id===id); if(!item)return;
+  item.status='approved'; srRender();
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:800;z-index:99999;';
+  t.textContent='✓ 承認しました';document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
+}
+function srReject(id){
+  const item=srItems.find(x=>x.id===id); if(!item)return;
+  item.status='rejected'; srRender();
+  const t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#7c3aed;color:#fff;padding:10px 20px;border-radius:12px;font-size:13px;font-weight:800;z-index:99999;';
+  t.textContent='却下しました';document.body.appendChild(t);setTimeout(()=>t.remove(),2000);
+}
+function initSR(){srRender();}
+
+// 初期化
+initDots();
+goPage('overview');
+
+</script>
+</div><!-- /content -->
+</main>
+</body>
+</html>

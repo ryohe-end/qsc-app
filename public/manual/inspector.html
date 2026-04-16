@@ -1,0 +1,2002 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QSC Check｜点検員マニュアル</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5f6fa;--bg2:#ffffff;--bg3:#f0f1f6;--border:#e4e6ef;--text:#1a1d2e;--text-muted:#8b90a7;--accent:#4f52d9;--accent-light:#eeeffe;--green:#0ea56e;--green-light:#e6f9f2;--yellow:#e88c0a;--yellow-light:#fef6e6;--red:#e03e3e;--red-light:#fdf0f0;--sidebar-w:272px;--radius:16px;}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-serif;display:flex;min-height:100vh;}
+.sidebar{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;z-index:100;}
+.sidebar-logo{padding:24px 20px 20px;border-bottom:1px solid var(--border);}
+.sidebar-logo .badge{font-size:10px;font-weight:700;letter-spacing:0.12em;color:var(--accent);background:var(--accent-light);padding:3px 8px;border-radius:6px;margin-bottom:10px;display:inline-block;text-transform:uppercase;}
+.sidebar-logo h1{font-size:16px;font-weight:900;color:var(--text);line-height:1.35;}
+.sidebar-logo p{font-size:11px;color:var(--text-muted);margin-top:3px;}
+.sidebar-section{padding:16px 12px 4px;}
+.sidebar-section-label{font-size:10px;font-weight:700;letter-spacing:0.08em;color:var(--text-muted);padding:0 8px;margin-bottom:4px;text-transform:uppercase;}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;cursor:pointer;transition:all 0.15s;margin-bottom:1px;font-size:13px;font-weight:500;color:var(--text-muted);border:none;background:none;width:100%;text-align:left;font-family:'Noto Sans JP',sans-serif;}
+.sidebar-item:hover{background:var(--bg3);color:var(--text);}
+.sidebar-item.active{background:var(--accent-light);color:var(--accent);font-weight:700;}
+.sidebar-item .icon{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-size:13px;flex-shrink:0;}
+.sidebar-item.active .icon{background:var(--accent);filter:brightness(0) invert(1);}
+.sidebar-item:not(.active) .icon{background:var(--bg3);}
+.main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;}
+.topbar{position:sticky;top:0;background:rgba(255,255,255,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:14px 40px;display:flex;align-items:center;justify-content:space-between;z-index:50;}
+.topbar-title{font-size:14px;font-weight:600;color:var(--text-muted);}
+.topbar-title span{color:var(--text);font-weight:700;}
+.progress-bar{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--text-muted);font-weight:600;}
+.progress-dots{display:flex;gap:4px;}
+.progress-dot{width:6px;height:6px;border-radius:50%;background:var(--border);transition:all 0.3s;}
+.progress-dot.done{background:var(--accent);}
+.content{padding:40px;max-width:860px;}
+.page{display:none;}
+.page.active{display:block;animation:fadeUp 0.35s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes ldbounce{0%,80%,100%{transform:scale(0.6);opacity:0.5}40%{transform:scale(1);opacity:1}}
+@keyframes countup{from{opacity:0}to{opacity:1}}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#4f52d9 0%,#6366f1 50%,#818cf8 100%);border-radius:20px;padding:36px 40px;margin-bottom:36px;position:relative;overflow:hidden;color:#fff;}
+.hero::after{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;background:rgba(255,255,255,0.07);border-radius:50%;}
+.hero-tag{font-size:10px;font-weight:700;letter-spacing:0.15em;color:rgba(255,255,255,0.7);text-transform:uppercase;margin-bottom:10px;}
+.hero h2{font-size:28px;font-weight:900;color:#fff;line-height:1.25;margin-bottom:10px;}
+.hero p{font-size:14px;color:rgba(255,255,255,0.8);line-height:1.75;max-width:480px;}
+.hero-badges{display:flex;gap:8px;margin-top:18px;flex-wrap:wrap;}
+.badge-pill{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:700;background:rgba(255,255,255,0.15);color:#fff;border:1px solid rgba(255,255,255,0.25);}
+.section-title{font-size:20px;font-weight:900;color:var(--text);margin-bottom:6px;margin-top:36px;}
+.section-title:first-child{margin-top:0;}
+.section-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px;line-height:1.7;}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:12px;margin-bottom:32px;}
+.step{background:var(--bg2);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s;}
+.step.open{border-color:#c7c9f4;box-shadow:0 2px 12px rgba(79,82,217,0.07);}
+.step-header{display:flex;align-items:center;gap:14px;padding:18px 20px;cursor:pointer;user-select:none;}
+.step-num{width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0;}
+.step.open .step-num{background:var(--accent);}
+.step:not(.open) .step-num{background:var(--bg3);color:var(--text-muted);}
+.step-title{font-size:15px;font-weight:700;color:var(--text);}
+.step-sub{font-size:12px;color:var(--text-muted);margin-top:2px;}
+.step-arrow{margin-left:auto;color:var(--text-muted);transition:transform 0.2s;font-size:20px;line-height:1;}
+.step.open .step-arrow{transform:rotate(90deg);color:var(--accent);}
+.step-body{display:none;padding:0 20px 20px;border-top:1px solid var(--border);}
+.step.open .step-body{display:block;}
+.step-desc{font-size:13.5px;color:#4a4f68;line-height:1.85;margin-top:10px;}
+.step-desc strong{color:var(--text);font-weight:700;}
+
+/* MOCK */
+.mock-frame{display:flex;justify-content:center;margin:16px 0;}
+.mock-phone{font-family:'Inter','Noto Sans JP',sans-serif;max-width:320px;width:100%;background:#eef1f7;border-radius:20px;position:relative;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.12);max-height:560px;}
+.mock-scroll{display:flex;flex-direction:column;gap:10px;padding:12px 12px 90px;}
+.mock-nav{position:absolute;left:0;right:0;bottom:0;}
+.mock-nav-inner{height:58px;padding:7px 9px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;background:rgba(255,255,255,0.86);backdrop-filter:blur(12px);border-top:1px solid rgba(15,17,21,0.10);box-shadow:0 -18px 40px rgba(15,17,21,0.08);}
+.mock-tab{display:grid;align-content:center;justify-items:center;gap:2px;border-radius:12px;padding:5px 4px;color:rgba(15,17,21,0.60);cursor:pointer;}
+.mock-tab.active{background:rgba(15,17,21,0.05);color:rgba(15,17,21,0.90);}
+.mock-tab-label{font-size:8px;font-weight:900;letter-spacing:0.02em;}
+.mock-fab{position:absolute;right:12px;bottom:68px;width:46px;height:46px;border-radius:50%;border:1px solid rgba(255,255,255,0.18);background:linear-gradient(180deg,#1b2230 0%,#121826 100%);display:grid;place-items:center;box-shadow:0 18px 45px rgba(15,17,21,0.35);cursor:pointer;}
+.mock-widget{background:linear-gradient(135deg,#1e293b 0%,#334155 60%,#1e40af 100%);border-radius:20px;padding:16px 14px 14px;color:#fff;position:relative;overflow:hidden;}
+.mock-widget::before{content:'';position:absolute;top:-25px;right:-25px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.04);}
+.mock-card{background:#fff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;}
+
+/* TIPS */
+.tip{display:flex;gap:10px;padding:12px 14px;border-radius:10px;margin-top:12px;font-size:13px;line-height:1.65;}
+.tip.info{background:var(--accent-light);color:#3b40b8;border:1px solid #c7c9f4;}
+.tip.warn{background:var(--yellow-light);color:#a06200;border:1px solid #fbd99a;}
+.tip.success{background:var(--green-light);color:#0a7a52;border:1px solid #9de8cc;}
+.tip.danger{background:var(--red-light);color:#b02020;border:1px solid #f5b8b8;}
+.tip-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+
+/* FLOW */
+.flow{display:flex;flex-direction:column;margin:20px 0;}
+.flow-item{display:flex;gap:14px;align-items:flex-start;}
+.flow-left{display:flex;flex-direction:column;align-items:center;width:30px;flex-shrink:0;}
+.flow-dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;flex-shrink:0;}
+.flow-line{width:2px;flex:1;min-height:20px;background:var(--border);margin:3px 0;}
+.flow-content{padding:4px 0 22px;flex:1;}
+.flow-label{font-size:14px;font-weight:700;color:var(--text);margin-bottom:3px;}
+.flow-text{font-size:12.5px;color:var(--text-muted);line-height:1.65;}
+.status-row{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0;}
+.status-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;}
+.divider{height:1px;background:var(--border);margin:28px 0;}
+
+/* NAV FOOTER */
+.nav-footer{display:flex;justify-content:space-between;margin-top:40px;padding-top:20px;border-top:1px solid var(--border);}
+.nav-btn{display:flex;align-items:center;gap:7px;padding:10px 18px;border-radius:10px;border:1.5px solid var(--border);background:var(--bg2);color:var(--text-muted);font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent);}
+.nav-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;}
+.nav-btn.primary:hover{background:#3d40c7;}
+.nav-btn:disabled{opacity:0.3;cursor:default;pointer-events:none;}
+
+/* モーダル */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(10px);z-index:200;display:none;align-items:flex-end;justify-content:center;}
+.modal-overlay.open{display:flex;}
+.modal-sheet{width:100%;max-width:400px;background:#fff;border-radius:28px 28px 0 0;padding:24px 20px 40px;animation:slideUp 0.3s cubic-bezier(0.4,0,0.2,1);max-height:85vh;overflow-y:auto;}
+.action-btn{display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;width:100%;text-align:left;cursor:pointer;font-family:'Noto Sans JP',sans-serif;margin-bottom:8px;border:1px solid #e2e8f0;background:#fff;}
+.action-btn:hover{opacity:0.8;}
+
+/* チップ */
+.cp-chip{padding:7px 12px;border-radius:10px;border:1px solid #e2e8f0;background:#fff;font-size:12px;font-weight:700;color:#475569;cursor:pointer;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;white-space:nowrap;}
+.cp-chip.active{border-color:#1e293b;background:#1e293b;color:#fff;}
+
+/* 点検画面 */
+.crp-item{background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:16px;margin-bottom:8px;}
+.crp-item.ng{border-color:rgba(248,113,113,0.4);background:#fff9f9;}
+.crp-item.ok{border-color:rgba(52,211,153,0.3);}
+.crp-choices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0;}
+.crp-choice{padding:8px 4px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:11px;font-weight:800;color:#94a3b8;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:3px;transition:all 0.15s;font-family:'Noto Sans JP',sans-serif;}
+.crp-choice.sel-ok{background:#d1fae5;border-color:#34d399;color:#059669;}
+.crp-choice.sel-ng{background:#fee2e2;border-color:#f87171;color:#dc2626;}
+.crp-choice.sel-hold{background:#fef3c7;border-color:#fbbf24;color:#d97706;}
+.crp-choice.sel-na{background:#f1f5f9;border-color:#94a3b8;color:#64748b;}
+.crp-note{width:100%;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px;font-size:12px;color:#475569;background:#f8fafc;resize:none;font-family:'Noto Sans JP',sans-serif;outline:none;margin-top:8px;}
+.crp-note.ng-note{border-color:rgba(248,113,113,0.4);background:#fff9f9;}
+.crp-photo-btn{display:flex;align-items:center;gap:5px;padding:6px 10px;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc;font-size:11px;font-weight:700;color:#64748b;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.crp-bottom-dock{background:#fff;border-top:1px solid #e2e8f0;padding:10px 12px;display:flex;gap:8px;align-items:center;}
+.crp-save-btn{flex:1;height:42px;border-radius:12px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:12px;font-weight:800;color:#64748b;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;}
+.crp-submit-btn{flex:2;height:50px;border-radius:14px;border:none;font-size:14px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;background:#6366f1;box-shadow:0 8px 20px rgba(99,102,241,0.35);font-family:'Noto Sans JP',sans-serif;}
+
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@media(max-width:768px){:root{--sidebar-w:0px;}.sidebar{display:none;}.content{padding:20px;}}
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="badge">Inspector</div>
+    <h1>点検員マニュアル</h1>
+    <p>QSC Check / ver 1.0</p>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">はじめに</div>
+    <button class="sidebar-item active" onclick="goPage('overview')"><span class="icon">📋</span>概要・全体フロー</button>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-section-label">操作手順</div>
+    <button class="sidebar-item" onclick="goPage('login')"><span class="icon">🔑</span>ログイン</button>
+    <button class="sidebar-item" onclick="goPage('home')"><span class="icon">🏠</span>ホーム画面</button>
+    <button class="sidebar-item" onclick="goPage('select')"><span class="icon">🏪</span>店舗選択</button>
+    <button class="sidebar-item" onclick="goPage('check')"><span class="icon">✅</span>点検実施</button>
+    <button class="sidebar-item" onclick="goPage('submit')"><span class="icon">📤</span>送信・完了</button>
+    <button class="sidebar-item" onclick="goPage('results')"><span class="icon">📊</span>結果確認</button>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div class="topbar-title"><span id="topbar-title">概要・全体フロー</span></div>
+    <div class="progress-bar">
+      <span id="progress-text">1 / 7</span>
+      <div class="progress-dots" id="progress-dots"></div>
+    </div>
+  </div>
+  <div class="content">
+
+<!-- ===== OVERVIEW ===== -->
+<div class="page active" id="page-overview">
+  <div class="hero">
+    <div class="hero-tag">QSC Check — Inspector Manual</div>
+    <h2>点検員マニュアル</h2>
+    <p>QSC監査システムで店舗の品質・サービス・清潔さを点検するための操作手順です。</p>
+    <div class="hero-badges">
+      <span class="badge-pill">📱 スマホ対応</span>
+      <span class="badge-pill">☁️ 自動保存</span>
+      <span class="badge-pill">📷 写真アップロード</span>
+    </div>
+  </div>
+
+  <div class="section-title">点検の流れ</div>
+  <div class="section-sub">ログインから送信完了まで、以下の手順で進めます。</div>
+
+  <div class="flow">
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--accent-light);color:var(--accent);">1</div><div class="flow-line"></div></div>
+      <div class="flow-content"><div class="flow-label">🔑 ログイン</div><div class="flow-text">管理者から発行されたメールアドレスとパスワードでログインします。</div></div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--accent-light);color:var(--accent);">2</div><div class="flow-line"></div></div>
+      <div class="flow-content"><div class="flow-label">🏪 店舗選択</div><div class="flow-text">ホームの＋ボタンまたはチェックタブから点検する店舗を選択します。</div></div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--accent-light);color:var(--accent);">3</div><div class="flow-line"></div></div>
+      <div class="flow-content"><div class="flow-label">✅ 点検実施</div><div class="flow-text">各項目をOK / NG / 保留 / 対象外で評価。NG項目にはコメント（必須）と写真を追加します。</div></div>
+    </div>
+    <div class="flow-item">
+      <div class="flow-left"><div class="flow-dot" style="background:var(--green-light);color:var(--green);">4</div></div>
+      <div class="flow-content"><div class="flow-label">📤 送信・完了</div><div class="flow-text">改善期限を設定して送信。店舗・管理者に完了メールが自動送信されます。</div></div>
+    </div>
+  </div>
+
+  <div class="tip info"><span class="tip-icon">💡</span><span>途中でアプリを閉じても自動保存されます。再開時は同じ店舗をタップして「途中から再開」を選択してください。</span></div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" disabled>← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('login')">次へ：ログイン →</button>
+  </div>
+</div>
+
+<!-- ===== LOGIN ===== -->
+<div class="page" id="page-login">
+  <div class="section-title">ログイン</div>
+  <div class="section-sub">システムへのログイン方法です。</div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">URLにアクセスしてログイン情報を入力</div><div class="step-sub">管理者から発行された認証情報を使用</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="mock-frame">
+          <div class="mock-phone" style="height:480px;">
+            <div style="background:#f8fafc;padding:24px 20px;min-height:480px;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+              <div style="font-size:18px;font-weight:900;color:#38a169;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+                <div style="width:28px;height:28px;background:#38a169;border-radius:8px;display:grid;place-items:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M9 12l2 2 4-4M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                QSC Check
+              </div>
+              <div style="background:#fff;border-radius:28px;padding:28px 24px;border:1px solid #e2e8f0;width:100%;box-shadow:0 4px 16px rgba(0,0,0,0.04);">
+                <div style="text-align:center;font-weight:900;font-size:20px;color:#38a169;margin-bottom:14px;">Sign In</div>
+                <div style="margin-bottom:12px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;padding:10px 12px;font-size:11px;font-weight:800;color:#475569;text-align:center;">※ 登録済みのメールアドレスとパスワードでログインしてください</div>
+                <div style="margin-bottom:10px;">
+                  <div style="font-size:11px;font-weight:900;color:#475569;margin-bottom:6px;">EMAIL (ID)</div>
+                  <div id="li-email-box" style="height:46px;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;padding:0 14px;display:flex;align-items:center;font-size:13px;font-weight:700;color:#1e293b;transition:border-color 0.2s;">
+                    <span id="li-email" style="color:#cbd5e1;">example@company.com</span>
+                  </div>
+                </div>
+                <div style="margin-bottom:14px;">
+                  <div style="font-size:11px;font-weight:900;color:#475569;margin-bottom:6px;">パスワード</div>
+                  <div id="li-pass-box" style="height:46px;border-radius:14px;border:1px solid #e2e8f0;background:#f8fafc;padding:0 14px;display:flex;align-items:center;justify-content:space-between;">
+                    <span id="li-pass" style="font-size:14px;color:#cbd5e1;letter-spacing:3px;">••••••••</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                  </div>
+                </div>
+                <button id="li-btn" style="height:50px;border-radius:16px;border:none;background:#717b85;color:#fff;font-size:15px;font-weight:900;cursor:pointer;width:100%;transition:background 0.4s;font-family:'Noto Sans JP',sans-serif;">ログイン</button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="step-desc">
+          ブラウザで <strong>https://main.djvjtfdfn32br.amplifyapp.com</strong> にアクセスし、管理者から発行された<strong>メールアドレス</strong>と<strong>パスワード</strong>を入力してログインします。
+        </div>
+        <div class="tip info"><span class="tip-icon">💡</span><span>iPhoneのSafariなら「共有」→「ホーム画面に追加」でショートカットを作成できます。</span></div>
+        <div class="tip warn"><span class="tip-icon">⚠️</span><span>パスワードが不明な場合は管理者に問い合わせてください。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('overview')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('home')">次へ：ホーム画面 →</button>
+  </div>
+</div>
+
+<!-- ===== HOME ===== -->
+<div class="page" id="page-home">
+  <div class="section-title">ホーム画面</div>
+  <div class="section-sub">ログイン後に表示されるホーム画面です。点検員・管理者にはランキングが表示されます。</div>
+
+  <div class="mock-frame">
+    <div class="mock-phone" style="height:560px;">
+      <div class="mock-scroll">
+        <div class="mock-widget">
+          <div style="position:absolute;top:-25px;right:-25px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.04);"></div>
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+            <div>
+              <div style="font-size:9px;font-weight:800;color:rgba(255,255,255,0.5);letter-spacing:0.12em;margin-bottom:2px;">TODAY</div>
+              <div style="display:flex;align-items:baseline;gap:5px;">
+                <span style="font-size:34px;font-weight:900;letter-spacing:-2px;line-height:1;" id="hm-date">04/15</span>
+                <div style="display:flex;flex-direction:column;">
+                  <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);" id="hm-year">2026</span>
+                  <span style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.6);" id="hm-dow">（火）</span>
+                </div>
+              </div>
+            </div>
+            <div style="opacity:0.4;padding-top:3px;"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M17.5 19H9a7 7 0 117-7c0 3.87-3.13 7-7 7"/><path d="M17.5 19a2.5 2.5 0 100-5H17"/></svg></div>
+          </div>
+          <div style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,0.12);border-radius:7px;padding:4px 9px;font-size:10px;font-weight:800;"><div style="width:5px;height:5px;border-radius:50%;background:#10b981;"></div>QSC Check</div>
+        </div>
+
+        <div class="mock-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px 0;">
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:900;color:#1e293b;"><div style="width:24px;height:24px;border-radius:7px;background:#fef3c7;display:grid;place-items:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg></div>お知らせ</div>
+            <span style="font-size:10px;font-weight:800;color:#94a3b8;">すべて ›</span>
+          </div>
+          <div style="padding:8px 14px 12px;border-top:1px solid #f1f5f9;margin-top:8px;"><div style="display:flex;align-items:center;gap:5px;margin-bottom:2px;"><span style="font-size:9px;color:#94a3b8;">2026/04/04</span><span style="font-size:8px;font-weight:900;padding:1px 4px;border-radius:3px;background:#f1f5f9;color:#64748b;">全体</span></div><div style="font-size:11px;font-weight:700;color:#1e293b;">QSCシステム稼働開始のお知らせ</div></div>
+        </div>
+
+        <div class="mock-card">
+          <div style="display:flex;align-items:center;gap:6px;padding:11px 14px 8px;font-size:12px;font-weight:900;color:#1e293b;">
+            <div style="width:24px;height:24px;border-radius:7px;background:#fef9c3;display:grid;place-items:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#ca8a04" stroke-width="2.5" stroke-linecap="round"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg></div>ランキング
+          </div>
+          <div style="display:flex;gap:4px;padding:0 14px 6px;overflow-x:auto;scrollbar-width:none;">
+            <div style="flex-shrink:0;padding:4px 9px;border-radius:7px;font-size:10px;font-weight:800;border:1.5px solid #1e293b;background:#1e293b;color:#fff;white-space:nowrap;">Q1 4〜6月</div>
+            <div style="flex-shrink:0;padding:4px 9px;border-radius:7px;font-size:10px;font-weight:800;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;white-space:nowrap;">Q2 7〜9月</div>
+            <div style="flex-shrink:0;padding:4px 9px;border-radius:7px;font-size:10px;font-weight:800;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;white-space:nowrap;">Q3</div>
+          </div>
+          <div style="display:flex;gap:4px;padding:0 14px 8px;" id="hm-rank-tabs">
+            <div onclick="hmRank('overall')" id="hmt-overall" style="flex:1;padding:6px 4px;border-radius:8px;font-size:11px;font-weight:900;background:#6366f1;color:#fff;text-align:center;cursor:pointer;">総合</div>
+            <div onclick="hmRank('q')" id="hmt-q" style="flex:1;padding:6px 4px;border-radius:8px;font-size:11px;font-weight:900;background:#f1f5f9;color:#64748b;text-align:center;cursor:pointer;">Q</div>
+            <div onclick="hmRank('s')" id="hmt-s" style="flex:1;padding:6px 4px;border-radius:8px;font-size:11px;font-weight:900;background:#f1f5f9;color:#64748b;text-align:center;cursor:pointer;">S</div>
+            <div onclick="hmRank('c')" id="hmt-c" style="flex:1;padding:6px 4px;border-radius:8px;font-size:11px;font-weight:900;background:#f1f5f9;color:#64748b;text-align:center;cursor:pointer;">C</div>
+          </div>
+          <div style="padding:0 9px 10px;display:flex;flex-direction:column;gap:4px;" id="hm-rank-list"></div>
+        </div>
+      </div>
+
+      <button onclick="goPage('select')" class="mock-fab">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      </button>
+
+      <div class="mock-nav">
+        <div class="mock-nav-inner">
+          <div class="mock-tab active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 21v-8a1 1 0 00-1-1h-4a1 1 0 00-1 1v8"/><path d="M3 10a2 2 0 01.709-1.528l7-6a2 2 0 012.582 0l7 6A2 2 0 0121 10v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span class="mock-tab-label">ホーム</span></div>
+          <div class="mock-tab" onclick="goPage('select')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><path d="m9 14 2 2 4-4"/></svg><span class="mock-tab-label">チェック</span></div>
+          <div class="mock-tab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 21v-6"/><path d="M12 21V3"/><path d="M19 21V9"/></svg><span class="mock-tab-label">結果</span></div>
+          <div class="mock-tab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m21.73 18-8-14a2 2 0 00-3.48 0l-8 14A2 2 0 004 21h16a2 2 0 001.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span class="mock-tab-label">是正報告</span></div>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,0.86);"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip info"><span class="tip-icon">💡</span><span>右下の <strong>＋ボタン</strong> または「チェック」タブをタップして点検を開始します。</span></div>
+  <div class="tip info"><span class="tip-icon">📊</span><span>クォーター（Q1〜Q4）とカテゴリ（総合・Q・S・C）でランキングを切り替えられます。</span></div>
+
+  <div class="section-title" style="margin-top:28px;">アカウント設定</div>
+  <div class="section-sub">右上のユーザー名をクリックするとメニューが開きます。パスワード変更・担当エリア変更依頼が可能です。</div>
+
+  <!-- パスワード変更 -->
+  <div style="margin-bottom:24px;">
+    <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+      パスワード変更
+    </div>
+    <div class="mock-frame">
+      <div style="font-family:'Inter','Noto Sans JP',sans-serif;max-width:360px;width:100%;background:#fff;border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,0.10);overflow:hidden;">
+        <!-- シートヘッダー -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 20px 16px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-size:16px;font-weight:900;color:#1e293b;">パスワード変更</div>
+          <div style="width:32px;height:32px;border-radius:9px;background:#f1f5f9;display:grid;place-items:center;cursor:pointer;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>
+        <!-- フォーム -->
+        <div style="padding:20px;display:flex;flex-direction:column;gap:14px;">
+          <div>
+            <div style="font-size:11px;font-weight:900;color:#64748b;margin-bottom:6px;">現在のパスワード</div>
+            <div style="height:44px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;padding:0 14px;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:16px;color:#1e293b;letter-spacing:3px;">••••••••</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:900;color:#64748b;margin-bottom:6px;">新しいパスワード</div>
+            <div style="height:44px;border-radius:12px;border:1.5px solid #6366f1;background:#fff;padding:0 14px;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:16px;color:#1e293b;letter-spacing:3px;">••••••••••</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:900;color:#64748b;margin-bottom:6px;">新しいパスワード（確認）</div>
+            <div style="height:44px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;padding:0 14px;display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-size:16px;color:#1e293b;letter-spacing:3px;">••••••••••</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </div>
+          </div>
+          <button id="pw-btn" onclick="pwSubmit()" style="width:100%;height:48px;border-radius:14px;border:none;background:#1e293b;color:#fff;font-size:14px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all 0.3s;" id="pw-submit-btn">
+            パスワードを変更する
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="tip info" style="margin-top:8px;"><span class="tip-icon">💡</span><span>新しいパスワードは<strong>6文字以上</strong>で設定してください。</span></div>
+  </div>
+
+  <!-- 担当エリア変更依頼 -->
+  <div style="margin-bottom:16px;">
+    <div style="font-size:15px;font-weight:800;color:var(--text);margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      担当エリア変更依頼
+    </div>
+    <div class="mock-frame">
+      <div style="font-family:'Inter','Noto Sans JP',sans-serif;max-width:360px;width:100%;background:#fff;border-radius:20px;box-shadow:0 8px 24px rgba(0,0,0,0.10);overflow:hidden;">
+        <!-- シートヘッダー -->
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:20px 20px 16px;border-bottom:1px solid #f1f5f9;">
+          <div style="font-size:16px;font-weight:900;color:#1e293b;">担当エリア変更依頼</div>
+          <div style="width:32px;height:32px;border-radius:9px;background:#f1f5f9;display:grid;place-items:center;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </div>
+        </div>
+        <div style="padding:20px;display:flex;flex-direction:column;gap:16px;">
+
+          <!-- 現在の担当エリア -->
+          <div>
+            <div style="font-size:11px;font-weight:900;color:#64748b;margin-bottom:8px;">現在の担当エリア</div>
+            <div style="display:flex;flex-direction:column;gap:6px;" id="area-current-list">
+              <!-- JS で描画 -->
+            </div>
+          </div>
+
+          <!-- 追加エリア -->
+          <div id="area-add-section" style="display:none;">
+            <div style="font-size:11px;font-weight:900;color:#059669;margin-bottom:8px;">追加するエリア</div>
+            <div style="display:flex;flex-direction:column;gap:6px;" id="area-add-list"></div>
+          </div>
+
+          <!-- 追加ボタン / 検索 -->
+          <div id="area-search-wrap">
+            <button onclick="areaOpenSearch()" id="area-add-btn" style="width:100%;display:flex;align-items:center;justify-content:center;gap:7px;padding:11px;border-radius:12px;border:1.5px dashed #e2e8f0;background:#f8fafc;font-size:13px;font-weight:800;color:#64748b;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>担当エリアを追加
+            </button>
+          </div>
+
+          <!-- 検索ボックス -->
+          <div id="area-search-box" style="display:none;border:1.5px solid #e2e8f0;border-radius:14px;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #f1f5f9;">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="area-search-input" oninput="areaFilter()" placeholder="店舗名で検索..." style="flex:1;border:none;outline:none;font-size:13px;font-weight:600;color:#1e293b;background:transparent;font-family:'Noto Sans JP',sans-serif;" />
+              <button onclick="areaCloseSearch()" style="background:none;border:none;cursor:pointer;color:#94a3b8;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+            </div>
+            <div style="max-height:160px;overflow-y:auto;" id="area-search-results"></div>
+          </div>
+
+          <!-- 変更サマリー -->
+          <div id="area-summary" style="display:none;background:#f8fafc;border-radius:12px;padding:10px 12px;font-size:12px;display:flex;flex-direction:column;gap:4px;"></div>
+
+          <!-- 備考 -->
+          <div>
+            <div style="font-size:11px;font-weight:900;color:#64748b;margin-bottom:6px;">備考（任意）</div>
+            <textarea placeholder="変更理由など" style="width:100%;box-sizing:border-box;min-height:56px;border-radius:10px;border:1px solid #e2e8f0;padding:8px 12px;font-size:13px;font-family:'Noto Sans JP',sans-serif;outline:none;resize:none;background:#f8fafc;"></textarea>
+          </div>
+
+          <button id="area-submit-btn" onclick="areaSubmit()" style="width:100%;height:48px;border-radius:14px;border:none;background:#e2e8f0;color:#94a3b8;font-size:14px;font-weight:900;cursor:not-allowed;font-family:'Noto Sans JP',sans-serif;transition:all 0.3s;">
+            変更依頼を送信する
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="tip info" style="margin-top:8px;"><span class="tip-icon">⚠️</span><span>変更依頼は管理者が承認後に反映されます。</span></div>
+  </div>
+
+  <script>
+  /* ===== パスワード変更 ===== */
+  function pwSubmit(){
+    const btn=document.getElementById('pw-btn');
+    if(!btn) return;
+    btn.textContent='変更中...';
+    btn.style.background='#94a3b8';
+    setTimeout(()=>{
+      btn.style.background='#059669';
+      btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>パスワードを変更しました';
+      setTimeout(()=>{
+        btn.textContent='パスワードを変更する';
+        btn.style.background='#1e293b';
+      },2000);
+    },1200);
+  }
+
+  /* ===== 担当エリア変更 ===== */
+  const areaStores=[
+    {id:'S_003',name:'MINANO分倍河原',brand:'JOYFIT',removing:false},
+    {id:'S_008',name:'FIT365神戸エコール・リラ',brand:'FIT365',removing:false},
+    {id:'S_007',name:'イオンタウン新船橋',brand:'JOYFIT',removing:false},
+  ];
+  const searchStores=[
+    {id:'S_001',name:'JR西宮駅前',brand:'JOYFIT'},
+    {id:'S_002',name:'JR野田駅前',brand:'JOYFIT'},
+    {id:'S_004',name:'YOGAフレスポひばりが丘',brand:'JOYFIT'},
+    {id:'S_005',name:'YOGA高松東',brand:'JOYFIT'},
+    {id:'S_009',name:'FIT365大阪梅田',brand:'FIT365'},
+    {id:'S_010',name:'FIT365横浜みなとみらい',brand:'FIT365'},
+  ];
+  let areaAdded=[];
+
+  function areaRenderCurrent(){
+    const el=document.getElementById('area-current-list'); if(!el) return;
+    el.innerHTML=areaStores.map(s=>`
+      <div onclick="areaToggleRemove('${s.id}')" id="area-item-${s.id}" style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;cursor:pointer;border:1.5px solid ${s.removing?'#fca5a5':'#e2e8f0'};background:${s.removing?'#fef2f2':'#f8fafc'};transition:all 0.15s;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="width:18px;height:18px;border-radius:5px;border:2px solid ${s.removing?'#dc2626':'#e2e8f0'};background:${s.removing?'#dc2626':'#fff'};display:grid;place-items:center;flex-shrink:0;">
+            ${s.removing?'<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>':''}
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:800;color:${s.removing?'#dc2626':'#1e293b'};">${s.name}</div>
+            <div style="font-size:10px;color:#94a3b8;">${s.brand}</div>
+          </div>
+        </div>
+        ${s.removing?'<span style="font-size:10px;font-weight:900;color:#dc2626;background:#fee2e2;padding:2px 7px;border-radius:5px;">削除</span>':''}
+      </div>
+    `).join('');
+    areaUpdateSummary();
+  }
+
+  function areaToggleRemove(id){
+    const s=areaStores.find(x=>x.id===id); if(!s) return;
+    s.removing=!s.removing;
+    areaRenderCurrent();
+  }
+
+  function areaOpenSearch(){
+    document.getElementById('area-add-btn').style.display='none';
+    document.getElementById('area-search-box').style.display='block';
+    document.getElementById('area-search-input').focus();
+    areaFilter();
+  }
+
+  function areaCloseSearch(){
+    document.getElementById('area-search-box').style.display='none';
+    document.getElementById('area-add-btn').style.display='flex';
+    document.getElementById('area-search-input').value='';
+  }
+
+  function areaFilter(){
+    const q=document.getElementById('area-search-input').value.toLowerCase();
+    const usedIds=new Set([...areaStores.map(s=>s.id),...areaAdded.map(s=>s.id)]);
+    const filtered=searchStores.filter(s=>!usedIds.has(s.id)&&(!q||s.name.toLowerCase().includes(q)));
+    const el=document.getElementById('area-search-results'); if(!el) return;
+    el.innerHTML=filtered.length===0
+      ? '<div style="padding:14px;text-align:center;color:#94a3b8;font-size:12px;">'+(q?'該当する店舗がありません':'店舗名を入力してください')+'</div>'
+      : filtered.map(s=>`
+        <button onclick="areaAddStore('${s.id}','${s.name}','${s.brand}')" style="width:100%;text-align:left;padding:10px 12px;border:none;background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #f8fafc;font-family:'Noto Sans JP',sans-serif;"
+          onmouseenter="this.style.background='#f0fdf4'" onmouseleave="this.style.background='transparent'">
+          <div><div style="font-size:13px;font-weight:800;color:#1e293b;">${s.name}</div><div style="font-size:10px;color:#94a3b8;">${s.brand}</div></div>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>`).join('');
+  }
+
+  function areaAddStore(id,name,brand){
+    areaAdded.push({id,name,brand});
+    areaCloseSearch();
+    areaRenderAdded();
+    areaUpdateSummary();
+  }
+
+  function areaRemoveAdded(id){
+    areaAdded=areaAdded.filter(s=>s.id!==id);
+    areaRenderAdded();
+    areaUpdateSummary();
+  }
+
+  function areaRenderAdded(){
+    const sec=document.getElementById('area-add-section');
+    const el=document.getElementById('area-add-list');
+    if(!sec||!el) return;
+    sec.style.display=areaAdded.length?'block':'none';
+    el.innerHTML=areaAdded.map(s=>`
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:12px;border:1.5px solid #86efac;background:#f0fdf4;">
+        <div><div style="font-size:13px;font-weight:800;color:#059669;">${s.name}</div><div style="font-size:10px;color:#94a3b8;">${s.brand}</div></div>
+        <button onclick="areaRemoveAdded('${s.id}')" style="width:26px;height:26px;border-radius:7px;border:none;background:#dcfce7;color:#059669;display:grid;place-items:center;cursor:pointer;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>`).join('');
+  }
+
+  function areaUpdateSummary(){
+    const removing=areaStores.filter(s=>s.removing);
+    const hasChanges=removing.length>0||areaAdded.length>0;
+    const sumEl=document.getElementById('area-summary');
+    const btn=document.getElementById('area-submit-btn');
+    if(sumEl){
+      sumEl.style.display=hasChanges?'flex':'none';
+      sumEl.innerHTML=(removing.length?`<div style="color:#dc2626;font-weight:700;">削除: ${removing.map(s=>s.name).join('、')}</div>`:'')
+        +(areaAdded.length?`<div style="color:#059669;font-weight:700;">追加: ${areaAdded.map(s=>s.name).join('、')}</div>`:'');
+    }
+    if(btn){
+      btn.style.background=hasChanges?'#059669':'#e2e8f0';
+      btn.style.color=hasChanges?'#fff':'#94a3b8';
+      btn.style.cursor=hasChanges?'pointer':'not-allowed';
+    }
+  }
+
+  function areaSubmit(){
+    const removing=areaStores.filter(s=>s.removing);
+    if(removing.length===0&&areaAdded.length===0) return;
+    const btn=document.getElementById('area-submit-btn');
+    if(btn){btn.textContent='送信中...';btn.style.background='#94a3b8';}
+    setTimeout(()=>{
+      if(btn){
+        btn.style.background='#059669';
+        btn.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" style="vertical-align:middle;margin-right:4px;"><polyline points="20 6 9 17 4 12"/></svg>変更依頼を送信しました';
+      }
+      setTimeout(()=>{
+        areaStores.forEach(s=>s.removing=false);
+        areaAdded=[];
+        areaRenderCurrent();
+        areaRenderAdded();
+        if(btn){btn.textContent='変更依頼を送信する';btn.style.background='#e2e8f0';btn.style.color='#94a3b8';btn.style.cursor='not-allowed';}
+      },2000);
+    },1200);
+  }
+
+  // 初期描画
+  areaRenderCurrent();
+  </script>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('login')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('select')">次へ：店舗選択 →</button>
+  </div>
+</div>
+
+<!-- ===== SELECT ===== -->
+<div class="page" id="page-select">
+  <div class="section-title">店舗選択</div>
+  <div class="section-sub">点検する店舗を選択します。実際の画面をタップして操作を確認してください。</div>
+
+  <div class="mock-frame">
+    <div class="mock-phone" style="height:580px;position:relative;">
+      <div style="background:#f8fafc;height:100%;padding:14px 0 100px;overflow-y:auto;">
+        <!-- ヘッダー -->
+        <div style="padding:0 16px 10px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+            <span style="font-size:11px;font-weight:800;color:#64748b;">← HOME</span>
+            <span style="background:#f1f5f9;padding:3px 8px;border-radius:6px;font-size:9px;font-weight:950;color:#475569;">AUDIT v2</span>
+          </div>
+          <h2 style="font-size:20px;font-weight:950;color:#1e293b;letter-spacing:-0.04em;margin-bottom:4px;">店舗を選択</h2>
+          <div style="display:flex;align-items:center;gap:5px;margin-bottom:10px;">
+            <div id="sel-dot" style="width:6px;height:6px;border-radius:50%;background:#e2e8f0;"></div>
+            <span id="sel-label" style="font-size:11px;font-weight:700;color:#94a3b8;">対象をタップしてください</span>
+          </div>
+        </div>
+
+        <!-- フィルターカード -->
+        <div style="padding:0 14px 10px;">
+          <div style="background:#1e293b;border-radius:16px;padding:13px 15px;color:#fff;display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div style="font-size:9px;font-weight:900;color:#94a3b8;text-transform:uppercase;letter-spacing:0.1em;">MASTER LIST</div>
+              <div style="font-size:12px;font-weight:800;margin-top:1px;" id="sel-count">10店舗を表示中</div>
+            </div>
+            <button onclick="selOpenFilter()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:7px 11px;border-radius:9px;font-size:10px;font-weight:900;display:flex;align-items:center;gap:5px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="11" y1="18" x2="13" y2="18"/></svg>条件
+            </button>
+          </div>
+        </div>
+
+        <!-- 検索 -->
+        <div style="display:flex;align-items:center;gap:8px;height:42px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;padding:0 12px;margin:0 14px 10px;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="sel-search" oninput="selFilter()" placeholder="店舗名で検索" style="flex:1;border:none;background:transparent;outline:none;font-size:12px;font-weight:700;color:#1e293b;font-family:'Noto Sans JP',sans-serif;" />
+        </div>
+
+        <!-- 店舗リスト -->
+        <div style="padding:0 14px;" id="sel-list"></div>
+      </div>
+
+      <button onclick="ctOpenTypeModal()" class="mock-fab">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.6" stroke-linecap="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+      </button>
+
+      
+      <!-- チェックタイプ選択モーダル（モック内） -->
+      <div id="ct-type-modal" style="display:none;position:absolute;inset:0;z-index:20;background:rgba(15,23,42,0.45);backdrop-filter:blur(2px);border-radius:inherit;align-items:flex-end;justify-content:center;">
+        <div style="background:#f0f2f7;border-radius:24px 24px 0 0;width:100%;padding:20px 16px 28px;">
+          <div style="text-align:center;margin-bottom:18px;">
+            <div style="font-size:16px;font-weight:950;color:#1e293b;margin-bottom:4px;">チェックタイプを選択</div>
+            <div style="font-size:12px;font-weight:700;color:#64748b;">三宮</div>
+          </div>
+          <!-- 本チェック -->
+          <div onclick="ctSelectType('official')" id="ct-opt-official"
+            style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;border:2px solid #1e293b;background:#fff;margin-bottom:10px;cursor:pointer;transition:all 0.15s;">
+            <div style="width:38px;height:38px;border-radius:12px;background:#eef2ff;display:grid;place-items:center;flex-shrink:0;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:900;color:#1e293b;">本チェック</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:1px;">公式の点検結果として記録されます</div>
+            </div>
+          </div>
+          <!-- セルフチェック -->
+          <div onclick="ctSelectType('self')" id="ct-opt-self"
+            style="display:flex;align-items:center;gap:12px;padding:14px;border-radius:14px;border:1.5px solid #e2e8f0;background:#fff;margin-bottom:16px;cursor:pointer;transition:all 0.15s;">
+            <div style="width:38px;height:38px;border-radius:12px;background:#fffbeb;display:grid;place-items:center;flex-shrink:0;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:900;color:#1e293b;">セルフチェック</div>
+              <div style="font-size:11px;color:#94a3b8;margin-top:1px;">店舗の自己点検用（ランキングに反映されません）</div>
+            </div>
+          </div>
+          <!-- キャンセル -->
+          <button onclick="ctCloseTypeModal()" style="width:100%;padding:12px;border-radius:12px;border:none;background:#e2e8f0;color:#64748b;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+        </div>
+      </div>
+
+<div class="mock-nav">
+        <div class="mock-nav-inner">
+          <div class="mock-tab" onclick="goPage('home')"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M15 21v-8a1 1 0 00-1-1h-4a1 1 0 00-1 1v8"/><path d="M3 10a2 2 0 01.709-1.528l7-6a2 2 0 012.582 0l7 6A2 2 0 0121 10v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg><span class="mock-tab-label">ホーム</span></div>
+          <div class="mock-tab active"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><path d="m9 14 2 2 4-4"/></svg><span class="mock-tab-label">チェック</span></div>
+          <div class="mock-tab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 21v-6"/><path d="M12 21V3"/><path d="M19 21V9"/></svg><span class="mock-tab-label">結果</span></div>
+          <div class="mock-tab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m21.73 18-8-14a2 2 0 00-3.48 0l-8 14A2 2 0 004 21h16a2 2 0 001.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg><span class="mock-tab-label">是正報告</span></div>
+        </div>
+        <div style="height:5px;background:rgba(255,255,255,0.86);"></div>
+      </div>
+
+      <!-- アクションモーダル -->
+      <div id="sel-modal" style="display:none;position:absolute;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(10px);z-index:100;align-items:flex-end;" onclick="selCloseModal()">
+        <div style="width:100%;background:#fff;border-radius:24px 24px 0 0;padding:22px 16px 32px;animation:slideUp 0.3s;" onclick="event.stopPropagation()">
+          <div style="text-align:center;margin-bottom:18px;">
+            <div style="font-size:16px;font-weight:950;color:#1e293b;" id="sel-modal-title"></div>
+            <p style="font-size:12px;font-weight:700;color:#64748b;margin-top:5px;">アクションを選択してください</p>
+          </div>
+          <div id="sel-modal-actions"></div>
+          <button onclick="selCloseModal()" style="width:100%;margin-top:14px;padding:14px;border-radius:12px;border:none;background:#f1f5f9;color:#64748b;font-weight:800;font-size:13px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+        </div>
+      </div>
+
+      <!-- 絞り込みモーダル -->
+      <div id="sel-filter-modal" style="display:none;position:absolute;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(10px);z-index:100;align-items:flex-end;" onclick="selCloseFilter()">
+        <div style="width:100%;background:#fff;border-radius:24px 24px 0 0;padding:22px 16px 32px;animation:slideUp 0.3s;max-height:85%;overflow-y:auto;" onclick="event.stopPropagation()">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+            <div style="font-size:16px;font-weight:950;color:#1e293b;">絞り込み条件</div>
+            <button onclick="selCloseFilter()" style="width:30px;height:30px;border-radius:50%;border:none;background:#f1f5f9;color:#64748b;cursor:pointer;display:grid;place-items:center;font-family:'Noto Sans JP',sans-serif;">✕</button>
+          </div>
+          <div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:0.06em;margin-bottom:6px;">ステータス</div>
+          <div style="display:flex;gap:6px;margin-bottom:12px;">
+            <button class="cp-chip" onclick="this.classList.toggle('active')">未着手</button>
+            <button class="cp-chip" onclick="this.classList.toggle('active')">途中保存</button>
+            <button class="cp-chip" onclick="this.classList.toggle('active')">完了</button>
+          </div>
+          <div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:0.06em;margin-bottom:6px;">業態</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px;">
+            <button class="cp-chip" onclick="this.classList.toggle('active')">赤LITE</button>
+            <button class="cp-chip active" onclick="this.classList.toggle('active')">FIT365</button>
+            <button class="cp-chip" onclick="this.classList.toggle('active')">赤</button>
+            <button class="cp-chip" onclick="this.classList.toggle('active')">緑</button>
+            <button class="cp-chip" onclick="this.classList.toggle('active')">JOYFIT+</button>
+            <button class="cp-chip" onclick="this.classList.toggle('active')">SS</button>
+          </div>
+          <div style="font-size:10px;font-weight:800;color:#94a3b8;letter-spacing:0.06em;margin-bottom:6px;">エリア</div>
+          <div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:16px;">
+            <button class="cp-chip" onclick="this.classList.toggle('active')">WEST</button>
+            <button class="cp-chip" onclick="this.classList.toggle('active')">FC(EAST)</button>
+            <button class="cp-chip active" onclick="this.classList.toggle('active')">EAST</button>
+            <button class="cp-chip" onclick="this.classList.toggle('active')">SOUTH</button>
+            <button class="cp-chip" onclick="this.classList.toggle('active')">NORTH</button>
+          </div>
+          <button onclick="selCloseFilter()" style="width:100%;padding:12px;border-radius:12px;border:none;background:#f1f5f9;color:#64748b;font-weight:800;font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">条件をリセット</button>
+        </div>
+      </div>
+
+      <!-- 履歴モーダル -->
+      <div id="sel-hist-modal" style="display:none;position:absolute;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(10px);z-index:100;align-items:flex-end;" onclick="selCloseHist()">
+        <div style="width:100%;background:#fff;border-radius:24px 24px 0 0;padding:22px 16px 32px;animation:slideUp 0.3s;" onclick="event.stopPropagation()">
+          <div style="text-align:center;margin-bottom:18px;">
+            <div style="font-size:16px;font-weight:950;color:#1e293b;" id="sel-hist-title"></div>
+            <p style="font-size:12px;font-weight:700;color:#64748b;margin-top:5px;">修正する点検日を選択してください</p>
+          </div>
+          <div style="border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;margin-bottom:10px;">
+            <button onclick="goPage('check');selCloseHist();" style="display:flex;align-items:center;gap:11px;padding:13px;border:none;background:#fff;width:100%;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+              <div style="width:36px;height:36px;border-radius:10px;background:#d1fae5;display:grid;place-items:center;flex-shrink:0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+              <div style="flex:1;text-align:left;">
+                <div style="font-size:13px;font-weight:800;color:#1e293b;">2026年4月14日 16:45</div>
+                <div style="display:flex;align-items:center;gap:5px;margin-top:2px;"><span style="padding:2px 6px;border-radius:5px;background:#d1fae5;color:#059669;font-size:10px;font-weight:900;">完了</span><span style="font-size:11px;color:#94a3b8;">TESTユーザー</span></div>
+              </div>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:8px;border-top:1px solid #f1f5f9;">
+              <button onclick="selCloseHist()" style="padding:8px;border-radius:10px;border:none;background:#eef2ff;color:#4f52d9;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:'Noto Sans JP',sans-serif;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>メール再送</button>
+              <button onclick="selCloseHist()" style="padding:8px;border-radius:10px;border:none;background:#fef2f2;color:#dc2626;font-size:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px;font-family:'Noto Sans JP',sans-serif;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>削除</button>
+            </div>
+          </div>
+          <button onclick="selCloseHist()" style="width:100%;margin-top:6px;padding:13px;border-radius:12px;border:none;background:#f1f5f9;color:#64748b;font-weight:800;font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip info"><span class="tip-icon">💡</span><span>店舗名で絞り込み検索ができます。「条件」ボタンで業態・エリアなどでフィルタリングも可能です。</span></div>
+
+  <div class="steps" style="margin-top:16px;">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">店舗をタップしてアクションを選択</div><div class="step-sub">ステータスに応じてボタンが変わります</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          店舗をタップするとアクション選択が表示されます：<br><br>
+          • <strong>途中から再開</strong>：途中保存データを続きから入力（途中ステータスの場合）<br>
+          • <strong>過去の結果を修正</strong>：送信済みの結果を編集（完了・途中の場合）<br>
+          • <strong>新しく開始</strong>：新規点検を開始 → <strong>チェックタイプ選択</strong>へ<br>
+          • <strong>途中保存を破棄</strong>：途中データを削除（途中の場合）
+        </div>
+        <div class="tip info"><span class="tip-icon">💡</span><span>「新しく開始」を押すと<strong>チェックタイプ選択</strong>画面が表示されます。本チェックかセルフチェックを選んでから点検が始まります。</span></div>
+        <div class="tip warn"><span class="tip-icon">⚠️</span><span>「新しく開始」を選ぶと途中保存データは削除されます。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('home')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('check')">次へ：点検実施 →</button>
+  </div>
+</div>
+
+<!-- ===== CHECK ===== -->
+<div class="page" id="page-check">
+  <div class="section-title">点検実施</div>
+  <div class="section-sub">店舗選択→「新しく開始」→チェックタイプ選択→点検実施の流れです。実際の画面をタップして操作を確認してください。</div>
+
+  <div class="mock-frame">
+    <div class="mock-phone" style="height:580px;">
+      <!-- トップバー -->
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;background:#fff;border-bottom:1px solid #f1f5f9;">
+        <div style="display:flex;align-items:center;gap:5px;font-size:12px;font-weight:800;color:#64748b;cursor:pointer;" onclick="goPage('select')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>戻る
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;font-size:11px;font-weight:800;color:#475569;">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          FIT365神戸エコール・リラ
+        </div>
+        <div id="ct-type-badge" style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:6px;background:#eef2ff;color:#6366f1;flex-shrink:0;">本チェック</div>
+        <button style="width:30px;height:30px;border-radius:8px;border:1px solid #e2e8f0;background:#f8fafc;display:grid;place-items:center;cursor:pointer;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+      </div>
+
+      <!-- セクションタブ -->
+      <div style="display:flex;gap:0;overflow-x:auto;scrollbar-width:none;background:#fff;border-bottom:1px solid #f1f5f9;">
+        <button id="ctab-kanngai" onclick="chkTab('kanngai')" style="flex-shrink:0;padding:10px 14px;border:none;background:transparent;font-size:11px;font-weight:900;color:#6366f1;border-bottom:2px solid #6366f1;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">館外</button>
+        <button id="ctab-entrance" onclick="chkTab('entrance')" style="flex-shrink:0;padding:10px 14px;border:none;background:transparent;font-size:11px;font-weight:900;color:#94a3b8;border-bottom:2px solid transparent;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">エントランス</button>
+        <button id="ctab-gym" onclick="chkTab('gym')" style="flex-shrink:0;padding:10px 14px;border:none;background:transparent;font-size:11px;font-weight:900;color:#94a3b8;border-bottom:2px solid transparent;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">ジムエリア<span style="background:#fee2e2;color:#dc2626;font-size:9px;font-weight:900;padding:1px 5px;border-radius:4px;margin-left:3px;">NG2</span></button>
+        <button id="ctab-ladies" onclick="chkTab('ladies')" style="flex-shrink:0;padding:10px 14px;border:none;background:transparent;font-size:11px;font-weight:900;color:#94a3b8;border-bottom:2px solid transparent;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">レディース</button>
+      </div>
+
+      <!-- チェックアイテム -->
+      <div style="padding:10px 10px 140px;overflow-y:auto;background:#f8fafc;height:380px;" id="chk-items"></div>
+
+      <!-- ボトムドック -->
+      <div style="position:absolute;left:0;right:0;bottom:0;background:#fff;border-top:1px solid #e2e8f0;padding:10px 10px 12px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <svg width="38" height="38" viewBox="0 0 44 44">
+            <circle cx="22" cy="22" r="18" fill="none" stroke="#f1f5f9" stroke-width="4"/>
+            <circle cx="22" cy="22" r="18" fill="none" stroke="#6366f1" stroke-width="4" stroke-dasharray="113.1" id="chk-ring" stroke-dashoffset="56.5" stroke-linecap="round" transform="rotate(-90 22 22)" style="transition:stroke-dashoffset 0.4s;"/>
+            <text x="22" y="22" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="900" fill="#1e293b" id="chk-pct">50%</text>
+          </svg>
+          <div style="flex:1;">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+              <span style="font-size:12px;font-weight:900;color:#1e293b;" id="chk-done-label">2/4 完了</span>
+              <span style="font-size:11px;font-weight:700;color:#d97706;" id="chk-warn-label">NG 1件</span>
+            </div>
+            <div style="height:5px;border-radius:3px;background:#f1f5f9;overflow:hidden;display:flex;">
+              <div id="chk-bar-ok" style="height:100%;background:#34d399;width:25%;transition:width 0.3s;"></div>
+              <div id="chk-bar-ng" style="height:100%;background:#f87171;width:25%;transition:width 0.3s;"></div>
+              <div id="chk-bar-hold" style="height:100%;background:#fbbf24;width:0%;transition:width 0.3s;"></div>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button style="flex:1;height:40px;border-radius:11px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:11px;font-weight:800;color:#64748b;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/></svg>保存
+          </button>
+          <button style="flex:1;height:40px;border-radius:11px;border:1.5px solid #e2e8f0;background:#f8fafc;font-size:11px;font-weight:800;color:#64748b;display:flex;align-items:center;justify-content:center;gap:4px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>破棄
+          </button>
+          <button onclick="chkOpenSubmit()" style="flex:2;height:48px;border-radius:13px;border:none;font-size:13px;font-weight:900;color:#fff;display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;background:#6366f1;box-shadow:0 8px 20px rgba(99,102,241,0.35);font-family:'Noto Sans JP',sans-serif;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>完了・送信
+          </button>
+        </div>
+      </div>
+
+      <!-- 写真追加モーダル -->
+      <div id="chk-photo-modal" style="display:none;position:absolute;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(10px);z-index:100;align-items:flex-end;">
+        <div style="width:100%;background:#fff;border-radius:24px 24px 0 0;padding:24px 16px 36px;animation:slideUp 0.3s;" onclick="event.stopPropagation()">
+          <div style="text-align:center;margin-bottom:20px;">
+            <div style="font-size:15px;font-weight:950;color:#1e293b;">写真を追加</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:4px;">方法を選択してください</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button onclick="chkPhotoTake()" style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;border:1px solid #e2e8f0;background:#fff;width:100%;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+              <div style="width:40px;height:40px;border-radius:12px;background:#eeeffe;display:grid;place-items:center;flex-shrink:0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4f52d9" stroke-width="2" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              </div>
+              <div style="text-align:left;"><div style="font-size:14px;font-weight:800;color:#1e293b;">カメラで撮影</div><div style="font-size:11px;color:#94a3b8;margin-top:2px;">その場で撮影して追加</div></div>
+            </button>
+            <button onclick="chkPhotoLib()" style="display:flex;align-items:center;gap:12px;padding:16px;border-radius:16px;border:1px solid #e2e8f0;background:#fff;width:100%;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+              <div style="width:40px;height:40px;border-radius:12px;background:#e6f9f2;display:grid;place-items:center;flex-shrink:0;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0ea56e" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              </div>
+              <div style="text-align:left;"><div style="font-size:14px;font-weight:800;color:#1e293b;">ライブラリから選択</div><div style="font-size:11px;color:#94a3b8;margin-top:2px;">保存済みの写真を追加</div></div>
+            </button>
+          </div>
+          <button onclick="chkClosePhoto()" style="width:100%;margin-top:16px;padding:14px;border-radius:14px;border:none;background:#f1f5f9;color:#64748b;font-weight:800;font-size:13px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+        </div>
+      </div>
+
+      <!-- 写真編集モーダル -->
+      <div id="chk-edit-modal" style="display:none;position:absolute;inset:0;background:rgba(0,0,0,0.88);z-index:200;flex-direction:column;">
+        <!-- トップバー -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid rgba(255,255,255,0.08);">
+          <button onclick="chkCloseEdit()" style="width:38px;height:38px;border-radius:12px;border:1px solid rgba(255,255,255,0.12);background:rgba(255,255,255,0.06);color:rgba(255,255,255,0.9);display:grid;place-items:center;cursor:pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+          <div style="color:rgba(255,255,255,0.9);font-weight:800;font-size:13px;">写真に書き込み</div>
+          <button onclick="chkSaveEdit()" style="width:38px;height:38px;border-radius:12px;border:1px solid rgba(0,122,255,0.35);background:rgba(0,122,255,0.2);color:rgba(255,255,255,0.9);display:grid;place-items:center;cursor:pointer;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          </button>
+        </div>
+        <!-- ツール選択 -->
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 14px;gap:10px;">
+          <div style="display:flex;gap:6px;">
+            <button id="edit-tool-circle" onclick="editSetTool('circle')" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.15);background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.9);font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>丸
+            </button>
+            <button id="edit-tool-arrow" onclick="editSetTool('arrow')" style="display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.6);font-size:12px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>矢印
+            </button>
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="editUndo()" style="width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);display:grid;place-items:center;cursor:pointer;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+            </button>
+            <button onclick="editClear()" style="width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);display:grid;place-items:center;cursor:pointer;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg>
+            </button>
+          </div>
+        </div>
+        <!-- カラーパレット + 太さ -->
+        <div style="padding:0 14px 10px;border-bottom:1px solid rgba(255,255,255,0.08);">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px;" id="edit-swatches"></div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="12" cy="12" r="2"/></svg>
+            <input type="range" min="2" max="18" value="6" id="edit-width-slider" oninput="editSetWidth(this.value)" style="flex:1;accent-color:#fff;">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="2"><circle cx="12" cy="12" r="6"/></svg>
+            <span id="edit-width-label" style="color:rgba(255,255,255,0.5);font-size:11px;font-weight:700;width:28px;">6px</span>
+          </div>
+        </div>
+        <!-- キャンバス -->
+        <div style="height:180px;display:flex;align-items:center;justify-content:center;padding:10px;" id="edit-stage">
+          <div style="width:100%;height:100%;background:rgba(255,255,255,0.04);border-radius:16px;display:flex;align-items:center;justify-content:center;border:1.5px dashed rgba(255,255,255,0.12);position:relative;" id="edit-canvas-wrap">
+            <div id="edit-shapes-layer" style="position:absolute;inset:0;border-radius:16px;overflow:hidden;"></div>
+            <svg id="edit-svg" width="100%" height="100%" style="position:absolute;inset:0;border-radius:16px;" onmousedown="editStart(event)" onmousemove="editMove(event)" onmouseup="editEnd(event)" ontouchstart="editTouch(event,'start')" ontouchmove="editTouch(event,'move')" ontouchend="editTouch(event,'end')"></svg>
+            <div style="color:rgba(255,255,255,0.25);font-size:12px;text-align:center;" id="edit-placeholder">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="1.5" style="margin-bottom:6px;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <div>ここに写真が表示されます</div>
+              <div style="font-size:10px;margin-top:4px;">ドラッグで丸・矢印を描けます</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 未チェック確認ダイアログ -->
+      <div id="chk-unset-modal" style="display:none;position:absolute;inset:0;background:rgba(15,23,42,0.6);backdrop-filter:blur(10px);z-index:100;align-items:flex-end;">
+        <div style="width:100%;background:#fff;border-radius:24px 24px 0 0;padding:24px 16px 36px;animation:slideUp 0.3s;" onclick="event.stopPropagation()">
+          <div style="text-align:center;margin-bottom:20px;">
+            <div style="width:48px;height:48px;border-radius:50%;background:#fef3c7;display:grid;place-items:center;margin:0 auto 12px;">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#d97706" stroke-width="2.5" stroke-linecap="round"><path d="m21.73 18-8-14a2 2 0 00-3.48 0l-8 14A2 2 0 004 21h16a2 2 0 001.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+            </div>
+            <div style="font-size:16px;font-weight:950;color:#1e293b;margin-bottom:6px;">未チェック項目があります</div>
+            <div style="font-size:12px;color:#64748b;line-height:1.7;"><span id="chk-unset-count" style="font-weight:900;color:#d97706;">2件</span>の項目がまだ評価されていません。<br>このまま送信しますか？</div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <button onclick="chkGoFirstUnset()" style="display:flex;align-items:center;justify-content:center;gap:8px;padding:15px;border-radius:14px;border:1.5px solid #fbbf24;background:#fef3c7;width:100%;font-size:13px;font-weight:900;color:#92400e;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 18l6-6-6-6"/></svg>
+              未入力に移動
+            </button>
+            <button onclick="chkCloseUnset();goPage('submit')" style="padding:15px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;width:100%;font-size:13px;font-weight:800;color:#64748b;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">このまま送信する</button>
+          </div>
+          <button onclick="chkCloseUnset()" style="width:100%;margin-top:10px;padding:13px;border-radius:14px;border:none;background:#f1f5f9;color:#64748b;font-weight:800;font-size:13px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="steps" style="margin-top:16px;">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">各項目を評価する</div><div class="step-sub">OK / NG / 保留 / 対象外</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">各項目に対して4種類の評価ボタンをタップします：</div>
+        <div class="status-row">
+          <span class="status-badge" style="background:var(--green-light);color:var(--green);">✅ OK</span>
+          <span class="status-badge" style="background:var(--red-light);color:var(--red);">❌ NG（コメント必須）</span>
+          <span class="status-badge" style="background:var(--yellow-light);color:var(--yellow);">⏸ 保留</span>
+          <span class="status-badge" style="background:var(--bg3);color:var(--text-muted);">➖ 対象外</span>
+        </div>
+        <div class="tip warn"><span class="tip-icon">⚠️</span><span>NGを選択した場合はコメント入力が必須です。未入力のまま送信するとエラーになります。</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div><div class="step-title">写真を追加する</div><div class="step-sub">証拠写真・複数枚対応</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          NG・保留の項目では<strong>「写真追加」</strong>ボタンから写真を撮影・追加できます。<br><br>
+          • 1項目に複数枚追加可能<br>
+          • 写真はクラウドに自動アップロード<br>
+          • サムネイルをタップすると拡大表示・削除可能
+        </div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div><div class="step-title">途中保存を活用する</div><div class="step-sub">中断する場合は必ず保存</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          下部の<strong>「保存」</strong>ボタンをタップすると途中保存されます。<br><br>
+          • 「✅ 途中保存しました」のトーストが表示される<br>
+          • アプリを閉じても保存データは残る<br>
+          • 再開時は店舗選択で「途中から再開」をタップ
+        </div>
+        <div class="tip success"><span class="tip-icon">✅</span><span>上部の進捗バーで全体の完了率を確認できます。</span></div>
+      </div>
+    </div>
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">4</div>
+        <div><div class="step-title">セクション（エリア）を移動する</div><div class="step-sub">上部タブまたはエリア一覧</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          上部のタブをタップするとエリアを切り替えられます。<br><br>
+          • タブにNG件数・保留件数がバッジ表示される<br>
+          • 右上のメニューアイコンからエリア一覧を表示可能<br>
+          • 各セクション末尾の「次のエリアへ」ボタンでも移動可能
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('select')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('submit')">次へ：送信・完了 →</button>
+  </div>
+</div>
+
+<!-- ===== SUBMIT ===== -->
+<div class="page" id="page-submit">
+  <div class="section-title">送信・完了</div>
+  <div class="section-sub">点検が完了したら送信します。</div>
+
+  <div class="steps">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">「完了・送信」をタップ</div><div class="step-sub">全項目評価後にボタンが紫色になる</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div style="display:flex;justify-content:center;margin:14px 0;">
+          <div style="background:#fff;border-radius:16px;border:1px solid #e2e8f0;padding:16px;width:100%;max-width:300px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+              <svg width="36" height="36" viewBox="0 0 44 44"><circle cx="22" cy="22" r="18" fill="none" stroke="#f1f5f9" stroke-width="4"/><circle cx="22" cy="22" r="18" fill="none" stroke="#6366f1" stroke-width="4" stroke-dasharray="113.1" stroke-dashoffset="0" stroke-linecap="round" transform="rotate(-90 22 22)"/><text x="22" y="22" text-anchor="middle" dominant-baseline="central" font-size="9" font-weight="900" fill="#1e293b">100%</text></svg>
+              <div><div style="font-size:12px;font-weight:900;color:#1e293b;">150/150 完了</div><div style="font-size:11px;color:#d97706;">NG 8件 保留 2件</div></div>
+            </div>
+            <div style="height:5px;border-radius:3px;background:#f1f5f9;overflow:hidden;display:flex;margin-bottom:10px;">
+              <div style="height:100%;background:#34d399;width:73%;"></div>
+              <div style="height:100%;background:#f87171;width:19%;"></div>
+              <div style="height:100%;background:#fbbf24;width:5%;"></div>
+              <div style="height:100%;background:#94a3b8;width:3%;"></div>
+            </div>
+            <button onclick="goPage('submit')" style="width:100%;height:46px;border-radius:13px;border:none;font-size:13px;font-weight:900;color:#fff;background:#6366f1;box-shadow:0 8px 20px rgba(99,102,241,0.35);display:flex;align-items:center;justify-content:center;gap:5px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>完了・送信
+            </button>
+          </div>
+        </div>
+        <div class="step-desc">全項目を評価すると「完了・送信」ボタンが<strong style="color:#6366f1;">紫色</strong>に変わります。タップして送信手続きを進めます。</div>
+        <div class="tip info"><span class="tip-icon">💡</span><span>未チェック項目がある場合は確認ダイアログが表示されます。「未入力に移動」でその箇所に飛べます。</span></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">2</div>
+        <div><div class="step-title">改善期限を設定する</div><div class="step-sub">NG項目の改善報告期限</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div style="display:flex;justify-content:center;margin:14px 0;">
+          <div style="background:#fff;border-radius:16px;padding:20px;width:100%;max-width:300px;border:1px solid #e2e8f0;">
+            <div style="text-align:center;font-size:15px;font-weight:900;color:#1e293b;margin-bottom:5px;">改善報告期日</div>
+            <div style="text-align:center;font-size:12px;color:#64748b;margin-bottom:14px;">NG項目の改善を報告する期日を設定してください</div>
+            <div style="height:44px;border-radius:12px;border:1.5px solid #e2e8f0;background:#f8fafc;display:flex;align-items:center;padding:0 14px;font-size:14px;font-weight:700;color:#1e293b;margin-bottom:12px;" id="deadline-display">2026/05/15</div>
+            <button onclick="goPage('submit')" style="width:100%;height:44px;border-radius:12px;border:none;background:#1e293b;color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">この期日で完了する</button>
+          </div>
+        </div>
+        <div class="step-desc">NG項目がある場合は改善報告の期限日を設定します。デフォルトは<strong>1ヶ月後</strong>です。</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">3</div>
+        <div><div class="step-title">メール配信を選択して完了</div><div class="step-sub">店舗・管理者へ通知</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div style="display:flex;justify-content:center;margin:14px 0;">
+          <div style="background:#fff;border-radius:16px;padding:16px;width:100%;max-width:300px;border:1px solid #e2e8f0;">
+            <div style="text-align:center;font-size:14px;font-weight:900;color:#1e293b;margin-bottom:4px;">完了します</div>
+            <div style="text-align:center;font-size:12px;color:#64748b;margin-bottom:14px;">完了メールを配信しますか？</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <button onclick="goPage('results')" style="width:100%;padding:13px;border-radius:12px;border:none;background:#6366f1;color:#fff;font-size:13px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">配信して完了</button>
+              <button onclick="goPage('results')" style="width:100%;padding:13px;border-radius:12px;border:1px solid #e2e8f0;background:#f8fafc;color:#64748b;font-size:13px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">配信せず完了</button>
+            </div>
+          </div>
+        </div>
+        <div class="step-desc">
+          • <strong>配信して完了</strong>：店舗・管理者に点検完了メールが送信される<br>
+          • <strong>配信せず完了</strong>：メール送信なしで完了
+        </div>
+        <div class="tip success"><span class="tip-icon">✅</span><span>送信完了後は結果画面に自動遷移します。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('check')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('results')">次へ：結果確認 →</button>
+  </div>
+</div>
+
+<!-- ===== RESULTS ===== -->
+<div class="page" id="page-results">
+  <div class="section-title">結果確認（レポート）</div>
+  <div class="section-sub">送信完了後に自動で遷移します。スコア・NG項目・是正状況を一覧で確認できます。</div>
+
+  <!-- リザルトモック -->
+  <div class="mock-frame">
+    <div style="font-family:'Inter','Noto Sans JP',sans-serif;max-width:380px;width:100%;background:#f8fafc;border-radius:20px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.10);">
+
+      <!-- ヘッダー -->
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#fff;border-bottom:1px solid #f1f5f9;">
+        <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:#64748b;font-weight:600;">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 18l-6-6 6-6"/></svg>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 21v-8a1 1 0 00-1-1h-4a1 1 0 00-1 1v8"/><path d="M3 10a2 2 0 01.709-1.528l7-6a2 2 0 012.582 0l7 6A2 2 0 0121 10v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+          <span style="font-weight:800;color:#1e293b;">FIT365神戸エコール・リラ</span>
+        </div>
+        <button style="display:flex;align-items:center;gap:5px;padding:7px 12px;background:#1e293b;color:#fff;border:none;border-radius:10px;cursor:pointer;font-weight:800;font-size:11px;font-family:'Noto Sans JP',sans-serif;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>PDF/印刷
+        </button>
+      </div>
+
+      <div style="padding:14px 14px 40px;display:flex;flex-direction:column;gap:12px;max-height:440px;overflow-y:auto;">
+
+        <!-- 合計スコアカード -->
+        <div style="background:#eff6ff;border:2px solid #bfdbfe;border-radius:22px;padding:22px 18px;text-align:center;">
+          <div style="font-size:10px;font-weight:900;color:#2563eb;opacity:0.7;letter-spacing:2px;margin-bottom:6px;">TOTAL SCORE</div>
+          <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:64px;font-weight:900;color:#2563eb;letter-spacing:-4px;line-height:1;" id="res-score">0</span>
+            <span style="font-size:20px;font-weight:700;color:#94a3b8;">点</span>
+            <span style="font-size:12px;font-weight:800;color:#059669;margin-left:2px;">▲3</span>
+          </div>
+          <div style="font-size:11px;font-weight:700;color:#94a3b8;margin-bottom:10px;">◯ 142 / 150問　<span style="color:#cbd5e1;margin-left:8px;">前回 87点</span></div>
+          <!-- バッジ -->
+          <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-bottom:14px;">
+            <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:7px;background:#d1fae5;color:#059669;font-size:11px;font-weight:800;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>OK 142
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:7px;background:#fee2e2;color:#dc2626;font-size:11px;font-weight:800;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>NG 8
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:7px;background:#fef3c7;color:#d97706;font-size:11px;font-weight:800;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="12"/><line x1="10" y1="9" x2="10.01" y2="9"/></svg>保留 2
+            </span>
+            <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 8px;border-radius:7px;background:#e0e7ff;color:#4f46e5;font-size:11px;font-weight:800;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>写真 12枚
+            </span>
+          </div>
+          <!-- 日付グリッド -->
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div style="background:#fff;padding:10px;border-radius:12px;">
+              <div style="display:flex;align-items:center;gap:4px;color:#94a3b8;font-size:10px;font-weight:700;margin-bottom:3px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>点検日
+              </div>
+              <div style="font-weight:900;color:#1e293b;font-size:12px;">2026/04/14</div>
+            </div>
+            <div style="background:#fff;padding:10px;border-radius:12px;">
+              <div style="display:flex;align-items:center;gap:4px;color:#94a3b8;font-size:10px;font-weight:700;margin-bottom:3px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>改善期限
+              </div>
+              <div style="font-weight:900;color:#dc2626;font-size:12px;">2026/05/14</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Q/S/C スコア -->
+        <div>
+          <div style="font-size:10px;font-weight:900;color:#94a3b8;margin-bottom:8px;letter-spacing:1px;">SCORES</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <!-- Q -->
+            <div style="background:#fff;border:1.5px solid #bfdbfe;border-radius:16px;overflow:hidden;">
+              <div style="background:#eff6ff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
+                <div><div style="font-size:10px;font-weight:800;color:#2563eb;opacity:0.8;">Q（クオリティ）</div><div style="display:flex;align-items:baseline;gap:3px;margin-top:2px;"><span style="font-size:26px;font-weight:900;color:#2563eb;line-height:1;">92</span><span style="font-size:12px;font-weight:700;color:#94a3b8;">点</span></div></div>
+                <div style="font-size:11px;font-weight:700;color:#94a3b8;">◯ 46/50問</div>
+              </div>
+              <div style="padding:4px 14px 10px;">
+                <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f1f5f9;"><span style="font-size:11px;font-weight:700;color:#64748b;">館外</span><span style="font-size:11px;font-weight:900;color:#1e293b;">8<span style="font-size:10px;font-weight:700;color:#94a3b8;">/10</span></span></div>
+                <div style="display:flex;justify-content:space-between;padding:7px 0;"><span style="font-size:11px;font-weight:700;color:#64748b;">エントランス</span><span style="font-size:11px;font-weight:900;color:#1e293b;">38<span style="font-size:10px;font-weight:700;color:#94a3b8;">/40</span></span></div>
+              </div>
+            </div>
+            <!-- S -->
+            <div style="background:#fff;border:1.5px solid #bfdbfe;border-radius:16px;overflow:hidden;">
+              <div style="background:#eff6ff;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
+                <div><div style="font-size:10px;font-weight:800;color:#2563eb;opacity:0.8;">S（サービス）</div><div style="display:flex;align-items:baseline;gap:3px;margin-top:2px;"><span style="font-size:26px;font-weight:900;color:#2563eb;line-height:1;">88</span><span style="font-size:12px;font-weight:700;color:#94a3b8;">点</span></div></div>
+                <div style="font-size:11px;font-weight:700;color:#94a3b8;">◯ 44/50問</div>
+              </div>
+              <div style="padding:4px 14px 10px;">
+                <div style="display:flex;justify-content:space-between;padding:7px 0;"><span style="font-size:11px;font-weight:700;color:#64748b;">ジムエリア</span><span style="font-size:11px;font-weight:900;color:#1e293b;">44<span style="font-size:10px;font-weight:700;color:#94a3b8;">/50</span></span></div>
+              </div>
+            </div>
+            <!-- C -->
+            <div style="background:#fff;border:1.5px solid #fef3c7;border-radius:16px;overflow:hidden;">
+              <div style="background:#fffbeb;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;">
+                <div><div style="font-size:10px;font-weight:800;color:#d97706;opacity:0.8;">C（クレンリネス）</div><div style="display:flex;align-items:baseline;gap:3px;margin-top:2px;"><span style="font-size:26px;font-weight:900;color:#d97706;line-height:1;">78</span><span style="font-size:12px;font-weight:700;color:#94a3b8;">点</span></div></div>
+                <div style="font-size:11px;font-weight:700;color:#94a3b8;">◯ 39/50問</div>
+              </div>
+              <div style="padding:4px 14px 10px;">
+                <div style="display:flex;justify-content:space-between;padding:7px 0;"><span style="font-size:11px;font-weight:700;color:#64748b;">レディース</span><span style="font-size:11px;font-weight:900;color:#1e293b;">39<span style="font-size:10px;font-weight:700;color:#94a3b8;">/50</span></span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- NG項目 -->
+        <div>
+          <div style="font-size:10px;font-weight:900;color:#dc2626;margin-bottom:8px;letter-spacing:1px;display:flex;align-items:center;gap:5px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>改善が必要な項目 (8)
+          </div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="background:#fff;border-radius:12px;border-left:4px solid #dc2626;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+              <div style="font-size:10px;font-weight:800;color:#94a3b8;margin-bottom:3px;">館外 · C</div>
+              <div style="font-size:12px;font-weight:800;color:#1e293b;margin-bottom:7px;line-height:1.4;">外観/店舗周辺に汚れ（ゴミ・落ち葉・蜘蛛の巣）・雑草はないか</div>
+              <div style="background:#fff1f2;padding:8px 10px;border-radius:8px;display:flex;gap:6px;align-items:flex-start;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="margin-top:1px;flex-shrink:0;"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <div style="font-size:11px;color:#9f1239;font-weight:600;">入口前に落ち葉あり</div>
+              </div>
+            </div>
+            <div style="background:#fff;border-radius:12px;border-left:4px solid #dc2626;padding:12px;box-shadow:0 1px 3px rgba(0,0,0,0.04);">
+              <div style="font-size:10px;font-weight:800;color:#94a3b8;margin-bottom:3px;">ジムエリア · S</div>
+              <div style="font-size:12px;font-weight:800;color:#1e293b;margin-bottom:7px;line-height:1.4;">有酸素マシンの肌が触れる部分、足元に汚れや埃はないか</div>
+              <div style="background:#fff1f2;padding:8px 10px;border-radius:8px;display:flex;gap:6px;align-items:flex-start;">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" style="margin-top:1px;flex-shrink:0;"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                <div style="font-size:11px;color:#9f1239;font-weight:600;">本体に埃あり、足元に砂あり</div>
+              </div>
+              <!-- 写真サムネイル -->
+              <div style="display:flex;gap:6px;margin-top:8px;">
+                <div style="width:56px;height:56px;border-radius:8px;background:linear-gradient(135deg,#e2e8f0,#cbd5e1);display:grid;place-items:center;border:1px solid #fee2e2;flex-shrink:0;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                </div>
+              </div>
+            </div>
+            <div style="font-size:11px;color:#94a3b8;font-weight:600;text-align:center;padding:4px 0;">+6件</div>
+          </div>
+        </div>
+
+        <!-- 署名 -->
+        <div style="background:#1e293b;padding:16px 18px;border-radius:16px;color:#fff;display:flex;justify-content:space-between;align-items:center;">
+          <div>
+            <div style="font-size:9px;color:#64748b;font-weight:800;margin-bottom:3px;">STORE / AUDITOR</div>
+            <div style="font-size:14px;font-weight:900;">FIT365神戸エコール・リラ</div>
+            <div style="font-size:11px;color:#94a3b8;margin-top:2px;display:flex;align-items:center;gap:3px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>テストユーザー
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-size:9px;color:#64748b;font-weight:800;margin-bottom:2px;">TOTAL</div>
+            <div style="font-size:24px;font-weight:900;color:#60a5fa;">90<span style="font-size:12px;font-weight:700;color:#475569;">点</span></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="steps" style="margin-top:16px;">
+    <div class="step open">
+      <div class="step-header" onclick="toggleStep(this)">
+        <div class="step-num">1</div>
+        <div><div class="step-title">レポートの見方</div><div class="step-sub">スコア・NG項目・是正ステータス</div></div>
+        <span class="step-arrow">›</span>
+      </div>
+      <div class="step-body">
+        <div class="step-desc">
+          送信完了後に自動でこの画面に遷移します。<br><br>
+          • <strong>TOTAL SCORE</strong>：合計点数と前回比（▲▼）<br>
+          • <strong>Q / S / C別スコア</strong>：カテゴリ別の点数とエリア内訳<br>
+          • <strong>NG項目一覧</strong>：指摘内容・コメント・写真を確認可能<br>
+          • <strong>PDF/印刷</strong>：右上ボタンで印刷・PDF出力可能
+        </div>
+        <div class="status-row">
+          <span class="status-badge" style="background:#d1fae5;color:#059669;">✅ OK</span>
+          <span class="status-badge" style="background:#fee2e2;color:#dc2626;">❌ NG</span>
+          <span class="status-badge" style="background:#fef3c7;color:#d97706;">⏸ 保留</span>
+          <span class="status-badge" style="background:#e0e7ff;color:#4f46e5;">📷 写真枚数</span>
+        </div>
+        <div class="tip success"><span class="tip-icon">💡</span><span>NG件数が0の場合は「✨ 全項目合格です！」と表示されます。</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tip success" style="margin-top:24px;">
+    <span class="tip-icon">🎉</span>
+    <span>点検員マニュアルは以上です。ご不明な点は管理者にお問い合わせください。</span>
+  </div>
+
+  <div class="nav-footer">
+    <button class="nav-btn" onclick="goPage('submit')">← 前へ</button>
+    <button class="nav-btn primary" onclick="goPage('overview')">最初に戻る ↩</button>
+  </div>
+</div>
+
+  </div><!-- /content -->
+</main>
+
+<script>
+const PAGES = ['overview','login','home','select','check','submit','results'];
+const TITLES = {
+  overview:'概要・全体フロー', login:'ログイン', home:'ホーム画面',
+  select:'店舗選択', check:'点検実施', submit:'送信・完了', results:'結果確認'
+};
+
+function initDots() {
+  const dots = document.getElementById('progress-dots');
+  dots.innerHTML = PAGES.map(p => '<div class="progress-dot" id="dot-'+p+'"></div>').join('');
+}
+
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(b => b.classList.remove('active'));
+  const pg = document.getElementById('page-'+id);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('.sidebar-item').forEach(b => {
+    if(b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('active');
+  });
+  const idx = PAGES.indexOf(id);
+  document.getElementById('topbar-title').innerHTML = '<span>'+(TITLES[id]||id)+'</span>';
+  document.getElementById('progress-text').textContent = (idx+1)+' / '+PAGES.length;
+  document.querySelectorAll('.progress-dot').forEach((d,i) => d.classList.toggle('done', i<=idx));
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(id==='home') initHome();
+  if(id==='select') initSelect();
+  if(id==='check') initCheck();
+  if(id==='submit') initSubmit();
+}
+
+function toggleStep(header) { header.parentElement.classList.toggle('open'); }
+
+/* ===== HOME ===== */
+function initHome() {
+  const n=new Date(), dw=['日','月','火','水','木','金','土'];
+  const d=document.getElementById('hm-date'), y=document.getElementById('hm-year'), dow=document.getElementById('hm-dow');
+  if(d) d.textContent=String(n.getMonth()+1).padStart(2,'0')+'/'+String(n.getDate()).padStart(2,'0');
+  if(y) y.textContent=n.getFullYear();
+  if(dow) dow.textContent='（'+dw[n.getDay()]+'）';
+  hmRank('overall');
+}
+
+const hmData = {
+  overall:[{n:'FIT365神戸エコール・リラ',s:90,d:'2026-04-14',m:'#f59e0b'},{n:'MINANO分倍河原',s:87,d:'2026-04-13',m:'#94a3b8'},{n:'イオンタウン新船橋',s:84,d:'2026-04-12',m:'#b45309'}],
+  q:[{n:'FIT365神戸エコール・リラ',s:93,d:'2026-04-14',m:'#f59e0b'},{n:'MINANO分倍河原',s:89,d:'2026-04-13',m:'#94a3b8'}],
+  s:[{n:'MINANO分倍河原',s:91,d:'2026-04-13',m:'#f59e0b'},{n:'FIT365神戸エコール・リラ',s:88,d:'2026-04-14',m:'#94a3b8'}],
+  c:[{n:'FIT365神戸エコール・リラ',s:92,d:'2026-04-14',m:'#f59e0b'},{n:'イオンタウン新船橋',s:85,d:'2026-04-12',m:'#94a3b8'}],
+};
+const hmColors = {overall:'#6366f1',q:'#0ea5e9',s:'#10b981',c:'#f59e0b'};
+function sc(s){return s>=90?'#059669':s>=70?'#2563eb':'#dc2626';}
+let hmCur='overall';
+
+function hmRank(k) {
+  hmCur=k;
+  ['overall','q','s','c'].forEach(t => {
+    const el=document.getElementById('hmt-'+t);
+    if(el){el.style.background=t===k?hmColors[t]:'#f1f5f9';el.style.color=t===k?'#fff':'#64748b';}
+  });
+  const list=document.getElementById('hm-rank-list');
+  if(!list) return;
+  list.innerHTML=(hmData[k]||[]).map((r,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:11px;background:${i===0?'linear-gradient(135deg,#fef3c7,#fef9c3)':'#f8fafc'};border:${i===0?'1px solid #fcd34d':'1px solid transparent'};">
+      <div style="width:22px;height:22px;border-radius:50%;background:${r.m};display:grid;place-items:center;flex-shrink:0;"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><circle cx="12" cy="8" r="6"/><path d="M8.21 13.89L7 23l5-3 5 3-1.21-9.12"/></svg></div>
+      <div style="flex:1;min-width:0;"><div style="font-size:10px;font-weight:800;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.n}</div><div style="font-size:9px;color:#94a3b8;">${r.d}</div></div>
+      <div><span style="font-size:16px;font-weight:900;color:${sc(r.s)};">${r.s}</span><span style="font-size:9px;color:#94a3b8;">点</span></div>
+    </div>
+  `).join('');
+}
+
+/* ===== SELECT ===== */
+const selStores = [
+  {id:'S_003',name:'MINANO分倍河原',company:'ヤマウチ',biz:'赤',brand:'JOYFIT',area:'EAST',status:'new'},
+  {id:'S_008',name:'FIT365神戸エコール・リラ',company:'オカモト',biz:'FIT365',brand:'FIT365',area:'WEST',status:'done'},
+  {id:'S_007',name:'イオンタウン新船橋',company:'ヤマウチ',biz:'赤GH',brand:'JOYFIT',area:'EAST',status:'draft'},
+];
+let selQuery='', selSelectedId=null;
+
+function sIcon(s){
+  if(s==='done') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+  if(s==='draft') return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="10 15 10 12"/></svg>`;
+  return `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`;
+}
+function sBg(s){return s==='done'?'#d1fae5':s==='draft'?'#ffedd5':'#f8fafc';}
+function sBadge(s){
+  if(s==='done') return '<span style="padding:2px 6px;border-radius:5px;background:#d1fae5;color:#059669;font-size:10px;font-weight:900;">完了</span>';
+  if(s==='draft') return '<span style="padding:2px 6px;border-radius:5px;background:#ffedd5;color:#d97706;font-size:10px;font-weight:900;">途中</span>';
+  return '';
+}
+
+function initSelect() { selRenderList(); }
+
+function selRenderList() {
+  const k=selQuery.trim().toLowerCase();
+  const filtered=selStores.filter(s=>!k||s.name.toLowerCase().includes(k)||s.area.toLowerCase().includes(k));
+  const cnt=document.getElementById('sel-count'); if(cnt) cnt.textContent=filtered.length+'店舗を表示中';
+  const list=document.getElementById('sel-list'); if(!list) return;
+  list.innerHTML=filtered.map(s=>`
+    <div style="margin-bottom:7px;">
+      <button onclick="selSelect('${s.id}')" style="width:100%;text-align:left;padding:12px 13px;background:#fff;border-radius:14px;border:1px solid ${selSelectedId===s.id?'#1e293b':'#e2e8f0'};display:flex;justify-content:space-between;align-items:center;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">
+        <div style="display:flex;gap:10px;align-items:center;">
+          <div style="width:38px;height:38px;border-radius:10px;background:${sBg(s.status)};display:grid;place-items:center;flex-shrink:0;">${sIcon(s.status)}</div>
+          <div><div style="font-size:13px;font-weight:900;color:#1e293b;">${s.name}</div><div style="font-size:10px;font-weight:700;color:#94a3b8;margin-top:1px;">${s.company} · ${s.biz} · ${s.brand} · ${s.area}</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;">${sBadge(s.status)}<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#cbd5e1" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></div>
+      </button>
+    </div>
+  `).join('');
+}
+
+function selSelect(id) {
+  selSelectedId=id;
+  const s=selStores.find(x=>x.id===id);
+  const dot=document.getElementById('sel-dot'), label=document.getElementById('sel-label');
+  if(dot) dot.style.background='#10b981';
+  if(label){label.style.color='#1e293b';label.textContent='選択中: '+s.name;}
+  selRenderList();
+  selOpenModal(s);
+}
+
+function selOpenModal(s) {
+  const title=document.getElementById('sel-modal-title'); if(title) title.textContent=s.name;
+  const actions=document.getElementById('sel-modal-actions'); if(!actions) return;
+  let html='';
+  if(s.status==='draft') html+=`<button onclick="goPage('check');selCloseModal()" style="display:flex;align-items:center;gap:11px;padding:14px;border-radius:14px;border:1.5px solid #f59e0b;background:#fffbeb;width:100%;cursor:pointer;margin-bottom:7px;font-family:'Noto Sans JP',sans-serif;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="10 15 10 12"/></svg><div><div style="font-size:13px;font-weight:900;color:#1e293b;">途中から再開</div><div style="font-size:10px;color:#94a3b8;">保存済みの途中データを続きから入力</div></div></button>`;
+  if(s.status==='done'||s.status==='draft') html+=`<button onclick="selOpenHist('${s.id}');selCloseModal();" style="display:flex;align-items:center;gap:11px;padding:14px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;width:100%;cursor:pointer;margin-bottom:7px;font-family:'Noto Sans JP',sans-serif;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.5" stroke-linecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg><div><div style="font-size:13px;font-weight:900;color:#1e293b;">過去の結果を修正</div><div style="font-size:10px;color:#94a3b8;">点検履歴から修正対象を選択</div></div></button>`;
+  html+=`<button onclick="ctOpenTypeModal();selCloseModal()" style="display:flex;align-items:center;gap:11px;padding:14px;border-radius:14px;border:1px solid #e2e8f0;background:#fff;width:100%;cursor:pointer;margin-bottom:7px;font-family:'Noto Sans JP',sans-serif;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg><div><div style="font-size:13px;font-weight:900;color:#1e293b;">新しく開始</div><div style="font-size:10px;color:#94a3b8;">履歴を引き継がず新規作成</div></div></button>`;
+  if(s.status==='draft') html+=`<button onclick="selCloseModal()" style="display:flex;align-items:center;gap:11px;padding:13px;border-radius:14px;border:1px solid #fee2e2;background:#fff5f5;width:100%;cursor:pointer;margin-bottom:7px;font-family:'Noto Sans JP',sans-serif;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><div><div style="font-size:13px;font-weight:900;color:#dc2626;">途中保存を破棄</div><div style="font-size:10px;color:#94a3b8;">保存済みの途中データを削除</div></div></button>`;
+  actions.innerHTML=html;
+  const modal=document.getElementById('sel-modal'); if(modal){modal.style.display='flex';}
+}
+
+function selCloseModal(){const m=document.getElementById('sel-modal');if(m)m.style.display='none';}
+function selOpenFilter(){const m=document.getElementById('sel-filter-modal');if(m)m.style.display='flex';}
+function selCloseFilter(){const m=document.getElementById('sel-filter-modal');if(m)m.style.display='none';}
+function selOpenHist(storeId){
+  const s=selStores.find(x=>x.id===storeId);
+  const title=document.getElementById('sel-hist-title');if(title)title.textContent=s?s.name:'';
+  const m=document.getElementById('sel-hist-modal');if(m)m.style.display='flex';
+}
+function selCloseHist(){const m=document.getElementById('sel-hist-modal');if(m)m.style.display='none';}
+function selFilter(){
+  selQuery=document.getElementById('sel-search').value;
+  selRenderList();
+}
+
+/* ===== CHECK ===== */
+const chkSections = {
+  kanngai: [
+    {id:'Q001',label:'外壁/外灯/花壇/お客様動線などに破損箇所はないか',state:'ok',note:''},
+    {id:'Q002',label:'外観/店舗周辺に汚れ（ゴミ・落ち葉・蜘蛛の巣）・雑草はないか',state:'ng',note:'入口前に落ち葉あり'},
+    {id:'Q003',label:'のぼり旗や土台に汚れはないか',state:'unset',note:''},
+    {id:'Q004',label:'駐車場/駐輪場にゴミ・雑草はないか',state:'unset',note:''},
+  ],
+  entrance: [
+    {id:'Q010',label:'扉の手垢、ドア枠や自動ドアレールに埃やゴミはないか',state:'ok',note:''},
+    {id:'Q011',label:'玄関マットが汚れて色が変わっていないか、砂が溜まっていないか',state:'hold',note:'マット交換検討中'},
+    {id:'Q012',label:'かさ立てのトレイや骨組みに汚れはないか',state:'unset',note:''},
+  ],
+  gym: [
+    {id:'Q031',label:'有酸素マシンの肌が触れる部分、足元･骨組み、マシン下に汚れや埃はないか',state:'ng',note:'本体に埃あり、足元に砂あり'},
+    {id:'Q032',label:'ストレングスマシンの肌が触れる部分に汚れや埃はないか',state:'ok',note:''},
+    {id:'Q033',label:'マシン前のテレビの表面・裏側・配線に汚れや埃はないか',state:'unset',note:''},
+  ],
+  ladies: [
+    {id:'Q051',label:'有酸素マシンの肌が触れる部分、足元に汚れや埃はないか',state:'unset',note:''},
+    {id:'Q052',label:'ストレングスマシンに汚れや埃はないか',state:'unset',note:''},
+  ],
+};
+
+let chkCurrentSection='kanngai', chkItemStates={};
+
+function initCheck(){
+  chkItemStates={};
+  Object.entries(chkSections).forEach(([sec,items])=>{
+    items.forEach(item=>{chkItemStates[sec+'_'+item.id]={state:item.state,note:item.note||''};});
+  });
+  chkTab('kanngai');
+}
+
+function chkTab(sec){
+  chkCurrentSection=sec;
+  ['kanngai','entrance','gym','ladies'].forEach(s=>{
+    const btn=document.getElementById('ctab-'+s);
+    if(!btn) return;
+    const isActive=s===sec;
+    btn.style.color=isActive?'#6366f1':'#94a3b8';
+    btn.style.borderBottom=isActive?'2px solid #6366f1':'2px solid transparent';
+  });
+  chkRenderItems();
+  chkUpdateProgress();
+}
+
+
+const NG_PRESETS = ['埃がある','汚れが目立つ','整理整頓されていない','破損がある','補充不足','異臭がする'];
+const HOLD_PRESETS = ['担当者に確認中','後日対応予定','現地判断不能','業者手配済み'];
+
+function chkRenderItems(){
+  const container = document.getElementById('chk-items');
+  if(!container) return;
+  const items = chkSections[chkCurrentSection] || [];
+  container.innerHTML = items.map(function(item){
+    const key = chkCurrentSection + '_' + item.id;
+    const st = chkItemStates[key] || {state:'unset', note:''};
+    const isNg = st.state==='ng';
+    const isOk = st.state==='ok';
+    const isHold = st.state==='hold';
+    const isNa = st.state==='na';
+    const showDetail = isNg||isOk||isHold||isNa;
+    const cardBorder = isNg  ? 'border:1.5px solid rgba(248,113,113,0.4);'
+                     : isOk  ? 'border:1.5px solid rgba(52,211,153,0.3);'
+                     : isHold? 'border:1.5px solid rgba(251,191,36,0.4);'
+                     : 'border:1px solid #e2e8f0;';
+    const cardBg = isNg ? '#fff9f9' : isHold ? '#fffdf5' : '#fff';
+    const presets = isHold ? HOLD_PRESETS : NG_PRESETS;
+
+    const choiceHtml = ['ok','hold','ng','na'].map(function(s){
+      const isSel = st.state===s;
+      const cfgMap = {
+        ok:   {bg:'#d1fae5',bc:'#34d399',c:'#059669',label:'OK'},
+        hold: {bg:'#fef3c7',bc:'#fbbf24',c:'#d97706',label:'保留'},
+        ng:   {bg:'#fee2e2',bc:'#f87171',c:'#dc2626',label:'NG'},
+        na:   {bg:'#f1f5f9',bc:'#94a3b8',c:'#64748b',label:'対象外'}
+      };
+      const cfg = cfgMap[s];
+      return '<button onclick="chkChoose(\''+chkCurrentSection+'\',\''+item.id+'\',\''+s+'\')" style="padding:7px 3px;border-radius:9px;border:1.5px solid '+(isSel?cfg.bc:'#e2e8f0')+';background:'+(isSel?cfg.bg:'#f8fafc')+';font-size:10px;font-weight:800;color:'+(isSel?cfg.c:'#94a3b8')+';cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:\'Noto Sans JP\',sans-serif;">'+chkStateIcon(s,isSel)+cfg.label+'</button>';
+    }).join('');
+
+    let presetHtml = '';
+    if(showDetail && (isNg||isHold)){
+      presetHtml = '<div style="display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;">'
+        + presets.map(function(t){
+            return '<button onclick="chkAppendPreset(\''+chkCurrentSection+'\',\''+item.id+'\',\''+t+'\')" style="flex-shrink:0;height:28px;padding:0 10px;border-radius:7px;border:1px solid #e2e8f0;background:#fff;font-size:10px;font-weight:700;color:#64748b;display:flex;align-items:center;gap:3px;cursor:pointer;white-space:nowrap;font-family:\'Noto Sans JP\',sans-serif;">'
+              + '<svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+              + t+'</button>';
+          }).join('')
+        + '</div>';
+    }
+
+    let commentLabel = isHold ? '保留理由' : 'コメント';
+    let required = isNg ? '<span style="color:#dc2626;font-size:9px;font-weight:900;margin-left:2px;">必須</span>' : '';
+    let placeholder = isHold ? '保留の理由を入力してください' : isNg ? 'NG理由（必須）' : 'コメントを入力（任意）';
+    let noteBorder = (isNg&&!st.note) ? 'rgba(248,113,113,0.4)' : '#e2e8f0';
+    let noteBg = isNg ? '#fff9f9' : isHold ? '#fffdf5' : '#f8fafc';
+
+    let detailHtml = '';
+    if(showDetail){
+      detailHtml = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
+        + '<div style="font-size:10px;font-weight:700;color:#64748b;display:flex;align-items:center;gap:3px;">'
+        + '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>'
+        + commentLabel + required + '</div>'
+        + '<button onclick="chkOpenPhoto()" style="display:flex;align-items:center;gap:3px;padding:4px 8px;border-radius:6px;border:1px solid #e2e8f0;background:#f8fafc;font-size:10px;font-weight:700;color:#64748b;cursor:pointer;font-family:\'Noto Sans JP\',sans-serif;">'
+        + '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>写真追加</button></div>'
+        + '<textarea id="note-'+key+'" style="width:100%;border:1px solid '+noteBorder+';border-radius:9px;padding:8px 10px;font-size:11px;color:#475569;background:'+noteBg+';resize:none;font-family:\'Noto Sans JP\',sans-serif;outline:none;margin-bottom:6px;" rows="'+(isNg||isHold?'2':'1')+'" placeholder="'+placeholder+'" oninput="chkNote(\''+chkCurrentSection+'\',\''+item.id+'\',this.value)">'+st.note+'</textarea>'
+        + presetHtml;
+    }
+
+    return '<div style="'+cardBorder+'border-radius:14px;padding:13px;margin-bottom:7px;background:'+cardBg+'">'
+      + '<div style="font-size:12px;font-weight:700;color:#1e293b;margin-bottom:9px;line-height:1.5;">'+item.label+'</div>'
+      + '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:'+(showDetail?'9px':'0')+';">'
+      + choiceHtml + '</div>'
+      + detailHtml
+      + '</div>';
+  }).join('');
+}
+
+function chkAppendPreset(sec, itemId, text){
+  const key = sec+'_'+itemId;
+  if(!chkItemStates[key]) chkItemStates[key] = {state:'unset', note:''};
+  const cur = chkItemStates[key].note || '';
+  chkItemStates[key].note = cur ? (cur+' '+text) : text;
+  const ta = document.getElementById('note-'+key);
+  if(ta) ta.value = chkItemStates[key].note;
+}
+
+
+function chkStateIcon(s,isSel){
+  const c=isSel?({ok:'#059669',hold:'#d97706',ng:'#dc2626',na:'#64748b'}[s]):'#cbd5e1';
+  const paths={ok:'<path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>',hold:'<circle cx="12" cy="12" r="10"/><line x1="10" y1="15" x2="10" y2="12"/><line x1="10" y1="9" x2="10.01" y2="9"/>',ng:'<circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>',na:'<circle cx="12" cy="12" r="10"/><line x1="8" y1="12" x2="16" y2="12"/>'};
+  return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="${c}" stroke-width="2.5" stroke-linecap="round">${paths[s]}</svg>`;
+}
+
+function chkChoose(sec,itemId,state){
+  const key=sec+'_'+itemId;
+  if(!chkItemStates[key]) chkItemStates[key]={state:'unset',note:''};
+  chkItemStates[key].state=chkItemStates[key].state===state?'unset':state;
+  chkRenderItems();
+  chkUpdateProgress();
+}
+
+function chkNote(sec,itemId,val){
+  const key=sec+'_'+itemId;
+  if(!chkItemStates[key]) chkItemStates[key]={state:'unset',note:''};
+  chkItemStates[key].note=val;
+}
+
+function chkUpdateProgress(){
+  let done=0,total=0,ng=0,hold=0,ok=0,na=0;
+  Object.entries(chkSections).forEach(([sec,items])=>{
+    items.forEach(item=>{
+      total++;
+      const st=(chkItemStates[sec+'_'+item.id]||{}).state||'unset';
+      if(st!=='unset'){done++;if(st==='ng')ng++;else if(st==='hold')hold++;else if(st==='ok')ok++;else na++;}
+    });
+  });
+  const pct=total>0?Math.round(done/total*100):0;
+  const ring=document.getElementById('chk-ring');
+  const pctEl=document.getElementById('chk-pct');
+  const doneLabel=document.getElementById('chk-done-label');
+  const warnLabel=document.getElementById('chk-warn-label');
+  const barOk=document.getElementById('chk-bar-ok');
+  const barNg=document.getElementById('chk-bar-ng');
+  const barHold=document.getElementById('chk-bar-hold');
+  if(ring) ring.style.strokeDashoffset=113.1*(1-pct/100);
+  if(pctEl) pctEl.textContent=pct+'%';
+  if(doneLabel) doneLabel.textContent=done+'/'+total+' 完了';
+  if(warnLabel){warnLabel.textContent=ng>0?'NG '+ng+'件':hold>0?'保留 '+hold+'件':'順調';warnLabel.style.color=ng>0?'#d97706':'#94a3b8';}
+  if(barOk) barOk.style.width=(total>0?ok/total*100:0)+'%';
+  if(barNg) barNg.style.width=(total>0?ng/total*100:0)+'%';
+  if(barHold) barHold.style.width=(total>0?hold/total*100:0)+'%';
+}
+
+/* ===== PHOTO MODAL ===== */
+function chkOpenPhoto(){
+  const m=document.getElementById('chk-photo-modal');
+  if(m) m.style.display='flex';
+}
+function chkClosePhoto(){
+  const m=document.getElementById('chk-photo-modal');
+  if(m) m.style.display='none';
+}
+function chkPhotoTake(){
+  chkClosePhoto();
+  setTimeout(()=>chkOpenEdit(),200);
+}
+function chkPhotoLib(){
+  chkClosePhoto();
+  setTimeout(()=>chkOpenEdit(),200);
+}
+
+/* ===== PHOTO EDIT MODAL ===== */
+let editTool='circle', editColor='#ff3b30', editWidth=6;
+let editShapes=[], editHistory=[];
+let editDrawing=false, editStartPt=null;
+const EDIT_COLORS=['#ff3b30','#ffcc00','#34c759','#007aff','#af52de','#ffffff','#000000'];
+
+function chkOpenEdit(){
+  const m=document.getElementById('chk-edit-modal');
+  if(!m) return;
+  m.style.display='flex';
+  m.style.flexDirection='column';
+  editShapes=[]; editHistory=[];
+  editSetTool('circle');
+  editInitSwatches();
+  editRedraw();
+}
+function chkCloseEdit(){
+  const m=document.getElementById('chk-edit-modal');
+  if(m) m.style.display='none';
+}
+function chkSaveEdit(){
+  chkCloseEdit();
+  // トースト表示
+  const t=document.createElement('div');
+  t.style.cssText='position:absolute;bottom:90px;left:50%;transform:translateX(-50%);background:#059669;color:#fff;padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;white-space:nowrap;z-index:300;font-family:"Noto Sans JP",sans-serif;';
+  t.textContent='✓ 写真を保存しました';
+  const wrap=document.querySelector('#page-check .mock-phone');
+  if(wrap){wrap.style.position='relative';wrap.appendChild(t);setTimeout(()=>t.remove(),2000);}
+}
+
+function editInitSwatches(){
+  const el=document.getElementById('edit-swatches'); if(!el) return;
+  el.innerHTML=EDIT_COLORS.map(c=>`
+    <button onclick="editPickColor('${c}')" id="swatch-${c.replace('#','')}" style="width:${c===editColor?28:22}px;height:${c===editColor?28:22}px;border-radius:50%;background:${c};border:${c===editColor?'2.5px solid rgba(255,255,255,0.9)':'1px solid rgba(255,255,255,0.2)'};cursor:pointer;transition:all 0.15s;flex-shrink:0;"></button>
+  `).join('');
+}
+
+function editPickColor(c){
+  editColor=c;
+  editInitSwatches();
+}
+
+function editSetTool(tool){
+  editTool=tool;
+  const btns={circle:document.getElementById('edit-tool-circle'),arrow:document.getElementById('edit-tool-arrow')};
+  Object.entries(btns).forEach(([k,btn])=>{
+    if(!btn) return;
+    const isActive=k===tool;
+    btn.style.background=isActive?'rgba(255,255,255,0.14)':'rgba(255,255,255,0.04)';
+    btn.style.border=isActive?'1px solid rgba(255,255,255,0.2)':'1px solid rgba(255,255,255,0.08)';
+    btn.style.color=isActive?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.5)';
+  });
+}
+
+function editSetWidth(val){
+  editWidth=parseInt(val);
+  const lbl=document.getElementById('edit-width-label');
+  if(lbl) lbl.textContent=val+'px';
+}
+
+function editGetSVGPt(e){
+  const svg=document.getElementById('edit-svg'); if(!svg) return {x:0,y:0};
+  const r=svg.getBoundingClientRect();
+  const clientX=e.touches?e.touches[0].clientX:e.clientX;
+  const clientY=e.touches?e.touches[0].clientY:e.clientY;
+  return {x:clientX-r.left, y:clientY-r.top};
+}
+
+function editStart(e){
+  editDrawing=true;
+  editStartPt=editGetSVGPt(e);
+}
+function editMove(e){
+  if(!editDrawing||!editStartPt) return;
+  editRedrawPreview(editStartPt, editGetSVGPt(e));
+}
+function editEnd(e){
+  if(!editDrawing||!editStartPt) return;
+  const end=editGetSVGPt(e);
+  editHistory.push([...editShapes]);
+  editShapes.push({tool:editTool,a:editStartPt,b:end,color:editColor,width:editWidth});
+  editDrawing=false; editStartPt=null;
+  editRedraw();
+}
+function editTouch(e,phase){
+  e.preventDefault();
+  if(phase==='start') editStart(e);
+  else if(phase==='move') editMove(e);
+  else editEnd(e);
+}
+
+function editUndo(){
+  if(editHistory.length===0) return;
+  editShapes=editHistory.pop();
+  editRedraw();
+}
+function editClear(){
+  editHistory.push([...editShapes]);
+  editShapes=[];
+  editRedraw();
+}
+
+function editMakeSVGShape(s, preview=false){
+  const {tool,a,b,color,width}=s;
+  const op=preview?0.8:1;
+  if(tool==='circle'){
+    const r=Math.hypot(b.x-a.x,b.y-a.y);
+    return `<circle cx="${a.x}" cy="${a.y}" r="${r}" fill="none" stroke="${color}" stroke-width="${width}" stroke-linecap="round" opacity="${op}"/>`;
+  } else {
+    const dx=b.x-a.x, dy=b.y-a.y, len=Math.hypot(dx,dy);
+    if(len<2) return '';
+    const hl=Math.max(14,width*3.2), hw=Math.max(10,width*2.6);
+    const ux=dx/len, uy=dy/len;
+    const bx=b.x-ux*hl, by=b.y-uy*hl;
+    const px=-uy, py=ux;
+    return `<g opacity="${op}"><line x1="${a.x}" y1="${a.y}" x2="${bx}" y2="${by}" stroke="${color}" stroke-width="${width}" stroke-linecap="round"/>
+      <polygon points="${b.x},${b.y} ${bx+px*hw/2},${by+py*hw/2} ${bx-px*hw/2},${by-py*hw/2}" fill="${color}"/></g>`;
+  }
+}
+
+function editRedraw(){
+  const svg=document.getElementById('edit-svg'); if(!svg) return;
+  const ph=document.getElementById('edit-placeholder');
+  if(ph) ph.style.display=editShapes.length?'none':'flex';
+  svg.innerHTML=editShapes.map(s=>editMakeSVGShape(s)).join('');
+}
+
+function editRedrawPreview(a,b){
+  const svg=document.getElementById('edit-svg'); if(!svg) return;
+  const baseShapes=editShapes.map(s=>editMakeSVGShape(s)).join('');
+  const preview=editMakeSVGShape({tool:editTool,a,b,color:editColor,width:editWidth},true);
+  svg.innerHTML=baseShapes+preview;
+}
+
+/* ===== UNSET DIALOG ===== */
+function chkOpenSubmit(){
+  // 未チェック数カウント
+  let unset=0;
+  Object.entries(chkSections).forEach(([sec,items])=>{
+    items.forEach(item=>{
+      const st=(chkItemStates[sec+'_'+item.id]||{}).state||'unset';
+      if(st==='unset') unset++;
+    });
+  });
+  if(unset>0){
+    const cnt=document.getElementById('chk-unset-count');
+    if(cnt) cnt.textContent=unset+'件';
+    const m=document.getElementById('chk-unset-modal');
+    if(m) m.style.display='flex';
+  } else {
+    goPage('submit');
+  }
+}
+function chkCloseUnset(){
+  const m=document.getElementById('chk-unset-modal');
+  if(m) m.style.display='none';
+}
+function chkGoFirstUnset(){
+  chkCloseUnset();
+  // 最初の未チェックセクションに移動
+  for(const [sec,items] of Object.entries(chkSections)){
+    for(const item of items){
+      const st=(chkItemStates[sec+'_'+item.id]||{}).state||'unset';
+      if(st==='unset'){chkTab(sec);return;}
+    }
+  }
+}
+
+/* ===== RESULTS TOGGLE ===== */
+function resToggle(card){
+  const body=card.querySelector('[style*="border-top"]');
+  if(!body) return;
+  const isOpen=body.style.display!=='none';
+  body.style.display=isOpen?'none':'block';
+}
+
+/* ===== SUBMIT ===== */
+function initSubmit(){
+  const d=new Date(); d.setMonth(d.getMonth()+1);
+  const dd=document.getElementById('deadline-display');
+  if(dd) dd.textContent=d.getFullYear()+'/'+(d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0');
+}
+
+/* ===== LOGIN ANIM ===== */
+function initLogin(){
+  const emailText='test@okamoto-group.co.jp', passText='password123';
+  const emailEl=document.getElementById('li-email'), passEl=document.getElementById('li-pass');
+  const emailBox=document.getElementById('li-email-box'), passBox=document.getElementById('li-pass-box');
+  const btn=document.getElementById('li-btn');
+  if(!emailEl||!passEl||!btn) return;
+  async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+  async function type(el,text,isPass){
+    el.style.color='#1e293b';
+    for(let i=0;i<=text.length;i++){
+      el.textContent=(isPass?'•'.repeat(i):text.slice(0,i))+(i<text.length?'|':'');
+      await sleep(isPass?70+Math.random()*50:55+Math.random()*65);
+    }
+    el.textContent=isPass?'•'.repeat(text.length):text;
+  }
+  async function run(){
+    await sleep(800);
+    if(emailBox){emailBox.style.borderColor='#94a3b8';emailBox.style.background='#fff';}
+    await type(emailEl,emailText,false);
+    if(emailBox){emailBox.style.borderColor='#e2e8f0';emailBox.style.background='#f8fafc';}
+    await sleep(400);
+    if(passBox){passBox.style.borderColor='#94a3b8';passBox.style.background='#fff';}
+    await type(passEl,passText,true);
+    if(passBox){passBox.style.borderColor='#e2e8f0';passBox.style.background='#f8fafc';}
+    await sleep(500);
+    if(btn)btn.style.background='#38a169';
+    await sleep(600);
+    if(btn)btn.innerHTML='<span style="display:inline-flex;gap:5px;align-items:center;"><span class="ld"></span><span class="ld" style="animation-delay:0.15s"></span><span class="ld" style="animation-delay:0.3s"></span></span>';
+    await sleep(1800);
+    if(btn)btn.innerHTML='✓ ログイン成功';
+    await sleep(2000);
+    if(emailEl){emailEl.textContent='example@company.com';emailEl.style.color='#cbd5e1';}
+    if(passEl){passEl.textContent='••••••••';passEl.style.color='#cbd5e1';}
+    if(btn){btn.innerHTML='ログイン';btn.style.background='#717b85';}
+    await sleep(800);
+    run();
+  }
+  if(!document.getElementById('ld-style')){
+    const s=document.createElement('style');s.id='ld-style';
+    s.textContent='.ld{display:inline-block;width:7px;height:7px;border-radius:50%;background:white;animation:ldbounce 0.9s infinite ease-in-out}@keyframes ldbounce{0%,80%,100%{transform:scale(0.6);opacity:0.5}40%{transform:scale(1);opacity:1}}';
+    document.head.appendChild(s);
+  }
+  setTimeout(run,300);
+}
+
+/* ===== INIT ===== */
+initDots();
+goPage('overview');
+
+// ページ切り替え時に初期化
+const origGoPage=goPage;
+window.goPage=function(id){
+  origGoPage(id);
+  if(id==='login') setTimeout(initLogin, 200);
+};
+initLogin();
+
+/* ===== CHECK TYPE MODAL ===== */
+let ctCurrentType = 'official';
+
+function ctOpenTypeModal() {
+  const m = document.getElementById('ct-type-modal');
+  if (!m) return;
+  m.style.display = 'flex';
+  ctHighlight('official');
+}
+
+function ctCloseTypeModal() {
+  const m = document.getElementById('ct-type-modal');
+  if (m) m.style.display = 'none';
+}
+
+function ctSelectType(type) {
+  ctCurrentType = type;
+  ctHighlight(type);
+  setTimeout(() => {
+    ctCloseTypeModal();
+    goPage('check');
+    // チェックページにバッジ表示
+    const badge = document.getElementById('ct-type-badge');
+    if (badge) {
+      badge.textContent = type === 'official' ? '本チェック' : 'セルフチェック';
+      badge.style.background = type === 'official' ? '#eef2ff' : '#fffbeb';
+      badge.style.color = type === 'official' ? '#6366f1' : '#f59e0b';
+    }
+  }, 200);
+}
+
+function ctHighlight(type) {
+  const official = document.getElementById('ct-opt-official');
+  const self = document.getElementById('ct-opt-self');
+  if (!official || !self) return;
+  official.style.borderColor = type === 'official' ? '#1e293b' : '#e2e8f0';
+  official.style.borderWidth = type === 'official' ? '2px' : '1.5px';
+  self.style.borderColor = type === 'self' ? '#1e293b' : '#e2e8f0';
+  self.style.borderWidth = type === 'self' ? '2px' : '1.5px';
+}
+</script>
+
+<!-- ===== チェックタイプ選択モーダル ===== -->
+<div id="ct-type-modal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,0.5);backdrop-filter:blur(4px);display:none;align-items:flex-end;justify-content:center;padding-bottom:0;">
+  <div style="background:#f0f2f7;border-radius:28px 28px 0 0;width:100%;max-width:420px;padding:28px 20px 36px;box-shadow:0 -8px 40px rgba(0,0,0,0.15);">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:18px;font-weight:950;color:#1e293b;margin-bottom:6px;">チェックタイプを選択</div>
+      <div style="font-size:13px;font-weight:700;color:#64748b;" id="ct-store-name">三宮</div>
+    </div>
+    <!-- 本チェック -->
+    <div onclick="ctSelectType('official')" id="ct-opt-official"
+      style="display:flex;align-items:center;gap:14px;padding:18px 16px;border-radius:16px;border:2px solid #1e293b;background:#fff;margin-bottom:12px;cursor:pointer;transition:all 0.15s;">
+      <div style="width:44px;height:44px;border-radius:14px;background:#eef2ff;display:grid;place-items:center;flex-shrink:0;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:900;color:#1e293b;">本チェック</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:2px;">公式の点検結果として記録されます</div>
+      </div>
+    </div>
+    <!-- セルフチェック -->
+    <div onclick="ctSelectType('self')" id="ct-opt-self"
+      style="display:flex;align-items:center;gap:14px;padding:18px 16px;border-radius:16px;border:1.5px solid #e2e8f0;background:#fff;margin-bottom:20px;cursor:pointer;transition:all 0.15s;">
+      <div style="width:44px;height:44px;border-radius:14px;background:#fffbeb;display:grid;place-items:center;flex-shrink:0;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </div>
+      <div>
+        <div style="font-size:15px;font-weight:900;color:#1e293b;">セルフチェック</div>
+        <div style="font-size:12px;color:#94a3b8;margin-top:2px;">店舗の自己点検用（ランキングに反映されません）</div>
+      </div>
+    </div>
+    <!-- キャンセル -->
+    <button onclick="ctCloseTypeModal()" style="width:100%;padding:14px;border-radius:14px;border:none;background:#e2e8f0;color:#64748b;font-size:15px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;">キャンセル</button>
+  </div>
+</div>
+</body>
+</html>

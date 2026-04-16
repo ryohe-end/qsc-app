@@ -48,13 +48,28 @@ const MOCK: Record<RankingType, RankRow[]> = {
   ],
 };
 
-/**
- * 後で /api/ranking を作ったらここだけ差し替える：
- *   const res = await fetch(`/api/ranking?type=${type}`, { cache: "no-store" })
- *   return await res.json()
- */
 export async function fetchRanking(type: RankingType): Promise<RankingResponse> {
-  const rows = [...(MOCK[type] ?? [])].sort((a, b) => b.score - a.score);
+  const res = await fetch(`/api/ranking`, { cache: "no-store" });
+  if (!res.ok) throw new Error("ランキング取得に失敗しました");
+  const data = await res.json();
+
+  const rankingKey = type === "overall" ? "overall" : type;
+  const items: { storeId: string; storeName: string; totalScore?: number; q_score?: number | null; s_score?: number | null; c_score?: number | null }[] =
+    data.rankings?.[rankingKey] ?? [];
+
+  const scoreKey = type === "overall" ? "totalScore"
+    : type === "q" ? "q_score"
+    : type === "s" ? "s_score"
+    : "c_score";
+
+  const rows: RankRow[] = items
+    .map(item => ({
+      storeId: item.storeId,
+      storeName: item.storeName,
+      score: Number(item[scoreKey] ?? 0),
+    }))
+    .sort((a, b) => b.score - a.score);
+
   return {
     type,
     updatedAt: new Date().toISOString(),

@@ -6,7 +6,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 const region = process.env.QSC_AWS_REGION || "us-east-1";
 const resultTableName = process.env.QSC_RESULT_TABLE_NAME || "QSC_CheckResults";
-const selfCheckTableName = process.env.QSC_SELF_CHECK_TABLE_NAME || "QSC_SelfCheckResults";
+// セルフチェックも同一テーブルに保存し checkType フィールドで区別
 const bucket = process.env.QSC_PHOTO_BUCKET_NAME || "qsc-check-photos-prod";
 
 const ddbClient = new DynamoDBClient({ region });
@@ -44,7 +44,7 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const resultId = searchParams.get("storeId");
     const checkType = searchParams.get("checkType") || "official";
-    const tableName = checkType === "self" ? selfCheckTableName : resultTableName;
+    const tableName = resultTableName;
 
     if (!resultId) {
       return NextResponse.json({ error: "resultIdが必要です" }, { status: 400 });

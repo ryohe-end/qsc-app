@@ -13,7 +13,7 @@ const s3 = new S3Client({ region: process.env.QSC_AWS_REGION || "us-east-1" });
 const BUCKET = process.env.QSC_PHOTOS_BUCKET || "qsc-check-photos-prod";
 
 const TABLE_NAME = process.env.QSC_CHECK_RESULTS_TABLE || "QSC_CheckResults";
-const SELF_CHECK_TABLE = process.env.QSC_SELF_CHECK_TABLE_NAME || "QSC_SelfCheckResults";
+// セルフチェックも同一テーブルに保存し checkType フィールドで区別
 
 type PhotoRecord = {
   id: string;
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     const storeId = searchParams.get("storeId");
     const resultId = searchParams.get("resultId");
     const checkType = searchParams.get("checkType") || "official";
-    const tableName = checkType === "self" ? SELF_CHECK_TABLE : TABLE_NAME;
+    const tableName = TABLE_NAME;
 
     if (!storeId || !resultId) {
       return NextResponse.json(

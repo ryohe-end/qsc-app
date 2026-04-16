@@ -1,15 +1,86 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Shield, Lock, ArrowRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize: (config: Record<string, unknown>) => void;
+          renderButton: (el: HTMLElement | null, config: Record<string, unknown>) => void;
+        };
+      };
+    };
+  }
+}
 
 export default function AdminLoginPage() {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleBusy, setGoogleBusy] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [googleClientId, setGoogleClientId] = useState("");
+  const googleBtnRef = useRef<HTMLDivElement | null>(null);
+  const scriptLoadedRef = useRef(false);
+
+  useEffect(() => {
+    setGoogleClientId(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "");
+  }, []);
+
+  // Google認証初期化
+  useEffect(() => {
+    if (!googleClientId || !googleBtnRef.current) return;
+    const init = () => {
+      if (!window.google?.accounts?.id) return;
+      window.google.accounts.id.initialize({
+        client_id: googleClientId,
+        callback: async (resp: { credential?: string }) => {
+          const idToken = resp?.credential;
+          if (!idToken) return;
+          setErrorMsg(null);
+          setGoogleBusy(true);
+          try {
+            const res = await fetch("/api/auth/google", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ idToken }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || "Google認証に失敗しました");
+
+            // adminロールかチェック
+            if (data.user?.role !== "admin") {
+              throw new Error("管理者権限がありません");
+            }
+
+            window.location.href = "/admin";
+          } catch (e: unknown) {
+            setErrorMsg(e instanceof Error ? e.message : "Google認証に失敗しました");
+          } finally {
+            setGoogleBusy(false);
+          }
+        },
+      });
+      window.google.accounts.id.renderButton(googleBtnRef.current, {
+        type: "standard", theme: "filled_black", size: "large",
+        width: 336, text: "signin_with", shape: "rectangular",
+      });
+    };
+    if (window.google?.accounts?.id) { init(); }
+    else if (!scriptLoadedRef.current) {
+      scriptLoadedRef.current = true;
+      const s = document.createElement("script");
+      s.src = "https://accounts.google.com/gsi/client";
+      s.async = true;
+      s.onload = init;
+      document.head.appendChild(s);
+    }
+  }, [googleClientId]);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,6 +219,28 @@ export default function AdminLoginPage() {
               {loading ? "認証中..." : "ログイン"} <ArrowRight size={18} />
             </button>
           </form>
+
+          {/* Google認証 */}
+          {googleClientId && (
+            <>
+              <div style={{
+                display: "flex", alignItems: "center", gap: 12,
+                margin: "24px 0", color: "#475569", fontSize: 12,
+              }}>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+                <span style={{ color: "#64748b", fontWeight: 700 }}>または</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
+                <div ref={googleBtnRef} />
+                {googleBusy && (
+                  <div style={{ marginTop: 10, fontSize: 12, color: "#818cf8", fontWeight: 700 }}>
+                    Google認証中...
+                  </div>
+                )}
+              </div>
+            </>
+          )}
         </div>
 
         <div style={{ textAlign: "center", marginTop: 32 }}>

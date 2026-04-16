@@ -38,8 +38,8 @@ export async function GET(req: NextRequest) {
       if (allItems.length >= limit) break;
     } while (lastKey);
 
-    // 必要なフィールドだけ返す（sectionsは含めない → 軽量化）
-    const items = allItems.slice(0, limit).map(item => ({
+    // セルフチェックを除外し、必要なフィールドだけ返す（sectionsは含めない → 軽量化）
+    const items = allItems.slice(0, limit).filter(item => item.checkType !== "self").map(item => ({
       resultId: item.resultId,
       storeId: item.storeId,
       storeName: item.storeName,

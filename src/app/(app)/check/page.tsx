@@ -133,12 +133,14 @@ export default function CheckPage() {
   const [isCheckTypeModalOpen, setIsCheckTypeModalOpen] = useState(false);
 
   // [修正] localStorage の draft を読み込むロジックを関数化して再利用可能にする
+  // qsc_draft_{storeId}（本チェック）と qsc_draft_self_{storeId}（セルフ）両方を検出
   const loadDraftStoreIds = useCallback(() => {
     if (typeof window === "undefined") return;
     const keys = Object.keys(localStorage)
       .filter((k) => k.startsWith("qsc_draft_"))
-      .map((k) => k.replace("qsc_draft_", ""));
-    setDraftStoreIds(keys);
+      .map((k) => k.replace("qsc_draft_self_", "").replace("qsc_draft_", ""))
+      .filter(Boolean);
+    setDraftStoreIds([...new Set(keys)]);
   }, []);
 
   // 初期データ取得
@@ -368,8 +370,11 @@ export default function CheckPage() {
     setIsCheckTypeModalOpen(false);
 
     if (typeof window !== "undefined") {
-      localStorage.removeItem(`qsc_draft_${selectedStore.storeId}`);
-      setDraftStoreIds((prev) => prev.filter((id) => id !== selectedStore.storeId));
+      const draftKey = checkType === "self"
+        ? `qsc_draft_self_${selectedStore.storeId}`
+        : `qsc_draft_${selectedStore.storeId}`;
+      localStorage.removeItem(draftKey);
+      loadDraftStoreIds();
     }
 
     router.push(`/check/run?storeId=${selectedStore.storeId}&mode=new&checkType=${checkType}`);
@@ -778,19 +783,35 @@ export default function CheckPage() {
             </div>
 
             <div style={{ display: "grid", gap: "12px" }}>
-              {/* 途中保存がある場合 */}
-              {getDynamicStatus(selectedStore.storeId) === "draft" && (
+              {/* 途中保存がある場合（本チェック） */}
+              {getDynamicStatus(selectedStore.storeId) === "draft" && typeof window !== "undefined" && localStorage.getItem(`qsc_draft_${selectedStore.storeId}`) && (
                 <button
                   onClick={() => {
                     setIsActionModalOpen(false);
-                    router.push(`/check/run?storeId=${selectedStore.storeId}&companyId=${selectedStore.companyId}&bizId=${selectedStore.bizId}&brandId=${selectedStore.brandId}&mode=new`);
+                    router.push(`/check/run?storeId=${selectedStore.storeId}&companyId=${selectedStore.companyId}&bizId=${selectedStore.bizId}&brandId=${selectedStore.brandId}&mode=new&checkType=official`);
                   }}
                   style={{ display: "flex", alignItems: "center", gap: "16px", padding: "22px", borderRadius: "22px", border: "1.5px solid #f59e0b", background: "#fffbeb", textAlign: "left" }}
                 >
                   <PauseCircle size={24} color="#f59e0b" />
                   <div>
-                    <div style={{ fontSize: "16px", fontWeight: 900 }}>途中から再開</div>
+                    <div style={{ fontSize: "16px", fontWeight: 900 }}>途中から再開（本チェック）</div>
                     <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>保存済みの途中データを続きから入力</div>
+                  </div>
+                </button>
+              )}
+              {/* 途中保存がある場合（セルフチェック） */}
+              {getDynamicStatus(selectedStore.storeId) === "draft" && typeof window !== "undefined" && localStorage.getItem(`qsc_draft_self_${selectedStore.storeId}`) && (
+                <button
+                  onClick={() => {
+                    setIsActionModalOpen(false);
+                    router.push(`/check/run?storeId=${selectedStore.storeId}&companyId=${selectedStore.companyId}&bizId=${selectedStore.bizId}&brandId=${selectedStore.brandId}&mode=new&checkType=self`);
+                  }}
+                  style={{ display: "flex", alignItems: "center", gap: "16px", padding: "22px", borderRadius: "22px", border: "1.5px solid #d97706", background: "#fef3c7", textAlign: "left" }}
+                >
+                  <PauseCircle size={24} color="#d97706" />
+                  <div>
+                    <div style={{ fontSize: "16px", fontWeight: 900 }}>途中から再開（セルフ）</div>
+                    <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 700 }}>セルフチェックの途中データを続きから入力</div>
                   </div>
                 </button>
               )}
@@ -829,9 +850,10 @@ export default function CheckPage() {
               {getDynamicStatus(selectedStore.storeId) === "draft" && (
                 <button
                   onClick={() => {
-                    if (confirm("途中保存を破棄しますか？")) {
+                    if (confirm("途中保存をすべて破棄しますか？")) {
                       localStorage.removeItem(`qsc_draft_${selectedStore.storeId}`);
-                      setDraftStoreIds(prev => prev.filter(id => id !== selectedStore.storeId));
+                      localStorage.removeItem(`qsc_draft_self_${selectedStore.storeId}`);
+                      loadDraftStoreIds();
                       setIsActionModalOpen(false);
                       setSelectedStoreId("");
                     }

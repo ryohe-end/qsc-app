@@ -6,6 +6,7 @@ import {
   Loader2, Home, ChevronRight, Printer,
   AlertCircle, MessageSquare, User, Calendar,
   Clock, CheckCircle2, XCircle, PauseCircle, Image,
+  Camera, X,
 } from "lucide-react";
 
 type CategoryScore = { score: number; maxScore: number };
@@ -109,6 +110,74 @@ function CategoryScoreCard({
   );
 }
 
+function PhotoCard({ sectionTitle, label, state, photos, onPhotoClick }: {
+  sectionTitle: string; label: string; state: string;
+  photos: { id: string; url: string }[];
+  onPhotoClick: (url: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const borderColor = state === "ng" ? "#dc2626" : state === "hold" ? "#d97706" : "#2563eb";
+  const stateLabel = state === "ng" ? "NG" : state === "hold" ? "保留" : state === "ok" ? "OK" : state;
+
+  return (
+    <div style={{ background: "#fff", borderRadius: "16px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: "100%", textAlign: "left", padding: "14px 16px",
+          border: "none", background: "transparent", cursor: "pointer",
+          display: "flex", alignItems: "center", gap: "12px",
+        }}
+      >
+        <div style={{
+          width: "36px", height: "36px", borderRadius: "10px",
+          background: "#f5f3ff", display: "grid", placeItems: "center", flexShrink: 0,
+        }}>
+          <Camera size={18} color="#6366f1" />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: "13px", fontWeight: 800, color: "#1e293b", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {label}
+          </div>
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", marginTop: "2px" }}>
+            {sectionTitle}
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+          <span style={{
+            fontSize: "10px", fontWeight: 900, padding: "2px 6px", borderRadius: "6px",
+            background: state === "ng" ? "#fef2f2" : state === "hold" ? "#fffbeb" : "#f0fdf4",
+            color: borderColor,
+          }}>
+            {stateLabel}
+          </span>
+          <span style={{ fontSize: "12px", fontWeight: 800, color: "#6366f1" }}>
+            {photos.length}枚
+          </span>
+          <ChevronRight size={16} color="#cbd5e1" style={{ transform: open ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
+        </div>
+      </button>
+      {open && (
+        <div style={{ padding: "0 16px 14px", display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {photos.map((p) => (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              key={p.id}
+              src={p.url}
+              alt="写真"
+              onClick={() => onPhotoClick(p.url)}
+              style={{
+                width: "80px", height: "80px", objectFit: "cover",
+                borderRadius: "10px", border: "1px solid #e2e8f0", cursor: "pointer",
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function ResultPage() {
   const params = useParams();
   const router = useRouter();
@@ -117,6 +186,7 @@ export default function ResultPage() {
   const [data, setData] = useState<ResultData | null>(null);
   const [prevPoint, setPrevPoint] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     async function fetchResult() {
@@ -476,7 +546,13 @@ export default function ResultPage() {
                   <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
                     {item.photos.map((p) => (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img key={p.id} src={p.url} alt="証拠写真" style={{ width: "72px", height: "72px", objectFit: "cover", borderRadius: "10px", border: "1px solid #fee2e2" }} />
+                      <img
+                        key={p.id}
+                        src={p.url}
+                        alt="証拠写真"
+                        onClick={() => setLightboxSrc(p.url)}
+                        style={{ width: "72px", height: "72px", objectFit: "cover", borderRadius: "10px", border: "1px solid #fee2e2", cursor: "pointer" }}
+                      />
                     ))}
                   </div>
                 )}
@@ -518,6 +594,62 @@ export default function ResultPage() {
       {ngItems.length === 0 && holdItems.length === 0 && (
         <div style={{ textAlign: "center", padding: "32px", background: "#f0fdf4", borderRadius: "20px", color: "#15803d", fontWeight: 800, marginBottom: "20px" }}>
           ✨ 全項目合格です！素晴らしい！
+        </div>
+      )}
+
+      {/* 写真一覧 */}
+      {summary.photoCount > 0 && (
+        <div style={{ marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "12px", fontWeight: 900, color: "#4f46e5", marginBottom: "12px", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "6px" }}>
+            <Camera size={14} /> 写真一覧 ({summary.photoCount}枚)
+          </h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {sections.flatMap((sec) =>
+              sec.items
+                .filter((item) => item.photos && item.photos.length > 0)
+                .map((item) => (
+                  <PhotoCard
+                    key={item.id}
+                    sectionTitle={sec.title}
+                    label={item.label}
+                    state={item.state}
+                    photos={item.photos!}
+                    onPhotoClick={setLightboxSrc}
+                  />
+                ))
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 写真ライトボックス */}
+      {lightboxSrc && (
+        <div
+          onClick={() => setLightboxSrc(null)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 9999,
+            background: "rgba(0,0,0,0.85)", backdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "20px",
+          }}
+        >
+          <button
+            onClick={() => setLightboxSrc(null)}
+            style={{
+              position: "absolute", top: "16px", right: "16px",
+              background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "50%",
+              width: "44px", height: "44px", display: "grid", placeItems: "center", cursor: "pointer",
+            }}
+          >
+            <X size={24} color="#fff" />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightboxSrc}
+            alt="写真拡大"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "100%", maxHeight: "85vh", borderRadius: "12px", objectFit: "contain" }}
+          />
         </div>
       )}
 

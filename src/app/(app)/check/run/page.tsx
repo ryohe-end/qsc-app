@@ -104,8 +104,10 @@ export default function CheckRunPage() {
   const storeLabel = useMemo(() => storeName || storeId || "店舗未選択", [storeId, storeName]);
 
   const DRAFT_KEY = useMemo(() => {
-    return `qsc_draft_${storeId || "unknown"}`;
-  }, [storeId]);
+    return checkType === "self"
+      ? `qsc_draft_self_${storeId || "unknown"}`
+      : `qsc_draft_${storeId || "unknown"}`;
+  }, [storeId, checkType]);
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
@@ -459,7 +461,7 @@ export default function CheckRunPage() {
     } catch (e: unknown) {
       setSheet({ open: true, title: "送信エラー", message: e instanceof Error ? e.message : "送信に失敗しました", cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
     } finally { setSubmitBusy(false); }
-  }, [submitBusy, companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sections, router, DRAFT_KEY]);
+  }, [submitBusy, companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sections, router, DRAFT_KEY, checkType]);
 
   const onDeadlineConfirmed = useCallback(() => {
     setDeadlineModalOpen(false);

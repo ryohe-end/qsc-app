@@ -8,6 +8,7 @@ import {
   ChevronLeft, ChevronRight, ChevronDown, ChevronUp,
   BarChart3, Search, Loader2, CheckCircle2, XCircle,
   PauseCircle, MinusCircle, Calendar, UserCheck,
+  Camera, X,
 } from "lucide-react";
 import { useSession } from "@/app/(app)/lib/auth";
 
@@ -34,6 +35,7 @@ type DetailItem = {
   state: "ok" | "ng" | "hold" | "na";
   note?: string;
   category?: string;
+  photos?: { id: string; url: string }[];
 };
 
 type DetailSection = {
@@ -142,6 +144,7 @@ function DetailPage({ storeId, resultId, storeName, onBack, checkType = "officia
   const [loading, setLoading] = useState(true);
   const [activeCategory, setActiveCategory] = useState<"Q" | "S" | "C">("Q");
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   useEffect(() => {
     fetch(`/api/check/results/detail?storeId=${encodeURIComponent(storeId)}&resultId=${encodeURIComponent(resultId)}&checkType=${checkType}`, { cache: "no-store" })
@@ -294,10 +297,32 @@ function DetailPage({ storeId, resultId, storeName, onBack, checkType = "officia
                                   {item.note}
                                 </div>
                               )}
+                              {item.photos && item.photos.length > 0 && (
+                                <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                                  {item.photos.map((p) => (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      key={p.id}
+                                      src={p.url}
+                                      alt="写真"
+                                      onClick={() => setLightboxSrc(p.url)}
+                                      style={{
+                                        width: 56, height: 56, objectFit: "cover",
+                                        borderRadius: 8, border: "1px solid #e2e8f0", cursor: "pointer",
+                                      }}
+                                    />
+                                  ))}
+                                </div>
+                              )}
                             </div>
-                            <span style={{ fontSize: 11, fontWeight: 900, padding: "3px 8px", borderRadius: 8, background: cfg.bg, color: cfg.color, flexShrink: 0 }}>
-                              {cfg.label}
-                            </span>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+                              {item.photos && item.photos.length > 0 && (
+                                <Camera size={14} color="#6366f1" />
+                              )}
+                              <span style={{ fontSize: 11, fontWeight: 900, padding: "3px 8px", borderRadius: 8, background: cfg.bg, color: cfg.color }}>
+                                {cfg.label}
+                              </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -308,6 +333,37 @@ function DetailPage({ storeId, resultId, storeName, onBack, checkType = "officia
             );
           })}
         </div>
+
+        {/* 写真ライトボックス */}
+        {lightboxSrc && (
+          <div
+            onClick={() => setLightboxSrc(null)}
+            style={{
+              position: "fixed", inset: 0, zIndex: 9999,
+              background: "rgba(0,0,0,0.85)", backdropFilter: "blur(4px)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              padding: 20,
+            }}
+          >
+            <button
+              onClick={() => setLightboxSrc(null)}
+              style={{
+                position: "absolute", top: 16, right: 16,
+                background: "rgba(255,255,255,0.15)", border: "none", borderRadius: "50%",
+                width: 44, height: 44, display: "grid", placeItems: "center", cursor: "pointer",
+              }}
+            >
+              <X size={24} color="#fff" />
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightboxSrc}
+              alt="写真拡大"
+              onClick={(e) => e.stopPropagation()}
+              style={{ maxWidth: "100%", maxHeight: "85vh", borderRadius: 12, objectFit: "contain" }}
+            />
+          </div>
+        )}
       </>}
     </div>
   );

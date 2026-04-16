@@ -210,7 +210,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { companyId = "", bizId = "", brandId = "", storeId, storeName, sendMail, inspectionDate, mode = "new", existingResultId = "", checkType = "official" } = body;
     const isSelfCheck = checkType === "self";
-    const targetTableName = isSelfCheck ? selfCheckTableName : resultTableName;
+    const targetTableName = resultTableName; // 同一テーブルに保存し checkType で区別
 
     if (!storeId || !String(storeId).trim()) {
       return NextResponse.json({ error: "storeId が不正です" }, { status: 400 });
@@ -334,11 +334,14 @@ export async function POST(req: NextRequest) {
       },
     }));
 
-    // ✅ 点検完了メール送信（セルフチェックの場合は送信しない）
-    if (sendMail && !isSelfCheck) {
+    // ✅ 点検完了メール送信
+    // セルフチェック → 店舗メールのみ / 本チェック → 店舗+担当者全員
+    if (sendMail) {
       try {
         const { emails, managerEmails } = await getStoreContacts(cleanStoreId);
-        const allTo = [...new Set([...emails, ...managerEmails])].filter(Boolean);
+        const allTo = isSelfCheck
+          ? [...new Set(emails)].filter(Boolean)
+          : [...new Set([...emails, ...managerEmails])].filter(Boolean);
         if (allTo.length > 0) {
           await sendCompletionEmail({
             to: allTo, storeName: storeName || cleanStoreId, userName,
@@ -350,7 +353,7 @@ export async function POST(req: NextRequest) {
               photoCount: totalPhotoCount, categoryScores: categoryScoreSummary,
             },
           });
-          console.log(`Completion email sent to: ${allTo.join(", ")}`);
+          console.log(`${isSelfCheck ? "Self-check" : "Completion"} email sent to: ${allTo.join(", ")}`);
         } else {
           console.log("No email recipients found for store:", cleanStoreId);
         }

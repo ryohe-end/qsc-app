@@ -34,6 +34,7 @@ type CheckResult = {
   sections?: CheckSection[];
   status?: string;
   storeName?: string;
+  checkType?: string;
   summary?: {
     inspectionDate?: string;
     improvementDeadline?: string;
@@ -115,8 +116,8 @@ export async function GET(_req: NextRequest) {
     for (const result of allResults) {
       const pk = normalizeString(result.PK);
 
-      // 店舗点検結果だけを見る
-      if (!pk.startsWith("STORE#")) {
+      // 店舗点検結果だけを見る（セルフチェックは除外）
+      if (!pk.startsWith("STORE#") || result.checkType === "self") {
         continue;
       }
 

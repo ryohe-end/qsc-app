@@ -8,7 +8,8 @@ const client = new DynamoDBClient({
 
 const ddb = DynamoDBDocumentClient.from(client);
 
-const TABLE_NAME = process.env.QSC_SELF_CHECK_TABLE_NAME || "QSC_SelfCheckResults";
+// セルフチェックも同一テーブルに保存し checkType フィールドで区別
+const TABLE_NAME = process.env.QSC_CHECK_RESULTS_TABLE || "QSC_CheckResults";
 
 export async function GET(req: NextRequest) {
   try {
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
     );
 
     const items = (result.Items ?? [])
-      .filter((item) => item?.type === "CHECK_RESULT")
+      .filter((item) => item?.type === "CHECK_RESULT" && item?.checkType === "self")
       .map((item) => ({
         pk: item.PK ?? "",
         sk: item.SK ?? "",
