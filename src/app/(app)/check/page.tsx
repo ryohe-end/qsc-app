@@ -48,6 +48,7 @@ type ResultHistoryItem = {
   submittedAt: string;
   status: string;
   userName: string; // [追加]
+  checkType: "official" | "self";
 };
 
 /* =========================
@@ -335,15 +336,22 @@ export default function CheckPage() {
     setIsHistoryModalOpen(true);
 
     try {
-      const res = await fetch(
-        `/api/check/results/history?storeId=${encodeURIComponent(storeId)}`,
-        { cache: "no-store" }
+      const [officialRes, selfRes] = await Promise.all([
+        fetch(`/api/check/results/history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" }),
+        fetch(`/api/check/results/self-history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" }),
+      ]);
+
+      const officialItems: ResultHistoryItem[] = officialRes.ok
+        ? ((await officialRes.json())?.items ?? []).map((i: Omit<ResultHistoryItem, "checkType">) => ({ ...i, checkType: "official" as const }))
+        : [];
+      const selfItems: ResultHistoryItem[] = selfRes.ok
+        ? ((await selfRes.json())?.items ?? []).map((i: Omit<ResultHistoryItem, "checkType">) => ({ ...i, checkType: "self" as const }))
+        : [];
+
+      const merged = [...officialItems, ...selfItems].sort((a, b) =>
+        (b.submittedAt || "").localeCompare(a.submittedAt || "")
       );
-
-      if (!res.ok) throw new Error(`history API error: ${res.status}`);
-
-      const data = await res.json();
-      setResultHistory(Array.isArray(data?.items) ? data.items : []);
+      setResultHistory(merged);
     } catch (error) {
       console.error(error);
       setResultHistory([]);
@@ -390,7 +398,7 @@ export default function CheckPage() {
     router.push(
       `/check/run?storeId=${encodeURIComponent(
         normalizeStoreId(item.storeId)
-      )}&mode=edit&resultId=${encodeURIComponent(item.resultId)}`
+      )}&mode=edit&resultId=${encodeURIComponent(item.resultId)}&checkType=${item.checkType}`
     );
   }
 
@@ -973,6 +981,9 @@ export default function CheckPage() {
                           <div>
                             <div style={{ fontSize: "15px", fontWeight: 900, color: "#1e293b" }}>{formatResultDate(item.submittedAt)}</div>
                             <div style={{ display: "flex", alignItems: "center", gap: "6px", marginTop: "4px", flexWrap: "wrap" }}>
+                              <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: 900, background: item.checkType === "self" ? "#fef3c7" : "#dbeafe", color: item.checkType === "self" ? "#d97706" : "#2563eb" }}>
+                                {item.checkType === "self" ? "セルフ" : "本チェック"}
+                              </span>
                               <span style={{ display: "inline-block", padding: "2px 8px", borderRadius: "6px", fontSize: "11px", fontWeight: 900, background: isDone ? "#d1fae5" : "#ffedd5", color: isDone ? "#059669" : "#d97706" }}>
                                 {formatStatus(item.status)}
                               </span>
