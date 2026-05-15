@@ -60,6 +60,30 @@ const CHECK_CHOICES = [
 
 function uid(p = "p") { return `${p}_${Math.random().toString(16).slice(2)}_${Date.now().toString(16)}`; }
 function readFileAsDataUrl(f: File): Promise<string> { return new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result || "")); r.onerror = () => rej(new Error("read fail")); r.readAsDataURL(f); }); }
+
+const PHOTO_MAX_DIM = 1600;
+const PHOTO_JPEG_QUALITY = 0.82;
+async function compressDataUrl(dataUrl: string, maxDim = PHOTO_MAX_DIM, quality = PHOTO_JPEG_QUALITY): Promise<string> {
+  return new Promise((res) => {
+    const img = new Image();
+    img.onload = () => {
+      const { naturalWidth: w, naturalHeight: h } = img;
+      const scale = Math.min(1, maxDim / Math.max(w, h));
+      const tw = Math.max(1, Math.round(w * scale));
+      const th = Math.max(1, Math.round(h * scale));
+      if (scale >= 1 && dataUrl.startsWith("data:image/jpeg")) { res(dataUrl); return; }
+      const canvas = document.createElement("canvas");
+      canvas.width = tw; canvas.height = th;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) { res(dataUrl); return; }
+      ctx.drawImage(img, 0, 0, tw, th);
+      try { res(canvas.toDataURL("image/jpeg", quality)); }
+      catch { res(dataUrl); }
+    };
+    img.onerror = () => res(dataUrl);
+    img.src = dataUrl;
+  });
+}
 function trimText(s: unknown) { return (typeof s === "string" ? s : "").trim(); }
 function itemKey(sId: string, iId: string) { return `${sId}::${iId}`; }
 function vibrate(ms = 15) { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(ms); }
@@ -326,12 +350,13 @@ export default function CheckRunPage() {
 
     for (const f of files.slice(0, 5)) {
       try {
-        const orig = await readFileAsDataUrl(f);
+        const raw = await readFileAsDataUrl(f);
+        const orig = await compressDataUrl(raw);
         const ed = await openPhotoEditor(orig);
         if (!ed) continue;
 
         const photoId = uid("ph");
-        const contentType = f.type || "image/jpeg";
+        const contentType = "image/jpeg";
 
         // Presigned URLを取得してS3に直接アップロード
         try {
