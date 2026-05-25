@@ -97,6 +97,16 @@ export async function GET(req: NextRequest) {
       ? await presignSections(item.sections)
       : [];
 
+    // 気づきの写真にもPresigned URLを付与
+    const rawNotices = Array.isArray(item.notices) ? item.notices : [];
+    const notices = await Promise.all(
+      rawNotices.map(async (n: { id?: string; note?: string; photos?: PhotoRecord[] }) => ({
+        id: n.id ?? "",
+        note: n.note ?? "",
+        photos: Array.isArray(n.photos) ? await Promise.all(n.photos.map(presignPhoto)) : [],
+      }))
+    );
+
     return NextResponse.json({
       resultId: item.resultId ?? "",
       storeId: item.storeId ?? "",
@@ -104,6 +114,7 @@ export async function GET(req: NextRequest) {
       status: item.status ?? "",
       submittedAt: item.submittedAt ?? item.createdAt ?? "",
       sections,
+      notices,
       summary: item.summary ?? null,
     });
   } catch (error) {

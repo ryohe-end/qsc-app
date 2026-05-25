@@ -64,6 +64,15 @@ export async function GET(req: NextRequest) {
     if (Array.isArray(item.sections)) {
       item.sections = await presignSections(item.sections);
     }
+    if (Array.isArray(item.notices)) {
+      item.notices = await Promise.all(
+        item.notices.map(async (n: { id?: string; note?: string; photos?: PhotoRecord[] }) => ({
+          id: n.id ?? "",
+          note: n.note ?? "",
+          photos: Array.isArray(n.photos) ? await Promise.all(n.photos.map(presignPhoto)) : [],
+        }))
+      );
+    }
 
     return NextResponse.json(item);
   } catch (error: unknown) {

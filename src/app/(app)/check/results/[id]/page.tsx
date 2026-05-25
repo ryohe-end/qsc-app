@@ -53,9 +53,16 @@ type SectionData = {
   items: ItemData[];
 };
 
+type NoticeData = {
+  id: string;
+  note: string;
+  photos: { id: string; url: string }[];
+};
+
 type ResultData = {
   summary: SummaryData;
   sections: SectionData[];
+  notices?: NoticeData[];
   storeName: string;
   userName: string;
 };
@@ -243,6 +250,7 @@ export default function ResultPage() {
   }
 
   const { summary, sections, storeName, userName } = data;
+  const notices = (data.notices ?? []).filter((n) => (n.note || "").trim() || (n.photos && n.photos.length > 0));
 
   // スコアが null の場合は保留項目が未確定
   const isScorePending = summary.point === null || summary.point === undefined;
@@ -594,6 +602,47 @@ export default function ResultPage() {
       {ngItems.length === 0 && holdItems.length === 0 && (
         <div style={{ textAlign: "center", padding: "32px", background: "#f0fdf4", borderRadius: "20px", color: "#15803d", fontWeight: 800, marginBottom: "20px" }}>
           ✨ 全項目合格です！素晴らしい！
+        </div>
+      )}
+
+      {/* 気づき */}
+      {notices.length > 0 && (
+        <div style={{ marginBottom: "20px" }}>
+          <h3 style={{ fontSize: "12px", fontWeight: 900, color: "#7c3aed", marginBottom: "12px", letterSpacing: "1px", display: "flex", alignItems: "center", gap: "6px" }}>
+            💡 気づき ({notices.length})
+          </h3>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+            {notices.map((n, idx) => (
+              <div
+                key={n.id || idx}
+                style={{ background: "#fff", borderRadius: "16px", borderLeft: "5px solid #7c3aed", padding: "16px", boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+              >
+                <div style={{ fontSize: "11px", fontWeight: 800, color: "#7c3aed", marginBottom: "6px" }}>
+                  気づき {idx + 1}
+                </div>
+                {n.note && (
+                  <div style={{ background: "#f5f3ff", padding: "10px 12px", borderRadius: "10px", display: "flex", gap: "8px", alignItems: "flex-start" }}>
+                    <MessageSquare size={14} color="#7c3aed" style={{ marginTop: "2px", flexShrink: 0 }} />
+                    <div style={{ fontSize: "13px", color: "#5b21b6", fontWeight: 600, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>{n.note}</div>
+                  </div>
+                )}
+                {n.photos && n.photos.length > 0 && (
+                  <div style={{ display: "flex", gap: "8px", marginTop: "10px", flexWrap: "wrap" }}>
+                    {n.photos.map((p) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={p.id}
+                        src={p.url}
+                        alt="気づき写真"
+                        onClick={() => setLightboxSrc(p.url)}
+                        style={{ width: "72px", height: "72px", objectFit: "cover", borderRadius: "10px", border: "1px solid #e9d5ff", cursor: "pointer" }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       )}
 

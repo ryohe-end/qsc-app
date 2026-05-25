@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, PutCommand, GetCommand, ScanCommand, QueryCommand } from "@aws-sdk/lib-dynamodb";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { cookies } from "next/headers";
 import { sendEmail } from "@/app/lib/sendgrid";
 
@@ -87,7 +88,17 @@ async function getUserNameFromCookie(): Promise<string> {
   }
 }
 
+function escapeHtml(s: string): string {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 /* ========================= 点検完了メール ========================= */
+type EmailNotice = { id: string; note: string; photos: { id: string; url?: string; key?: string }[] };
 async function sendCompletionEmail(params: {
   to: string[];
   storeName: string;
@@ -99,11 +110,44 @@ async function sendCompletionEmail(params: {
     maxScore: number; point: number | null; photoCount: number;
     categoryScores: Record<string, { ok: number; maxScore: number; point: number | null }>;
   };
+  notices: EmailNotice[];
 }) {
   if (params.to.length === 0) return;
 
   const appUrl = "https://main.djvjtfdfn32br.amplifyapp.com";
   const hasNg = params.summary.ng > 0;
+
+  /* 気づき写真のPresigned URLを生成（メール表示用、7日間有効） */
+  const noticesWithUrls = await Promise.all(
+    (params.notices || []).map(async (n) => {
+      const photoUrls = await Promise.all(
+        n.photos.map(async (p) => {
+          if (p.key) {
+            try {
+              return await getSignedUrl(s3Client, new GetObjectCommand({ Bucket: photoBucketName, Key: p.key }), { expiresIn: 604800 });
+            } catch { return p.url || ""; }
+          }
+          return p.url || "";
+        })
+      );
+      return { id: n.id, note: n.note, photoUrls: photoUrls.filter(Boolean) };
+    })
+  );
+  const visibleNotices = noticesWithUrls.filter((n) => (n.note || "").trim() || n.photoUrls.length > 0);
+  const noticesHtml = visibleNotices.length === 0 ? "" : `
+    <div style="background:#f5f3ff;border:1px solid #ddd6fe;border-radius:14px;padding:18px;margin-bottom:24px;">
+      <div style="font-size:14px;font-weight:900;color:#6d28d9;margin-bottom:12px;">💡 気づき（${visibleNotices.length}件）</div>
+      ${visibleNotices.map((n, idx) => `
+        <div style="background:#fff;border:1px solid #e9d5ff;border-radius:12px;padding:14px;margin-bottom:${idx === visibleNotices.length - 1 ? 0 : 10}px;">
+          <div style="font-size:11px;font-weight:800;color:#7c3aed;margin-bottom:6px;">気づき ${idx + 1}</div>
+          ${n.note ? `<div style="font-size:13px;font-weight:600;color:#1e293b;line-height:1.6;white-space:pre-wrap;margin-bottom:${n.photoUrls.length > 0 ? 10 : 0}px;">${escapeHtml(n.note)}</div>` : ""}
+          ${n.photoUrls.length > 0 ? `<div style="display:flex;gap:6px;flex-wrap:wrap;">${n.photoUrls.map((u) => `<img src="${u}" alt="気づき写真" style="width:96px;height:96px;object-fit:cover;border-radius:8px;border:1px solid #e9d5ff;" />`).join("")}</div>` : ""}
+        </div>
+      `).join("")}
+    </div>`;
+  const noticesText = visibleNotices.length === 0 ? "" : `\n--- 気づき (${visibleNotices.length}件) ---\n` + visibleNotices.map((n, idx) =>
+    `[${idx + 1}] ${n.note || "(コメントなし)"}${n.photoUrls.length > 0 ? `\n  写真: ${n.photoUrls.length}枚` : ""}`
+  ).join("\n");
 
   const categoryRows = Object.entries(params.summary.categoryScores)
     .map(([cat, s]) => `
@@ -178,6 +222,8 @@ async function sendCompletionEmail(params: {
       <div style="font-size:14px;font-weight:900;color:#059669;">✅ すべての項目をクリアしました</div>
     </div>`}
 
+    ${noticesHtml}
+
     <div style="text-align:center;">
       <p style="font-size:13px;color:#64748b;font-weight:600;margin-bottom:12px;">こちらのURLより結果を確認してください。</p>
       <a href="${appUrl}/results" style="display:inline-block;background:#1e293b;color:#fff;text-decoration:none;padding:14px 36px;border-radius:12px;font-size:14px;font-weight:900;">結果を確認する →</a>
@@ -198,7 +244,7 @@ async function sendCompletionEmail(params: {
 点検日: ${params.inspectionDate} / 担当: ${params.userName}
 スコア: ${params.summary.point === null ? "未確定（保留項目あり）" : `${params.summary.point}点`} (${params.summary.ok}/${params.summary.maxScore})
 NG: ${params.summary.ng}件 / 保留: ${params.summary.hold}件
-${hasNg ? `改善期限: ${params.improvementDeadline}` : "全項目クリアしました"}
+${hasNg ? `改善期限: ${params.improvementDeadline}` : "全項目クリアしました"}${noticesText}
 こちらのURLより結果を確認してください。
 ${appUrl}/results`.trim(),
   });
@@ -305,6 +351,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: `NG項目のコメントが ${missingNotes} 件未入力です` }, { status: 400 });
     }
 
+    /* ========== 気づき（任意の指摘事項）の処理 ========== */
+    type IncomingNoticePhoto = { id?: string; dataUrl?: string; s3Url?: string; s3Key?: string };
+    type IncomingNotice = { id?: string; note?: string; photos?: IncomingNoticePhoto[] };
+    const incomingNotices: IncomingNotice[] = Array.isArray(body.notices) ? body.notices : [];
+    const storedNotices: { id: string; note: string; photos: { id: string; key: string; url: string; contentType: string }[] }[] = [];
+    for (const n of incomingNotices) {
+      const noticeId = String(n.id || crypto.randomUUID());
+      const note = String(n.note || "");
+      const photos: { id: string; key: string; url: string; contentType: string }[] = [];
+      for (const p of n.photos || []) {
+        if (p.s3Url && p.s3Key) {
+          photos.push({ id: String(p.id || crypto.randomUUID()), key: p.s3Key, url: p.s3Url, contentType: "image/jpeg" });
+          totalPhotoCount++;
+        } else if (p.dataUrl && p.dataUrl.startsWith("data:")) {
+          const uploaded = await uploadPhotoToS3({
+            storeId: cleanStoreId, resultId, sectionId: "notices", itemId: noticeId,
+            photo: { id: String(p.id || crypto.randomUUID()), dataUrl: p.dataUrl },
+          });
+          photos.push(uploaded);
+          totalPhotoCount++;
+        }
+      }
+      if (!note.trim() && photos.length === 0) continue;
+      storedNotices.push({ id: noticeId, note, photos });
+    }
+
     const hasHoldItems = counts.hold > 0;
 
     const categoryScoreSummary = Object.fromEntries(
@@ -329,7 +401,8 @@ export async function POST(req: NextRequest) {
         PK: `STORE#${cleanStoreId}`, SK: existingSK,
         type: "CHECK_RESULT", resultId, companyId, bizId, brandId,
         storeId: cleanStoreId, storeName, userName, summary,
-        sections: storedSections, status: "done", createdAt: now, submittedAt: now,
+        sections: storedSections, notices: storedNotices,
+        status: "done", createdAt: now, submittedAt: now,
         checkType: isSelfCheck ? "self" : "official",
       },
     }));
@@ -352,6 +425,7 @@ export async function POST(req: NextRequest) {
               maxScore: totalMaxScore, point: totalPoint,
               photoCount: totalPhotoCount, categoryScores: categoryScoreSummary,
             },
+            notices: storedNotices.map(n => ({ id: n.id, note: n.note, photos: n.photos.map(p => ({ id: p.id, url: p.url, key: p.key })) })),
           });
           console.log(`${isSelfCheck ? "Self-check" : "Completion"} email sent to: ${allTo.join(", ")}`);
         } else {

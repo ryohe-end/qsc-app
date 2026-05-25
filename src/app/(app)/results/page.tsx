@@ -43,8 +43,15 @@ type DetailSection = {
   items: DetailItem[];
 };
 
+type DetailNotice = {
+  id: string;
+  note: string;
+  photos: { id: string; url: string }[];
+};
+
 type DetailResult = {
   sections: DetailSection[];
+  notices?: DetailNotice[];
   summary?: {
     point?: number;
     categoryScores?: Record<string, { ok: number; maxScore: number; point: number }>;
@@ -333,6 +340,43 @@ function DetailPage({ storeId, resultId, storeName, onBack, checkType = "officia
             );
           })}
         </div>
+
+        {/* 気づき */}
+        {(() => {
+          const notices = (detail.notices ?? []).filter((n) => (n.note || "").trim() || (n.photos && n.photos.length > 0));
+          if (notices.length === 0) return null;
+          return (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 900, color: "#7c3aed", letterSpacing: "1px", display: "flex", alignItems: "center", gap: 6 }}>
+                💡 気づき ({notices.length})
+              </div>
+              {notices.map((n, idx) => (
+                <div key={n.id || idx} style={{ background: "#fff", borderRadius: 14, border: "1.5px solid #e9d5ff", borderLeft: "5px solid #7c3aed", padding: "12px 14px" }}>
+                  <div style={{ fontSize: 11, fontWeight: 800, color: "#7c3aed", marginBottom: 6 }}>気づき {idx + 1}</div>
+                  {n.note && (
+                    <div style={{ fontSize: 13, fontWeight: 600, color: "#5b21b6", background: "#f5f3ff", padding: "8px 10px", borderRadius: 8, whiteSpace: "pre-wrap", lineHeight: 1.6 }}>
+                      {n.note}
+                    </div>
+                  )}
+                  {n.photos && n.photos.length > 0 && (
+                    <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>
+                      {n.photos.map((p) => (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          key={p.id}
+                          src={p.url}
+                          alt="気づき写真"
+                          onClick={() => setLightboxSrc(p.url)}
+                          style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 8, border: "1px solid #e9d5ff", cursor: "pointer" }}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        })()}
 
         {/* 写真ライトボックス */}
         {lightboxSrc && (

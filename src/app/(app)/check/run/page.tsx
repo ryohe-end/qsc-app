@@ -27,8 +27,11 @@ type CheckState = "ok" | "hold" | "ng" | "na" | "unset";
 type Photo = { id: string; dataUrl: string; s3Url?: string; s3Key?: string };
 type CheckItem = { id: string; label: string; state: CheckState; note?: string; holdNote?: string; photos?: Photo[]; category?: string };
 type Section = { id: string; title: string; items: CheckItem[] };
+type Notice = { id: string; note: string; photos: Photo[] };
 type EditPhotoState = { open: false } | { open: true; dataUrl: string; onSave: (v: string) => void; onClose: () => void };
 type PhotoModalState = { open: boolean; secId: string; itemId: string; photos: Photo[]; index: number };
+
+const NOTICES_SECID = "__notices__";
 type ActionSheetState = { open: false } | { open: true; title?: string; message?: string; primaryText?: string; onPrimary?: () => void | Promise<void>; destructivePrimary?: boolean; secondaryText?: string; onSecondary?: () => void | Promise<void>; cancelText?: string; onCancel?: () => void };
 
 const DEFAULT_SECTIONS: Section[] = [
@@ -107,6 +110,20 @@ function patchSections(raw: Section[]): Section[] {
   }));
 }
 
+function patchNotices(raw: unknown): Notice[] {
+  if (!Array.isArray(raw)) return [];
+  return raw.map((n: Record<string, unknown>) => ({
+    id: typeof n.id === "string" && n.id ? n.id : uid("nt"),
+    note: typeof n.note === "string" ? n.note : "",
+    photos: Array.isArray(n.photos) ? (n.photos as Record<string, string>[]).map(p => ({
+      id: p.id || uid("ph"),
+      dataUrl: p.dataUrl || p.url || "",
+      s3Url: p.s3Url || undefined,
+      s3Key: p.s3Key || undefined,
+    })) : [],
+  }));
+}
+
 export default function CheckRunPage() {
   const router = useRouter();
   const sp = useSearchParams();
@@ -137,6 +154,7 @@ export default function CheckRunPage() {
   useEffect(() => setMounted(true), []);
 
   const [sections, setSections] = useState<Section[]>(DEFAULT_SECTIONS);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [loadingQuestions, setLoadingQuestions] = useState(true);
   const [sheet, setSheet] = useState<ActionSheetState>({ open: false });
 
@@ -149,10 +167,22 @@ export default function CheckRunPage() {
     try {
       const raw = localStorage.getItem(draftKeyRef.current);
       if (!raw) return false;
-      const parsed = JSON.parse(raw) as Section[];
-      if (!Array.isArray(parsed) || parsed.length === 0) return false;
-      const patched = patchSections(parsed);
-      setSections(patched);
+      const parsed = JSON.parse(raw) as unknown;
+      // 旧フォーマット: Section[] / 新フォーマット: { sections, notices }
+      let rawSections: Section[] = [];
+      let rawNotices: unknown = [];
+      if (Array.isArray(parsed)) {
+        rawSections = parsed as Section[];
+      } else if (parsed && typeof parsed === "object") {
+        const wrapped = parsed as { sections?: Section[]; notices?: unknown };
+        rawSections = Array.isArray(wrapped.sections) ? wrapped.sections : [];
+        rawNotices = wrapped.notices;
+      }
+      if (rawSections.length === 0 && (!Array.isArray(rawNotices) || rawNotices.length === 0)) return false;
+      const patched = rawSections.length > 0 ? patchSections(rawSections) : [];
+      const patchedNotices = patchNotices(rawNotices);
+      if (patched.length > 0) setSections(patched);
+      setNotices(patchedNotices);
       // s3Keyがある写真のPresigned URLを取得
       const keys: { secId: string; itemId: string; photoId: string; key: string }[] = [];
       for (const s of patched) {
@@ -164,19 +194,33 @@ export default function CheckRunPage() {
           }
         }
       }
+      for (const n of patchedNotices) {
+        for (const p of n.photos) {
+          if (p.s3Key && !p.dataUrl) {
+            keys.push({ secId: NOTICES_SECID, itemId: n.id, photoId: p.id, key: p.s3Key });
+          }
+        }
+      }
       if (keys.length > 0) {
         Promise.all(keys.map(async ({ secId, itemId, photoId, key }) => {
           try {
             const res = await fetch(`/api/check/photo-url?key=${encodeURIComponent(key)}`);
             if (!res.ok) return;
             const { url } = await res.json();
-            setSections(prev => prev.map(s => s.id !== secId ? s : {
-              ...s,
-              items: s.items.map(it => it.id !== itemId ? it : {
-                ...it,
-                photos: (it.photos ?? []).map(p => p.id !== photoId ? p : { ...p, dataUrl: url }),
-              }),
-            }));
+            if (secId === NOTICES_SECID) {
+              setNotices(prev => prev.map(n => n.id !== itemId ? n : {
+                ...n,
+                photos: n.photos.map(p => p.id !== photoId ? p : { ...p, dataUrl: url }),
+              }));
+            } else {
+              setSections(prev => prev.map(s => s.id !== secId ? s : {
+                ...s,
+                items: s.items.map(it => it.id !== itemId ? it : {
+                  ...it,
+                  photos: (it.photos ?? []).map(p => p.id !== photoId ? p : { ...p, dataUrl: url }),
+                }),
+              }));
+            }
           } catch {}
         }));
       }
@@ -208,9 +252,11 @@ export default function CheckRunPage() {
           const dJson = await dRes.json();
           if (!dRes.ok) throw new Error(dJson?.message || "点検データ取得失敗");
           setSections(Array.isArray(dJson.sections) ? patchSections(dJson.sections) : nextSections);
+          setNotices(patchNotices(dJson.notices));
         } else {
           /* ✅ 修正2: newモードでも下書きを復元。なければAPIデータを使う */
           setSections(nextSections); // まずAPIデータをセット
+          setNotices([]);
           loadDraft(nextSections);   // 下書きがあれば上書き
         }
       } catch (e: unknown) {
@@ -244,11 +290,21 @@ export default function CheckRunPage() {
             })),
           })),
         }));
-        localStorage.setItem(DRAFT_KEY, JSON.stringify(sectionsToSave));
+        const noticesToSave = notices.map(n => ({
+          id: n.id,
+          note: n.note,
+          photos: n.photos.map(p => ({
+            id: p.id,
+            dataUrl: p.s3Url ? "" : p.dataUrl,
+            s3Url: p.s3Url,
+            s3Key: p.s3Key,
+          })),
+        }));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ sections: sectionsToSave, notices: noticesToSave }));
       } catch {}
     }, 2000);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [sections, DRAFT_KEY, mounted]);
+  }, [sections, notices, DRAFT_KEY, mounted, mode]);
 
   const [saving, setSaving] = useState(false);
   const [savedToast, setSavedToast] = useState(false);
@@ -390,22 +446,49 @@ export default function CheckRunPage() {
       } catch {}
     }
     if (!added.length) return;
-    setSections(p => p.map(s => s.id !== secId ? s : { ...s, items: s.items.map(it => it.id !== itemId ? it : { ...it, photos: (it.photos ?? []).concat(added) }) }));
+    if (secId === NOTICES_SECID) {
+      setNotices(p => p.map(n => n.id !== itemId ? n : { ...n, photos: n.photos.concat(added) }));
+    } else {
+      setSections(p => p.map(s => s.id !== secId ? s : { ...s, items: s.items.map(it => it.id !== itemId ? it : { ...it, photos: (it.photos ?? []).concat(added) }) }));
+    }
   }, [openPhotoEditor, storeId]);
 
   const removePhotoFromItem = useCallback((secId: string, itemId: string, photoId: string) => {
-    setSections(p => p.map(s => s.id !== secId ? s : { ...s, items: s.items.map(it => it.id !== itemId ? it : { ...it, photos: (it.photos ?? []).filter(p => p.id !== photoId) }) }));
+    if (secId === NOTICES_SECID) {
+      setNotices(p => p.map(n => n.id !== itemId ? n : { ...n, photos: n.photos.filter(ph => ph.id !== photoId) }));
+    } else {
+      setSections(p => p.map(s => s.id !== secId ? s : { ...s, items: s.items.map(it => it.id !== itemId ? it : { ...it, photos: (it.photos ?? []).filter(p => p.id !== photoId) }) }));
+    }
     setPhotoModal(m => { if (!m.open || m.secId !== secId || m.itemId !== itemId) return m; const next = m.photos.filter(p => p.id !== photoId); if (!next.length) return { ...m, open: false, photos: [], index: 0 }; return { ...m, photos: next, index: Math.min(m.index, next.length - 1) }; });
+  }, []);
+
+  const addNotice = useCallback(() => {
+    vibrate(10);
+    setNotices(p => [...p, { id: uid("nt"), note: "", photos: [] }]);
+  }, []);
+  const removeNotice = useCallback((noticeId: string) => {
+    setSheet({ open: true, title: "気づきを削除しますか？", message: "この気づきの内容と写真が削除されます。", primaryText: "削除", destructivePrimary: true, cancelText: "キャンセル",
+      onPrimary: () => { setNotices(p => p.filter(n => n.id !== noticeId)); setSheet({ open: false }); },
+      onCancel: () => setSheet({ open: false }),
+    });
+  }, []);
+  const setNoticeNote = useCallback((noticeId: string, note: string) => {
+    setNotices(p => p.map(n => n.id !== noticeId ? n : { ...n, note }));
   }, []);
 
   const openPhotoPicker = useCallback((secId: string, itemId: string) => { vibrate(); setPendingPhotoTarget({ secId, itemId }); requestAnimationFrame(() => pickPhotoRef.current?.click()); }, []);
   const closePhotoModal = useCallback(() => setPhotoModal(m => ({ ...m, open: false })), []);
   const openPhotoModalAt = useCallback((secId: string, itemId: string, index: number) => {
     vibrate(10);
-    const s = sections.find(x => x.id === secId); const it = s?.items.find(x => x.id === itemId); const photos = it?.photos ?? [];
+    let photos: Photo[] = [];
+    if (secId === NOTICES_SECID) {
+      photos = notices.find(n => n.id === itemId)?.photos ?? [];
+    } else {
+      const s = sections.find(x => x.id === secId); const it = s?.items.find(x => x.id === itemId); photos = it?.photos ?? [];
+    }
     if (!photos.length) return;
     setPhotoModal({ open: true, secId, itemId, photos, index: Math.max(0, Math.min(index, photos.length - 1)) });
-  }, [sections]);
+  }, [sections, notices]);
   const modalNext = useCallback(() => setPhotoModal(m => m.open ? { ...m, index: Math.min(m.photos.length - 1, m.index + 1) } : m), []);
   const modalPrev = useCallback(() => setPhotoModal(m => m.open ? { ...m, index: Math.max(0, m.index - 1) } : m), []);
   const modalDeleteCurrent = useCallback(() => {
@@ -433,7 +516,17 @@ export default function CheckRunPage() {
               })),
             })),
           }));
-          localStorage.setItem(DRAFT_KEY, JSON.stringify(sectionsToSave));
+          const noticesToSave = notices.map(n => ({
+            id: n.id,
+            note: n.note,
+            photos: n.photos.map(p => ({
+              id: p.id,
+              dataUrl: p.s3Url ? "" : p.dataUrl,
+              s3Url: p.s3Url,
+              s3Key: p.s3Key,
+            })),
+          }));
+          localStorage.setItem(DRAFT_KEY, JSON.stringify({ sections: sectionsToSave, notices: noticesToSave }));
           await new Promise(r => setTimeout(r, 220));
           setSavedToast(true);
           setTimeout(() => setSavedToast(false), 2000);
@@ -441,7 +534,7 @@ export default function CheckRunPage() {
       },
       onCancel: () => setSheet({ open: false }),
     });
-  }, [saving, DRAFT_KEY, sections]);
+  }, [saving, DRAFT_KEY, sections, notices]);
 
   /* ✅ 修正3: 破棄後の遷移を window.location.href に変更 */
   const discardDraft = useCallback(() => {
@@ -478,7 +571,19 @@ export default function CheckRunPage() {
           })),
         })),
       }));
-      const res = await fetch("/api/check/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sendMail, sections: sectionsToSubmit, mode, existingResultId: resultId, checkType }) });
+      const noticesToSubmit = notices
+        .filter(n => n.note.trim() || n.photos.length > 0)
+        .map(n => ({
+          id: n.id,
+          note: n.note,
+          photos: n.photos.filter(p => p.s3Url || p.dataUrl).map(p => ({
+            id: p.id,
+            dataUrl: p.s3Url ? "" : p.dataUrl,
+            s3Url: p.s3Url,
+            s3Key: p.s3Key,
+          })),
+        }));
+      const res = await fetch("/api/check/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sendMail, sections: sectionsToSubmit, notices: noticesToSubmit, mode, existingResultId: resultId, checkType }) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "送信に失敗しました");
       try { localStorage.removeItem(DRAFT_KEY); } catch {} // 送信成功後に下書き削除
@@ -486,7 +591,7 @@ export default function CheckRunPage() {
     } catch (e: unknown) {
       setSheet({ open: true, title: "送信エラー", message: e instanceof Error ? e.message : "送信に失敗しました", cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
     } finally { setSubmitBusy(false); }
-  }, [submitBusy, companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sections, router, DRAFT_KEY, checkType]);
+  }, [submitBusy, companyId, bizId, brandId, storeId, storeName, userName, inspectionDate, improvementDeadline, sections, notices, router, DRAFT_KEY, checkType, mode, resultId]);
 
   const onDeadlineConfirmed = useCallback(() => {
     setDeadlineModalOpen(false);
@@ -521,10 +626,15 @@ export default function CheckRunPage() {
 
   useEffect(() => {
     if (!photoModal.open) return;
-    const s = sections.find(x => x.id === photoModal.secId); const it = s?.items.find(x => x.id === photoModal.itemId); const photos = it?.photos ?? [];
+    let photos: Photo[] = [];
+    if (photoModal.secId === NOTICES_SECID) {
+      photos = notices.find(n => n.id === photoModal.itemId)?.photos ?? [];
+    } else {
+      const s = sections.find(x => x.id === photoModal.secId); const it = s?.items.find(x => x.id === photoModal.itemId); photos = it?.photos ?? [];
+    }
     if (!photos.length) { closePhotoModal(); return; }
     setPhotoModal(m => ({ ...m, photos, index: Math.min(m.index, photos.length - 1) }));
-  }, [sections, photoModal.open, photoModal.secId, photoModal.itemId, closePhotoModal]);
+  }, [sections, notices, photoModal.open, photoModal.secId, photoModal.itemId, closePhotoModal]);
 
   useEffect(() => {
     const isOpen = photoModal.open || sheet.open || areaOpen || editPhoto.open;
@@ -781,6 +891,49 @@ export default function CheckRunPage() {
             </section>
           );
         })}
+
+        {/* 気づき（チェック項目にない指摘事項） */}
+        <section className="crp-section">
+          <div className="crp-section-head" style={{ background: "#7c3aed" }}>
+            <div className="crp-section-title">気づき（任意）</div>
+            <div className="crp-section-count">{notices.length}件</div>
+          </div>
+          <div style={{ fontSize: 12, fontWeight: 700, color: "#64748b", padding: "0 4px 10px" }}>
+            チェック項目にない指摘事項を追加できます。メール本文に記載されます。
+          </div>
+          {notices.map((n, idx) => (
+            <div key={n.id} className="crp-item-card">
+              <div className="crp-item-label-row" style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div className="crp-item-label">気づき {idx + 1}</div>
+                <button type="button" onClick={() => removeNotice(n.id)}
+                  style={{ width: 32, height: 32, borderRadius: 10, border: "1px solid #fee2e2", background: "#fff5f5", display: "grid", placeItems: "center", color: "#dc2626", cursor: "pointer" }}>
+                  <Trash2 size={14} />
+                </button>
+              </div>
+              <div className="crp-detail">
+                <div className="crp-detail-header">
+                  <div className="crp-detail-label"><MessageSquareText size={13} /> コメント</div>
+                  <button type="button" className="crp-photo-btn" onClick={() => openPhotoPicker(NOTICES_SECID, n.id)}><ImagePlus size={14} /> 写真追加</button>
+                </div>
+                {n.photos.length > 0 && (
+                  <div className="crp-photo-grid">
+                    {n.photos.map((p, pIdx) => (
+                      <button key={p.id} type="button" className="crp-photo-thumb" onClick={() => openPhotoModalAt(NOTICES_SECID, n.id, pIdx)}>
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={p.dataUrl} alt={`写真 ${pIdx + 1}`} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <textarea className="crp-textarea" value={n.note} onChange={e => setNoticeNote(n.id, e.target.value)} placeholder="気づいた内容を入力してください" rows={3} />
+              </div>
+            </div>
+          ))}
+          <button type="button" className="crp-next-sec-btn" onClick={addNotice}
+            style={{ borderColor: "#c4b5fd", color: "#7c3aed", background: "#f5f3ff" }}>
+            <Plus size={15} /> 気づきを追加
+          </button>
+        </section>
       </main>
 
       {/* ボトムドック */}
