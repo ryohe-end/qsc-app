@@ -15,6 +15,7 @@
     "@aws-sdk/s3-presigned-post": "^3.1029.0",
     "@aws-sdk/s3-request-presigner": "^3.1028.0",
     "@aws-sdk/util-dynamodb": "^3.996.2",
+    "@google/genai": "^2.6.0",
     "@sendgrid/mail": "^8.1.6",
     "google-auth-library": "^10.5.0",
     "lucide-react": "^0.563.0",

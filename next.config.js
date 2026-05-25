@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  turbopack: {
+    root: __dirname,
+  },
   env: {
     SENDGRID_API_KEY: process.env.SENDGRID_API_KEY || "",
     QSC_MASTER_TABLE: process.env.QSC_MASTER_TABLE || "QSC_MasterTable",
@@ -7,6 +10,7 @@ const nextConfig = {
     QSC_AWS_REGION: process.env.QSC_AWS_REGION || "us-east-1",
     QSC_PHOTO_BUCKET_NAME: process.env.QSC_PHOTO_BUCKET_NAME || "qsc-check-photos-prod",
     QSC_RESULT_TABLE_NAME: process.env.QSC_RESULT_TABLE_NAME || "QSC_CheckResults",
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY || "",
   },
   images: {
     remotePatterns: [

@@ -11,7 +11,7 @@ import {
   CheckCircle2, PauseCircle, XCircle, MinusCircle,
   Save, Send, ImagePlus, Trash2, MessageSquareText,
   AlertTriangle, ChevronRight, ChevronLeft as ChevronLeftIcon,
-  ChevronDown, ChevronUp, Plus, ArrowDown,
+  ChevronDown, ChevronUp, Plus, ArrowDown, Sparkles,
 } from "lucide-react";
 
 import base from "./CheckRunPage.base.module.css";
@@ -476,6 +476,62 @@ export default function CheckRunPage() {
     setNotices(p => p.map(n => n.id !== noticeId ? n : { ...n, note }));
   }, []);
 
+  // AI判定（Gemini 2.5 Flash）
+  type AIResultState =
+    | { open: false }
+    | { open: true; secId: string; itemId: string; itemLabel: string; recommendedState: "ok" | "hold" | "ng"; confidence: number; reasoning: string };
+  const [aiBusy, setAIBusy] = useState<Set<string>>(new Set());
+  const [aiResult, setAIResult] = useState<AIResultState>({ open: false });
+
+  const runAIAnalysis = useCallback(async (secId: string, itemId: string) => {
+    const sec = sections.find(s => s.id === secId);
+    const it = sec?.items.find(i => i.id === itemId);
+    if (!it || !it.photos || it.photos.length === 0) return;
+    const k = itemKey(secId, itemId);
+    vibrate(10);
+    setAIBusy(prev => { const next = new Set(prev); next.add(k); return next; });
+    try {
+      const photos = it.photos.map(p => ({
+        s3Key: p.s3Key || undefined,
+        dataUrl: p.s3Key ? undefined : p.dataUrl,
+      }));
+      const res = await fetch("/api/check/ai-analysis", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemLabel: it.label, category: it.category, photos }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "AI判定に失敗しました");
+      setAIResult({
+        open: true, secId, itemId, itemLabel: it.label,
+        recommendedState: data.recommendedState,
+        confidence: data.confidence,
+        reasoning: data.reasoning,
+      });
+    } catch (e: unknown) {
+      setSheet({
+        open: true, title: "AI判定エラー",
+        message: e instanceof Error ? e.message : "AI判定に失敗しました",
+        cancelText: "閉じる", onCancel: () => setSheet({ open: false }),
+      });
+    } finally {
+      setAIBusy(prev => { const next = new Set(prev); next.delete(k); return next; });
+    }
+  }, [sections]);
+
+  const applyAIRecommendation = useCallback(() => {
+    if (!aiResult.open) return;
+    const { secId, itemId, recommendedState, reasoning } = aiResult;
+    const aiNote = `[AI判定] ${reasoning}`;
+    setItemState(secId, itemId, recommendedState);
+    if (recommendedState === "hold") {
+      setItemHoldNote(secId, itemId, aiNote);
+    } else {
+      setItemNote(secId, itemId, aiNote);
+    }
+    setAIResult({ open: false });
+  }, [aiResult, setItemState, setItemNote, setItemHoldNote]);
+
   const openPhotoPicker = useCallback((secId: string, itemId: string) => { vibrate(); setPendingPhotoTarget({ secId, itemId }); requestAnimationFrame(() => pickPhotoRef.current?.click()); }, []);
   const closePhotoModal = useCallback(() => setPhotoModal(m => ({ ...m, open: false })), []);
   const openPhotoModalAt = useCallback((secId: string, itemId: string, index: number) => {
@@ -858,7 +914,19 @@ export default function CheckRunPage() {
                             <MessageSquareText size={13} />
                             {it.state === "hold" ? "保留理由" : <>コメント{it.state === "ng" && <span className="crp-required">必須</span>}</>}
                           </div>
-                          <button type="button" className="crp-photo-btn" onClick={() => openPhotoPicker(sec.id, it.id)}><ImagePlus size={14} /> 写真追加</button>
+                          <div style={{ display: "flex", gap: 6 }}>
+                            <button type="button" className="crp-photo-btn" onClick={() => openPhotoPicker(sec.id, it.id)}><ImagePlus size={14} /> 写真追加</button>
+                            {(it.photos?.length ?? 0) > 0 && (
+                              <button type="button" className="crp-photo-btn"
+                                onClick={() => runAIAnalysis(sec.id, it.id)}
+                                disabled={aiBusy.has(k)}
+                                style={{ background: "#eef2ff", color: "#6366f1", borderColor: "#c7d2fe" }}>
+                                {aiBusy.has(k)
+                                  ? <><Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> 判定中</>
+                                  : <><Sparkles size={14} /> AIで判定</>}
+                              </button>
+                            )}
+                          </div>
                         </div>
                         {(it.photos?.length ?? 0) > 0 && (
                           <div className="crp-photo-grid">
@@ -1078,6 +1146,54 @@ export default function CheckRunPage() {
           </div>
         </div>
       )}
+
+      {/* AI判定結果モーダル */}
+      {aiResult.open && (() => {
+        const stateInfo = aiResult.recommendedState === "ok"
+          ? { label: "OK（合格）", bg: "#f0fdf4", color: "#059669", border: "#bbf7d0" }
+          : aiResult.recommendedState === "hold"
+          ? { label: "保留", bg: "#fffbeb", color: "#d97706", border: "#fde68a" }
+          : { label: "NG（要改善）", bg: "#fef2f2", color: "#dc2626", border: "#fecaca" };
+        const confidencePct = Math.round(aiResult.confidence * 100);
+        return (
+          <div className="crp-sheet-layer" role="dialog" style={{ zIndex: Z.sheet }}>
+            <button className="crp-sheet-bg" onClick={() => setAIResult({ open: false })}
+              style={{ border: "none", cursor: "pointer", width: "100%", height: "100%", position: "absolute" }} />
+            <div className="crp-sheet-wrap">
+              <div className="crp-sheet-card" style={{ padding: 0, overflow: "hidden" }}>
+                <div style={{ padding: "16px 18px 12px", borderBottom: "1px solid #f1f5f9" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 900, color: "#6366f1", letterSpacing: "0.5px", marginBottom: 4 }}>
+                    <Sparkles size={13} /> AI判定結果
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "#1e293b", lineHeight: 1.4 }}>{aiResult.itemLabel}</div>
+                </div>
+                <div style={{ padding: "14px 18px", display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+                    <div style={{ background: stateInfo.bg, border: `1.5px solid ${stateInfo.border}`, color: stateInfo.color, padding: "8px 14px", borderRadius: 12, fontSize: 14, fontWeight: 900 }}>
+                      推奨: {stateInfo.label}
+                    </div>
+                    <div style={{ fontSize: 11, fontWeight: 800, color: "#64748b" }}>
+                      信頼度 <span style={{ color: "#1e293b", fontSize: 14 }}>{confidencePct}%</span>
+                    </div>
+                  </div>
+                  <div style={{ background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: 10, padding: "10px 12px", fontSize: 13, fontWeight: 600, color: "#334155", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>
+                    {aiResult.reasoning}
+                  </div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8" }}>
+                    ※AIの判定は参考情報です。最終判断は点検者が行ってください。
+                  </div>
+                </div>
+                <div className="crp-sheet-divider" />
+                <button type="button" className="crp-sheet-btn" onClick={() => { vibrate(10); applyAIRecommendation(); }}
+                  style={{ color: stateInfo.color, fontWeight: 900 }}>
+                  推奨を反映する（コメントにAI判定結果を記入）
+                </button>
+              </div>
+              <button type="button" className="crp-sheet-cancel" onClick={() => { vibrate(10); setAIResult({ open: false }); }}>閉じる</button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* 途中保存トースト */}
       {savedToast && (
