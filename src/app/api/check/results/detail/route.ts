@@ -23,16 +23,23 @@ type PhotoRecord = {
   contentType?: string;
 };
 
-/* S3キーからPresigned URLを生成（1時間有効） */
-async function presignPhoto(photo: PhotoRecord): Promise<PhotoRecord> {
+/* S3キーからPresigned URLを生成（1時間有効）。
+   編集モードで再保存できるよう、永続的なS3 URL/Keyも s3Url/s3Key として温存する。 */
+async function presignPhoto(photo: PhotoRecord): Promise<PhotoRecord & { s3Url?: string; s3Key?: string }> {
   if (!photo.key) return photo;
   try {
-    const url = await getSignedUrl(
+    const presigned = await getSignedUrl(
       s3,
       new GetObjectCommand({ Bucket: BUCKET, Key: photo.key }),
       { expiresIn: 3600 }
     );
-    return { ...photo, url, dataUrl: url };
+    return {
+      ...photo,
+      url: presigned,
+      dataUrl: presigned,
+      s3Url: photo.url,
+      s3Key: photo.key,
+    };
   } catch (e) {
     console.error("presign failed", photo.key, e);
     return photo;
