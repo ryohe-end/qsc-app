@@ -9,14 +9,16 @@ const client = new DynamoDBClient({ region: process.env.QSC_AWS_REGION || "us-ea
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = "QSC_UserTable";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
+
     const res = await docClient.send(new ScanCommand({
       TableName: TABLE_NAME,
       FilterExpression: "SK = :sk",
       ExpressionAttributeValues: { ":sk": "METADATA" },
     }));
-    const items = (res.Items ?? []).map(item => ({
+    let items = (res.Items ?? []).map(item => ({
       userId: item.userId || item.email,
       name: item.name || "",
       email: item.email || "",
@@ -28,6 +30,17 @@ export async function GET() {
       createdAt: item.createdAt || "",
       updatedAt: item.updatedAt || "",
     }));
+
+    if (q) {
+      const lower = q.toLowerCase();
+      items = items.filter(u =>
+        u.name.toLowerCase().includes(lower) ||
+        u.email.toLowerCase().includes(lower)
+      );
+      items.sort((a, b) => a.name.localeCompare(b.name, "ja"));
+      return NextResponse.json({ items: items.slice(0, 50) });
+    }
+
     return NextResponse.json({ items });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "Unknown error";
