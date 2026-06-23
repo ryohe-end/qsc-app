@@ -5,12 +5,12 @@ import {
   DynamoDBDocumentClient,
   QueryCommand,
 } from "@aws-sdk/lib-dynamodb";
+import { requireAdmin } from "@/app/lib/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const region =
-  process.env.QSC_AWS_REGION || "us-east-1" || process.env.AWS_DEFAULT_REGION || "us-east-1";
+const region = process.env.QSC_AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
 const tableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
 
 const client = new DynamoDBClient({ region });
@@ -32,6 +32,8 @@ export async function DELETE(
   _req: NextRequest,
   context: { params: Promise<{ storeId: string }> }
 ) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const { storeId } = await context.params;
     const normalizedStoreId = String(storeId || "").trim();
@@ -76,8 +78,9 @@ export async function DELETE(
       ok: true,
       storeId: normalizedStoreId,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("[DELETE /api/admin/qsc/stores/[storeId]]", error);
-    return jsonError(error?.message || "店舗の削除に失敗しました", 500);
+    const message = error instanceof Error ? error.message : "店舗の削除に失敗しました";
+    return jsonError(message, 500);
   }
 }

@@ -199,8 +199,11 @@ export default function ResultPage() {
     async function fetchResult() {
       if (!params?.id) return;
       try {
-        // 今回の結果を取得（checkType をクエリに追加）
-        const res = await fetch(`/api/check/results?storeId=${params.id}&checkType=${checkType}`);
+        // 今回の結果を取得（storeId が URL クエリにあれば PK Query で高速化）
+        const knownStoreId = searchParams.get("storeId") || "";
+        const qs = new URLSearchParams({ resultId: String(params.id), checkType });
+        if (knownStoreId) qs.set("storeId", knownStoreId);
+        const res = await fetch(`/api/check/results?${qs.toString()}`);
         if (!res.ok) throw new Error("Not Found");
         const json = await res.json();
         setData(json);

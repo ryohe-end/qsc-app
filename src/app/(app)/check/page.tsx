@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -114,6 +114,8 @@ export default function CheckPage() {
   const [storeMaster, setStoreMaster] = useState<StoreRow[]>([]);
   const [doneStoreIds, setDoneStoreIds] = useState<string[]>([]);
   const [draftStoreIds, setDraftStoreIds] = useState<string[]>([]);
+  const [officialDraftStoreIds, setOfficialDraftStoreIds] = useState<string[]>([]);
+  const [selfDraftStoreIds, setSelfDraftStoreIds] = useState<string[]>([]);
   const [loadingStores, setLoadingStores] = useState(true);
 
   const [companyId, setCompanyId] = useState("");
@@ -122,6 +124,8 @@ export default function CheckPage() {
   const [areaIds, setAreaIds] = useState<string[]>([]);
   const [statusFilters, setStatusFilters] = useState<StoreStatus[]>([]);
   const [storeQuery, setStoreQuery] = useState("");
+  // 入力中の重いフィルタ計算を遅延化して、入力欄の応答性を維持
+  const deferredStoreQuery = useDeferredValue(storeQuery);
 
   const [selectedStoreId, setSelectedStoreId] = useState("");
   const [isFilterOpen, setIsFilterOpen] = useState(false);
@@ -137,11 +141,21 @@ export default function CheckPage() {
   // qsc_draft_{storeId}（本チェック）と qsc_draft_self_{storeId}（セルフ）両方を検出
   const loadDraftStoreIds = useCallback(() => {
     if (typeof window === "undefined") return;
-    const keys = Object.keys(localStorage)
-      .filter((k) => k.startsWith("qsc_draft_"))
-      .map((k) => k.replace("qsc_draft_self_", "").replace("qsc_draft_", ""))
-      .filter(Boolean);
-    setDraftStoreIds([...new Set(keys)]);
+    const allKeys = Object.keys(localStorage).filter((k) => k.startsWith("qsc_draft_"));
+    const officialIds: string[] = [];
+    const selfIds: string[] = [];
+    for (const k of allKeys) {
+      if (k.startsWith("qsc_draft_self_")) {
+        const id = k.replace("qsc_draft_self_", "");
+        if (id) selfIds.push(id);
+      } else {
+        const id = k.replace("qsc_draft_", "");
+        if (id) officialIds.push(id);
+      }
+    }
+    setOfficialDraftStoreIds([...new Set(officialIds)]);
+    setSelfDraftStoreIds([...new Set(selfIds)]);
+    setDraftStoreIds([...new Set([...officialIds, ...selfIds])]);
   }, []);
 
   // 初期データ取得
@@ -252,7 +266,7 @@ export default function CheckPage() {
   const storeList = useMemo(() => {
     if (!Array.isArray(storeMaster)) return [];
 
-    const k = storeQuery.trim().toLowerCase();
+    const k = deferredStoreQuery.trim().toLowerCase();
 
     return storeMaster
       .map((s) => {
@@ -280,13 +294,13 @@ export default function CheckPage() {
       .sort((a, b) => (a.storeName || "").localeCompare(b.storeName || "", "ja"));
   }, [
     storeMaster,
-    getDynamicStatus, // [修正] useCallback化したので依存配列に追加（doneStoreIds/draftStoreIdsの変化を捕捉）
+    getDynamicStatus,
     companyId,
     bizIds,
     brandIds,
     areaIds,
     statusFilters,
-    storeQuery,
+    deferredStoreQuery,
   ]);
 
   const selectedStore = useMemo(() => {
@@ -776,7 +790,9 @@ export default function CheckPage() {
               width: "100%",
               background: "#fff",
               borderRadius: "32px 32px 0 0",
-              padding: "32px 24px 48px",
+              padding: "32px 24px calc(48px + env(safe-area-inset-bottom, 0px))",
+              maxHeight: "90svh",
+              overflowY: "auto",
               animation: "slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
             onClick={(e) => e.stopPropagation()}
@@ -792,7 +808,7 @@ export default function CheckPage() {
 
             <div style={{ display: "grid", gap: "12px" }}>
               {/* 途中保存がある場合（本チェック） */}
-              {getDynamicStatus(selectedStore.storeId) === "draft" && typeof window !== "undefined" && localStorage.getItem(`qsc_draft_${selectedStore.storeId}`) && (
+              {officialDraftStoreIds.includes(selectedStore.storeId) && (
                 <button
                   onClick={() => {
                     setIsActionModalOpen(false);
@@ -808,7 +824,7 @@ export default function CheckPage() {
                 </button>
               )}
               {/* 途中保存がある場合（セルフチェック） */}
-              {getDynamicStatus(selectedStore.storeId) === "draft" && typeof window !== "undefined" && localStorage.getItem(`qsc_draft_self_${selectedStore.storeId}`) && (
+              {selfDraftStoreIds.includes(selectedStore.storeId) && (
                 <button
                   onClick={() => {
                     setIsActionModalOpen(false);
@@ -1080,7 +1096,9 @@ export default function CheckPage() {
               width: "100%",
               background: "#fff",
               borderRadius: "32px 32px 0 0",
-              padding: "32px 24px 48px",
+              padding: "32px 24px calc(48px + env(safe-area-inset-bottom, 0px))",
+              maxHeight: "90svh",
+              overflowY: "auto",
               animation: "slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
             onClick={(e) => e.stopPropagation()}

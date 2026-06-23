@@ -8,10 +8,11 @@ import {
 } from "@aws-sdk/client-dynamodb";
 import { marshall, unmarshall } from "@aws-sdk/util-dynamodb";
 import type { QscQuestion, QscQuestionItem, CategoryType } from "@/types/qsc";
+import { requireAdmin } from "@/app/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
-const REGION = process.env.QSC_AWS_REGION || "us-east-1" || "ap-northeast-1";
+const REGION = process.env.QSC_AWS_REGION || "us-east-1";
 const TABLE_NAME = process.env.QSC_TABLE_NAME || "QSC_MasterTable";
 
 const client = new DynamoDBClient({ region: REGION });
@@ -72,6 +73,8 @@ function toQuestionItem(question: QscQuestion): QscQuestionItem {
 }
 
 export async function GET(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const questionId = req.nextUrl.searchParams.get("questionId");
 
@@ -122,6 +125,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
 
@@ -167,6 +172,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const questionId = req.nextUrl.searchParams.get("questionId");
 

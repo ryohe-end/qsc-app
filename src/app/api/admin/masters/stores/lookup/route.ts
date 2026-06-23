@@ -1,8 +1,19 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/app/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
+type StoreLookupRow = {
+  name: string;
+  brandName: string;
+  businessTypeName: string;
+  companyName: string;
+  corporateName: string;
+};
+
 export async function GET(req: Request) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   const url = new URL(req.url);
   const clubCodeStr = url.searchParams.get("clubCode") ?? "";
 
@@ -13,7 +24,7 @@ export async function GET(req: Request) {
   const clubCode = Number(clubCodeStr);
 
   // ダミー（後でDB/Oracle/Snowflakeに差し替え）
-  const MAP: Record<number, any> = {
+  const MAP: Record<number, StoreLookupRow> = {
     306: {
       name: "札幌大通",
       brandName: "JOYFIT",

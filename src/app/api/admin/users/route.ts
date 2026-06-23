@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand, PutCommand, DeleteCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, ScanCommand, PutCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { sendWelcomeEmail } from "@/app/lib/sendgrid";
+import { requireAdmin } from "@/app/lib/admin-auth";
+import { hashPassword } from "@/app/lib/password";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,8 @@ const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = "QSC_UserTable";
 
 export async function GET(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const q = req.nextUrl.searchParams.get("q")?.trim() ?? "";
 
@@ -49,6 +53,8 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
     const { sendWelcomeEmail: shouldSendEmail, ...userData } = body;
@@ -61,12 +67,14 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date().toISOString();
+    const plainPassword = String(userData.password);
+    const hashedPassword = await hashPassword(plainPassword);
     const item = {
       email: userData.email.toLowerCase(),
       SK: "METADATA",
       userId: userData.userId,
       name: userData.name,
-      password: userData.password,
+      password: hashedPassword,
       role: userData.role || "store",
       corpId: userData.corpId || "",
       status: "invited",
@@ -84,7 +92,7 @@ export async function POST(req: NextRequest) {
           to: userData.email,
           name: userData.name,
           email: userData.email,
-          password: userData.password,
+          password: plainPassword, // メールには平文を送る
         });
       } catch (mailErr) {
         console.error("メール送信失敗:", mailErr);
@@ -102,6 +110,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
     const { sendWelcomeEmail: _unused, ...userData } = body;
@@ -110,9 +120,23 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "email は必須です" }, { status: 400 });
     }
 
+    const email = String(userData.email).toLowerCase();
     const now = new Date().toISOString();
+
+    // 既存レコードを取得して password などの保持必須項目を温存（PutCommandは全置換のため）
+    let existingPassword: string | undefined;
+    let existingCreatedAt: string | undefined;
+    try {
+      const existing = await docClient.send(new GetCommand({
+        TableName: TABLE_NAME,
+        Key: { email, SK: "METADATA" },
+      }));
+      existingPassword = existing.Item?.password as string | undefined;
+      existingCreatedAt = existing.Item?.createdAt as string | undefined;
+    } catch {}
+
     const item: Record<string, unknown> = {
-      email: userData.email.toLowerCase(),
+      email,
       SK: "METADATA",
       userId: userData.userId,
       name: userData.name,
@@ -121,12 +145,14 @@ export async function PUT(req: NextRequest) {
       status: userData.status || "active",
       assignedStoreIds: userData.assignedStoreIds || [],
       updatedAt: now,
-      createdAt: userData.createdAt || now,
+      createdAt: existingCreatedAt || userData.createdAt || now,
     };
 
-    // パスワードが送られてきた場合のみ更新
+    // パスワードが送られてきた場合はハッシュ化して更新、なければ既存値を維持
     if (userData.password) {
-      item.password = userData.password;
+      item.password = await hashPassword(String(userData.password));
+    } else if (existingPassword !== undefined) {
+      item.password = existingPassword;
     }
 
     await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: item }));
@@ -139,6 +165,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const userId = req.nextUrl.searchParams.get("userId");
     if (!userId) return NextResponse.json({ error: "userId は必須です" }, { status: 400 });

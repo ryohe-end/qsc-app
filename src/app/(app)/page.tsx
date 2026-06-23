@@ -10,6 +10,8 @@ import {
   TrendingUp,
   Loader2,
   Medal,
+  Target,
+  X,
 } from "lucide-react";
 
 import { useSession } from "@/app/(app)/lib/auth";
@@ -114,17 +116,23 @@ function HomeWidget() {
 
   useEffect(() => {
     if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(async (pos) => {
-      try {
-        const { latitude: lat, longitude: lon } = pos.coords;
-        const res = await fetch(
-          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
-        );
-        const data = await res.json();
-        setWeatherInfo(weatherLabelFromCode(data.current_weather.weathercode));
-        setTemp(Math.round(data.current_weather.temperature));
-      } catch { /* ignore */ }
-    });
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude: lat, longitude: lon } = pos.coords;
+          const res = await fetch(
+            `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`
+          );
+          if (!res.ok) return;
+          const data = await res.json();
+          const code = data?.current_weather?.weathercode;
+          const t = data?.current_weather?.temperature;
+          if (code !== undefined) setWeatherInfo(weatherLabelFromCode(code));
+          if (typeof t === "number") setTemp(Math.round(t));
+        } catch { /* ignore */ }
+      },
+      () => { /* 位置取得拒否やHTTPSでない等は無視（天気は任意表示） */ }
+    );
   }, []);
 
   return (
@@ -187,6 +195,7 @@ export default function HomePage() {
   const { quarter: initQ, fiscalYear: initFY } = getCurrentQuarter();
   const [selectedQuarter, setSelectedQuarter] = useState(initQ);
   const [selectedFiscalYear] = useState(initFY);
+  const [purposeOpen, setPurposeOpen] = useState(false);
 
   useEffect(() => {
     if (sessionLoading) return;
@@ -244,7 +253,67 @@ export default function HomePage() {
       {/* ① HOMEウィジェット */}
       <div className="hp-card"><HomeWidget /></div>
 
-      {/* ② お知らせ */}
+      {/* ② QSCの意義・目的 */}
+      <div className="hp-card" style={{ background: "#fff", borderRadius: 24, border: "1px solid #e2e8f0", overflow: "hidden" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px 12px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 900, color: "#1e293b" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 10, background: "#fef3c7", display: "grid", placeItems: "center" }}>
+              <Target size={15} color="#ca8a04" />
+            </div>
+            QSCの意義・目的
+          </div>
+        </div>
+        <button
+          onClick={() => setPurposeOpen(true)}
+          style={{
+            display: "block", width: "100%", padding: "0 12px 12px",
+            border: "none", background: "transparent", cursor: "pointer",
+          }}
+          aria-label="QSCの意義・目的を拡大表示"
+        >
+          <img
+            src="/qsc-purpose.jpg"
+            alt="QSCの意義・目的"
+            style={{ width: "100%", height: "auto", borderRadius: 14, display: "block" }}
+          />
+        </button>
+      </div>
+
+      {purposeOpen && (
+        <div
+          onClick={() => setPurposeOpen(false)}
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(15,23,42,0.85)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: 16,
+          }}
+        >
+          <button
+            onClick={() => setPurposeOpen(false)}
+            style={{
+              position: "absolute", top: 16, right: 16, zIndex: 1,
+              width: 40, height: 40, borderRadius: "50%", border: "none",
+              background: "rgba(255,255,255,0.15)", color: "#fff",
+              display: "grid", placeItems: "center", cursor: "pointer",
+            }}
+            aria-label="閉じる"
+          >
+            <X size={20} />
+          </button>
+          <img
+            src="/qsc-purpose.jpg"
+            alt="QSCの意義・目的"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              maxWidth: "100%", maxHeight: "100%",
+              objectFit: "contain", borderRadius: 8,
+            }}
+          />
+        </div>
+      )}
+
+      {/* ③ お知らせ */}
       <div className="hp-card" style={{ background: "#fff", borderRadius: 24, border: "1px solid #e2e8f0", overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 20px 0" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, fontWeight: 900, color: "#1e293b" }}>
@@ -279,7 +348,7 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ③ スコア / ランキング */}
+      {/* ④ スコア / ランキング */}
       {isStoreUser ? (
         <div className="hp-card" style={{ background: "#fff", borderRadius: 24, border: "1px solid #e2e8f0", overflow: "hidden" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "16px 20px 16px", fontSize: 14, fontWeight: 900, color: "#1e293b" }}>

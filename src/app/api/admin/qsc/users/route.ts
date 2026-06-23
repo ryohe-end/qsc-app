@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, ScanCommand, PutCommand, DeleteCommand, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { sendWelcomeEmail } from "@/app/lib/sendgrid";
+import { requireAdmin } from "@/app/lib/admin-auth";
+import { hashPassword } from "@/app/lib/password";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,8 @@ const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = "QSC_UserTable";
 
 export async function GET() {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const res = await docClient.send(new ScanCommand({
       TableName: TABLE_NAME,
@@ -36,6 +40,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
     const { sendWelcomeEmail: shouldSendEmail, ...userData } = body;
@@ -48,12 +54,14 @@ export async function POST(req: NextRequest) {
     }
 
     const now = new Date().toISOString();
+    const plainPassword = String(userData.password);
+    const hashedPassword = await hashPassword(plainPassword);
     const item = {
       email: userData.email.toLowerCase(),
       SK: "METADATA",
       userId: userData.userId,
       name: userData.name,
-      password: userData.password,
+      password: hashedPassword,
       role: userData.role || "store",
       corpId: userData.corpId || "",
       status: "invited",
@@ -70,7 +78,7 @@ export async function POST(req: NextRequest) {
           to: userData.email,
           name: userData.name,
           email: userData.email,
-          password: userData.password,
+          password: plainPassword, // メールには平文を送る（ハッシュではユーザーが使えない）
         });
       } catch (mailErr) {
         console.error("メール送信失敗:", mailErr);
@@ -87,6 +95,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
     const { sendWelcomeEmail: _unused, ...userData } = body;
@@ -120,9 +130,9 @@ export async function PUT(req: NextRequest) {
       createdAt: userData.createdAt || existingItem.createdAt || now,
     };
 
-    // パスワードが明示的に送られてきた場合のみ上書き
+    // パスワードが明示的に送られてきた場合のみハッシュ化して上書き
     if (userData.password) {
-      item.password = userData.password;
+      item.password = await hashPassword(String(userData.password));
     }
 
     await docClient.send(new PutCommand({ TableName: TABLE_NAME, Item: item }));
@@ -135,6 +145,8 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const userId = req.nextUrl.searchParams.get("userId");
     if (!userId) return NextResponse.json({ error: "userId は必須です" }, { status: 400 });

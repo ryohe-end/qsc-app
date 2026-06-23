@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 const oauthClient = new OAuth2Client(clientId);
 
-const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: "us-east-1" }));
+const ddb = DynamoDBDocumentClient.from(new DynamoDBClient({ region: process.env.QSC_AWS_REGION || "us-east-1" }));
 const TABLE_NAME = "QSC_UserTable";
 
 export async function POST(req: Request) {
@@ -61,8 +61,9 @@ export async function POST(req: Request) {
     // ✅ クッキー設定（一般ログインと同じ）
     const cookieStore = await cookies();
     const maxAge = 60 * 60 * 24; // 1日
+    const isProd = process.env.NODE_ENV === "production";
 
-    const opts = { path: "/", maxAge, httpOnly: false, sameSite: "lax" as const };
+    const opts = { path: "/", maxAge, httpOnly: true, secure: isProd, sameSite: "lax" as const };
 
     cookieStore.set("qsc_authed", "1", opts);
     cookieStore.set("qsc_role", user.role || "inspector", opts);

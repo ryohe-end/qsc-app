@@ -6,12 +6,12 @@ import {
   PutCommand,
   UpdateCommand,
 } from "@aws-sdk/lib-dynamodb";
+import { requireAdmin } from "@/app/lib/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const region =
-  process.env.QSC_AWS_REGION || "us-east-1" || process.env.AWS_DEFAULT_REGION || "us-east-1";
+const region = process.env.QSC_AWS_REGION || process.env.AWS_DEFAULT_REGION || "us-east-1";
 const tableName = process.env.QSC_MASTER_TABLE || "QSC_MasterTable";
 
 const client = new DynamoDBClient({ region });
@@ -32,6 +32,8 @@ function storePk(storeId: string) {
 const STORE_ASSET_SK = "STORE_ASSET";
 
 export async function POST(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
 

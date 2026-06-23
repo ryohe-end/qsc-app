@@ -16,7 +16,8 @@ type CorrectionStatus = "pending" | "submitted" | "reviewing" | "approved" | "re
 
 type UploadedPhoto = { id?: string; key?: string; url?: string; contentType?: string };
 
-type AfterPhoto = { file: File; previewUrl: string };
+// 既存写真は file=undefined（再アップロード不要）。新規写真は File を持つ。
+type AfterPhoto = { file?: File; previewUrl: string; existingUrl?: string };
 
 type NgIssue = {
   id: string;
@@ -109,9 +110,16 @@ function formatDate(iso?: string) {
 async function uploadAfterPhotos(target: NgIssue): Promise<UploadedPhoto[]> {
   if (!target.afterPhotos.length) return [];
   const uploaded: UploadedPhoto[] = [];
-  for (const { file } of target.afterPhotos) {
+  for (const p of target.afterPhotos) {
+    // 既存写真（file 無し or 0byte File）はそのまま URL を保持し、再アップロードしない
+    if (!p.file || p.file.size === 0) {
+      if (p.existingUrl || p.previewUrl) {
+        uploaded.push({ url: p.existingUrl || p.previewUrl });
+      }
+      continue;
+    }
     const form = new FormData();
-    form.append("file", file);
+    form.append("file", p.file);
     form.append("pk", target.resultPk);
     form.append("sk", target.resultSk);
     form.append("itemId", target.id);
@@ -470,6 +478,17 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
   const [rejectNote, setRejectNote] = useState("");
   const [filter, setFilter] = useState<CorrectionStatus | "all">("all");
 
+  // 最新の issues を ref で保持し、アンマウント時に blob: URL を全解放
+  const issuesRef = useRef<NgIssue[]>([]);
+  useEffect(() => { issuesRef.current = issues; }, [issues]);
+  useEffect(() => {
+    return () => {
+      issuesRef.current.forEach(iss =>
+        iss.afterPhotos.forEach(p => cleanupPreviewUrl(p.previewUrl))
+      );
+    };
+  }, []);
+
   useEffect(() => {
     const cleanId = String(storeId).replace(/^STORE#/, "");
     if (!cleanId || cleanId === "undefined") {
@@ -502,7 +521,7 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           reviewedAt: item.reviewedAt ? String(item.reviewedAt) : undefined,
           storeId: item.storeId ? String(item.storeId) : undefined,
           storeName: item.storeName ? String(item.storeName) : undefined,
-          afterPhotos: normalizeImageUrls(item.afterPhotos || item.afterPhoto || "").map(url => ({ file: new File([], ""), previewUrl: url })),
+          afterPhotos: normalizeImageUrls(item.afterPhotos || item.afterPhoto || "").map(url => ({ previewUrl: url, existingUrl: url })),
         })));
       })
       .catch(e => { console.error(e); setError("データの読み込みに失敗しました"); })

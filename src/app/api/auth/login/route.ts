@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { cookies } from "next/headers";
+import { hashPassword, verifyPassword } from "@/app/lib/password";
 
 export const dynamic = "force-dynamic";
 
-const client = new DynamoDBClient({ region: "us-east-1" });
+const client = new DynamoDBClient({ region: process.env.QSC_AWS_REGION || "us-east-1" });
 const docClient = DynamoDBDocumentClient.from(client);
 const TABLE_NAME = "QSC_UserTable";
 
@@ -31,7 +32,15 @@ export async function POST(req: NextRequest) {
 
     const user = res.Item;
 
-    if (!user || user.password !== password) {
+    if (!user) {
+      return NextResponse.json(
+        { error: "メールアドレスまたはパスワードが正しくありません" },
+        { status: 401 }
+      );
+    }
+
+    const verify = await verifyPassword(user.password as string | undefined, password);
+    if (!verify.ok) {
       return NextResponse.json(
         { error: "メールアドレスまたはパスワードが正しくありません" },
         { status: 401 }
@@ -45,17 +54,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // 平文保存だった場合は今回のログインを機にハッシュ化して保存し直す
+    if (verify.needsUpgrade) {
+      try {
+        const hashed = await hashPassword(password);
+        await docClient.send(new UpdateCommand({
+          TableName: TABLE_NAME,
+          Key: { email: lowerEmail, SK: "METADATA" },
+          UpdateExpression: "SET password = :p, updatedAt = :u",
+          ExpressionAttributeValues: { ":p": hashed, ":u": new Date().toISOString() },
+        }));
+      } catch (e) {
+        console.error("password upgrade failed", e);
+      }
+    }
+
     const cookieStore = await cookies();
     const maxAge = remember ? 60 * 60 * 24 * 7 : 60 * 60 * 24;
+    const isProd = process.env.NODE_ENV === "production";
 
+    // httpOnly でクライアント JS から read/write 不可（XSSによるセッション奪取対策）
     const opts = {
       path: "/",
       maxAge,
-      httpOnly: false,
+      httpOnly: true,
+      secure: isProd,
       sameSite: "lax" as const,
     };
 
-    // ✅ middleware が見る qsc_authed と qsc_role を両方設定
     cookieStore.set("qsc_authed", "1", opts);
     cookieStore.set("qsc_role", user.role || "inspector", opts);
     cookieStore.set("qsc_user_name", encodeURIComponent(user.name || "担当者"), opts);

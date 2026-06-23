@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, QueryCommand, ScanCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
@@ -42,25 +42,42 @@ async function presignSections(sections: unknown[]): Promise<unknown[]> {
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    const resultId = searchParams.get("storeId");
-    const checkType = searchParams.get("checkType") || "official";
+    // 新パラメータ: resultId（必須） + storeId（任意、あれば Query を使い高速化）
+    // 後方互換: storeId のみ来た場合は中身が resultId とみなす（旧呼び出し対応）
+    const resultIdParam = searchParams.get("resultId");
+    const storeIdParam = searchParams.get("storeId") ?? "";
+    const resultId = resultIdParam || storeIdParam;
+    const storeIdForQuery = resultIdParam ? storeIdParam : ""; // 旧呼び出し時は不明
     const tableName = resultTableName;
 
     if (!resultId) {
       return NextResponse.json({ error: "resultIdが必要です" }, { status: 400 });
     }
 
-    const res = await docClient.send(new ScanCommand({
-      TableName: tableName,
-      FilterExpression: "resultId = :rid",
-      ExpressionAttributeValues: { ":rid": resultId },
-    }));
+    let item: Record<string, unknown> | undefined;
 
-    if (!res.Items || res.Items.length === 0) {
-      return NextResponse.json({ error: `ID:${resultId} のデータが見つかりません` }, { status: 404 });
+    if (storeIdForQuery) {
+      // 高速パス: PK = STORE#{storeId} で Query → JS で resultId 一致を find
+      const cleanStoreId = storeIdForQuery.replace(/^STORE#/, "");
+      const q = await docClient.send(new QueryCommand({
+        TableName: tableName,
+        KeyConditionExpression: "PK = :pk",
+        ExpressionAttributeValues: { ":pk": `STORE#${cleanStoreId}` },
+      }));
+      item = (q.Items ?? []).find(i => i.resultId === resultId);
+    } else {
+      // フォールバック: 全件Scan
+      const res = await docClient.send(new ScanCommand({
+        TableName: tableName,
+        FilterExpression: "resultId = :rid",
+        ExpressionAttributeValues: { ":rid": resultId },
+      }));
+      item = res.Items?.[0];
     }
 
-    const item = res.Items[0];
+    if (!item) {
+      return NextResponse.json({ error: `ID:${resultId} のデータが見つかりません` }, { status: 404 });
+    }
     if (Array.isArray(item.sections)) {
       item.sections = await presignSections(item.sections);
     }

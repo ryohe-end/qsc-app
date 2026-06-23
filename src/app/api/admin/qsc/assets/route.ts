@@ -5,6 +5,7 @@ import {
   DeleteItemCommand,
 } from "@aws-sdk/client-dynamodb";
 import { marshall } from "@aws-sdk/util-dynamodb";
+import { requireAdmin } from "@/app/lib/admin-auth";
 
 const client = new DynamoDBClient({
   region: process.env.QSC_AWS_REGION || "us-east-1",
@@ -16,6 +17,8 @@ import { ScanCommand } from "@aws-sdk/client-dynamodb";
 import { unmarshall } from "@aws-sdk/util-dynamodb";
 
 export async function GET() {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const res = await client.send(
       new ScanCommand({
@@ -35,6 +38,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
 
@@ -65,6 +70,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const assetId = req.nextUrl.searchParams.get("assetId");
 

@@ -8,6 +8,7 @@ import {
   ScanCommand,
   ScanCommandOutput,
 } from "@aws-sdk/lib-dynamodb";
+import { requireAdmin } from "@/app/lib/admin-auth";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -344,21 +345,37 @@ async function scanAllStoreMetaItems() {
   return allItems;
 }
 
-async function loadStoreAsset(storeId: string): Promise<StoreAssetItem | undefined> {
-  const res = await ddb.send(new QueryCommand({
-    TableName: tableName,
-    KeyConditionExpression: "PK = :pk AND SK = :sk",
-    ExpressionAttributeValues: { ":pk": storePk(storeId), ":sk": "ASSET" },
-    ConsistentRead: true,
-    Limit: 1,
-  }));
-  const items = Array.isArray(res.Items) ? (res.Items as StoreAssetItem[]) : [];
-  return items[0];
+// 全店舗の ASSET レコードを1度のScanでまとめて取得し Map に詰める（N+1解消用）
+async function scanAllStoreAssetMap(): Promise<Map<string, StoreAssetItem>> {
+  const map = new Map<string, StoreAssetItem>();
+  let ExclusiveStartKey: Record<string, unknown> | undefined = undefined;
+  do {
+    const res: ScanCommandOutput = await ddb.send(new ScanCommand({
+      TableName: tableName,
+      FilterExpression: "SK = :sk",
+      ExpressionAttributeValues: { ":sk": "ASSET" },
+      ExclusiveStartKey,
+    }));
+    for (const item of (res.Items ?? [])) {
+      const pk = String(item.PK ?? "");
+      if (!pk.startsWith("STORE#")) continue;
+      const storeId = pk.replace("STORE#", "");
+      if (storeId) map.set(storeId, item as StoreAssetItem);
+    }
+    ExclusiveStartKey = res.LastEvaluatedKey as Record<string, unknown> | undefined;
+  } while (ExclusiveStartKey);
+  return map;
 }
 
 export async function GET() {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
-    const storeMetaItems = await scanAllStoreMetaItems();
+    // 店舗META + 店舗ASSET をそれぞれ1度のScanで取得して、メモリでJOIN（N+1解消）
+    const [storeMetaItems, storeAssetMap] = await Promise.all([
+      scanAllStoreMetaItems(),
+      scanAllStoreAssetMap(),
+    ]);
 
     const corpIds = new Set<string>();
     const brandIds = new Set<string>();
@@ -379,23 +396,19 @@ export async function GET() {
       }),
     ]);
 
-    const items = await Promise.all(
-      storeMetaItems.map(async (item) => {
-        const corpId = item.corpId ? String(item.corpId) : "";
-        const brandId = item.brandId ? String(item.brandId) : "";
-        const store = fromStoreMetaItem(item, corpNameMap.get(corpId) || "", brandNameMap.get(brandId) || "");
-
-        if (store.assetId) return store;
-
-        const storeAsset = await loadStoreAsset(store.storeId);
-        return {
-          ...store,
-          assetId: storeAsset?.isActive !== false && storeAsset?.assetId
-            ? String(storeAsset.assetId)
-            : undefined,
-        };
-      })
-    );
+    const items = storeMetaItems.map((item) => {
+      const corpId = item.corpId ? String(item.corpId) : "";
+      const brandId = item.brandId ? String(item.brandId) : "";
+      const store = fromStoreMetaItem(item, corpNameMap.get(corpId) || "", brandNameMap.get(brandId) || "");
+      if (store.assetId) return store;
+      const storeAsset = storeAssetMap.get(store.storeId);
+      return {
+        ...store,
+        assetId: storeAsset?.isActive !== false && storeAsset?.assetId
+          ? String(storeAsset.assetId)
+          : undefined,
+      };
+    });
 
     // BRAND/BIZ マスターも返す
     const [brands, bizTypes] = await Promise.all([
@@ -411,6 +424,8 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
     const normalized = normalizeStore(body);
@@ -444,6 +459,8 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const body = await req.json();
     const normalized = normalizeStore(body);

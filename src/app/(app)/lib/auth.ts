@@ -16,7 +16,8 @@ export type UserSession = {
 const STORAGE_KEY = "qsc_session";
 
 /**
- * ✅ ログイン成功時にデータを保存する
+ * ログイン成功後の初期表示用キャッシュ。
+ * Cookie は server 側で httpOnly で発行されるため、ここでは触らない。
  */
 export function saveSession(user: { email: string; name: string; role: string; storeId?: string }): UserSession {
   const session: UserSession = {
@@ -27,77 +28,71 @@ export function saveSession(user: { email: string; name: string; role: string; s
   };
 
   if (typeof window !== "undefined") {
-    // LocalStorageに保存
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    
-    // Middleware判定用のCookie（1日有効）
-    document.cookie = `qsc_authed=1; path=/; max-age=86400`;
-    document.cookie = `qsc_role=${session.role}; path=/; max-age=86400`;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(session)); } catch {}
   }
   return session;
 }
 
 /**
- * ✅ 【重要】AppHeader.tsx が探し回っている関数名
+ * ログアウト処理。サーバーで cookie 削除＋ローカルキャッシュもクリア。
+ * 同期API（呼び出し側は await 不要・遷移直後にfire-and-forgetで動作）。
  */
 export function logoutMock() {
   if (typeof window !== "undefined") {
-    // LocalStorage を空にする
-    localStorage.removeItem(STORAGE_KEY);
-    // Cookie を削除
-    document.cookie = `qsc_authed=; path=/; max-age=0`;
-    document.cookie = `qsc_role=; path=/; max-age=0`;
+    try { localStorage.removeItem(STORAGE_KEY); } catch {}
+    // httpOnly cookie は JS から消せないので server 側で削除
+    fetch("/api/auth/logout", { method: "POST", cache: "no-store" }).catch(() => {});
   }
 }
 
 /**
- * ✅ セッション取得用フック
- * localStorage から基本情報を読み、/api/auth/me で assignedStoreIds 等を補完
+ * セッション取得用フック。
+ * localStorage を初期描画用キャッシュとして使い、/api/auth/me で正本を取り直す。
+ * me が 401 を返したら未ログインとみなしキャッシュも破棄。
  */
 export function useSession() {
   const [session, setSession] = useState<UserSession | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const checkSession = async () => {
+    let cancelled = false;
+
+    // 1) localStorage を読み「初期描画用」セッションをセット（hydration mismatch回避のためマウント後）
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setSession(JSON.parse(raw) as UserSession);
+    } catch {}
+
+    // 2) サーバーから正本を取り直す
+    (async () => {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) {
+        const res = await fetch("/api/auth/me", { cache: "no-store" });
+        if (cancelled) return;
+        if (res.status === 401) {
           setSession(null);
+          try { localStorage.removeItem(STORAGE_KEY); } catch {}
           return;
         }
-
-        const local: UserSession = JSON.parse(raw);
-
-        // /api/auth/me から最新情報を取得（assignedStoreIds 等）
-        try {
-          const res = await fetch("/api/auth/me", { cache: "no-store" });
-          if (res.ok) {
-            const data = await res.json();
-            const me = data.user;
-            if (me) {
-              setSession({
-                ...local,
-                id: me.email || local.id,
-                name: me.name || local.name,
-                role: me.role || local.role,
-                assignedStoreId: local.assignedStoreId || me.assignedStoreIds?.[0] || "",
-                assignedStoreIds: me.assignedStoreIds || [],
-              });
-              return;
-            }
-          }
-        } catch {
-          // me API 失敗時は localStorage の情報をそのまま使う
-        }
-        setSession(local);
+        if (!res.ok) return; // ネットワークエラー等はキャッシュを維持
+        const data = await res.json();
+        const me = data?.user;
+        if (!me) return;
+        const next: UserSession = {
+          id: me.email || "",
+          name: me.name || "担当者",
+          role: (me.role || "viewer") as Role,
+          assignedStoreId: me.assignedStoreIds?.[0] || "",
+          assignedStoreIds: me.assignedStoreIds || [],
+        };
+        setSession(next);
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch {}
       } catch {
-        setSession(null);
+        // ネットワークエラー時はキャッシュを維持
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
-    };
-    checkSession();
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   return { session, loading, isAuth: !!session };

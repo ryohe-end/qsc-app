@@ -90,7 +90,17 @@ async function compressDataUrl(dataUrl: string, maxDim = PHOTO_MAX_DIM, quality 
 function trimText(s: unknown) { return (typeof s === "string" ? s : "").trim(); }
 function itemKey(sId: string, iId: string) { return `${sId}::${iId}`; }
 function vibrate(ms = 15) { if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(ms); }
-function getUserNameFromCookie() { if (typeof document === "undefined") return ""; const m = document.cookie.match(/(?:^|;\s*)qsc_user_name=([^;]*)/); return m ? decodeURIComponent(m[1]) : ""; }
+function getUserNameFromSession() {
+  if (typeof window === "undefined") return "";
+  try {
+    const raw = window.localStorage.getItem("qsc_session");
+    if (!raw) return "";
+    const s = JSON.parse(raw) as { name?: string };
+    return s?.name || "";
+  } catch {
+    return "";
+  }
+}
 
 function patchSections(raw: Section[]): Section[] {
   return raw.map(s => ({
@@ -140,7 +150,14 @@ export default function CheckRunPage() {
   const [inspectionDate] = useState(() => new Date().toLocaleDateString("sv-SE"));
   const [improvementDeadline, setImprovementDeadline] = useState(() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toLocaleDateString("sv-SE"); });
   const [userName, setUserName] = useState("");
-  useEffect(() => { setUserName(getUserNameFromCookie() || "担当者"); }, []);
+  useEffect(() => {
+    setUserName(getUserNameFromSession() || "担当者");
+    // /api/auth/me で正本取得（store ロール等で localStorage が無い場合のフォールバック）
+    fetch("/api/auth/me", { cache: "no-store" })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => { if (d?.user?.name) setUserName(d.user.name); })
+      .catch(() => {});
+  }, []);
 
   const storeLabel = useMemo(() => storeName || storeId || "店舗未選択", [storeId, storeName]);
 
@@ -523,14 +540,22 @@ export default function CheckRunPage() {
     if (!aiResult.open) return;
     const { secId, itemId, recommendedState, reasoning } = aiResult;
     const aiNote = `[AI判定] ${reasoning}`;
-    setItemState(secId, itemId, recommendedState);
+    // setItemState は同じstate指定でトグルOFFする挙動があるため、ここでは直接セットする
+    setSections(prev => prev.map(s => s.id !== secId ? s : {
+      ...s,
+      items: s.items.map(it => {
+        if (it.id !== itemId) return it;
+        if (recommendedState === "hold") return { ...it, state: "hold", note: "" };
+        return { ...it, state: recommendedState };
+      }),
+    }));
     if (recommendedState === "hold") {
       setItemHoldNote(secId, itemId, aiNote);
     } else {
       setItemNote(secId, itemId, aiNote);
     }
     setAIResult({ open: false });
-  }, [aiResult, setItemState, setItemNote, setItemHoldNote]);
+  }, [aiResult, setItemNote, setItemHoldNote]);
 
   const openPhotoPicker = useCallback((secId: string, itemId: string) => { vibrate(); setPendingPhotoTarget({ secId, itemId }); requestAnimationFrame(() => pickPhotoRef.current?.click()); }, []);
   const closePhotoModal = useCallback(() => setPhotoModal(m => ({ ...m, open: false })), []);
@@ -582,7 +607,21 @@ export default function CheckRunPage() {
               s3Key: p.s3Key,
             })),
           }));
-          localStorage.setItem(DRAFT_KEY, JSON.stringify({ sections: sectionsToSave, notices: noticesToSave }));
+          try {
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({ sections: sectionsToSave, notices: noticesToSave }));
+          } catch (err) {
+            const isQuota = err instanceof DOMException && (err.name === "QuotaExceededError" || err.code === 22);
+            setSheet({
+              open: true,
+              title: isQuota ? "保存容量を超えました" : "保存に失敗しました",
+              message: isQuota
+                ? "写真の容量が大きすぎて端末に保存できません。不要な写真を削除してから再度お試しください。"
+                : "途中保存に失敗しました。再度お試しください。",
+              cancelText: "閉じる",
+              onCancel: () => setSheet({ open: false }),
+            });
+            return;
+          }
           await new Promise(r => setTimeout(r, 220));
           setSavedToast(true);
           setTimeout(() => setSavedToast(false), 2000);
@@ -643,7 +682,7 @@ export default function CheckRunPage() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "送信に失敗しました");
       try { localStorage.removeItem(DRAFT_KEY); } catch {} // 送信成功後に下書き削除
-      router.push(`/check/results/${data.resultId}`);
+      router.push(`/check/results/${data.resultId}?storeId=${encodeURIComponent(storeId)}`);
     } catch (e: unknown) {
       setSheet({ open: true, title: "送信エラー", message: e instanceof Error ? e.message : "送信に失敗しました", cancelText: "閉じる", onCancel: () => setSheet({ open: false }) });
     } finally { setSubmitBusy(false); }

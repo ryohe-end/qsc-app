@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, ScanCommand } from "@aws-sdk/lib-dynamodb";
+import { requireAdmin } from "@/app/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -31,6 +32,8 @@ function toCorpRow(item: any): CorpRow | null {
 }
 
 export async function GET() {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   try {
     const res = await docClient.send(
       new ScanCommand({

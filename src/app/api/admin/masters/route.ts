@@ -1,8 +1,11 @@
 import { NextResponse } from "next/server";
+import { requireAdmin } from "@/app/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const unauth = await requireAdmin();
+  if (unauth) return unauth;
   return NextResponse.json({
     brands: ["JOYFIT", "FIT365"],
     businessTypesByBrand: {

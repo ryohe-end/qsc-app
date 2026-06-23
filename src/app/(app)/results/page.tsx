@@ -590,79 +590,89 @@ export default function ResultsPage() {
   const isStore = role === "store" || role === "manager";
   const isInspector = role === "inspector";
 
+  // session オブジェクトの参照が毎回変わっても useEffect が無限に走らないよう、
+  // 必要な primitive のみを安定キーとして抽出する。
+  const sessionName = session?.name ?? "";
+  const sessionStoreIdsKey = useMemo(() => {
+    const singleId = (session as Record<string, unknown>)?.assignedStoreId as string | undefined;
+    const multiIds = (session as Record<string, unknown>)?.assignedStoreIds as string[] | undefined;
+    const ids = Array.isArray(multiIds) && multiIds.length > 0 ? multiIds : singleId ? [singleId] : [];
+    return ids.join(",");
+  }, [session]);
+
   useEffect(() => {
     if (sessionLoading) return;
+    const ac = new AbortController();
     const fetch_ = async () => {
       setLoadingItems(true);
       try {
         if (isStore) {
-          const singleId = (session as Record<string, unknown>)?.assignedStoreId as string | undefined;
-          const multiIds = (session as Record<string, unknown>)?.assignedStoreIds as string[] | undefined;
-          const storeIds = Array.isArray(multiIds) && multiIds.length > 0
-            ? multiIds
-            : singleId ? [singleId] : [];
+          const storeIds = sessionStoreIdsKey ? sessionStoreIdsKey.split(",") : [];
           if (storeIds.length === 0) { setLoadingItems(false); return; }
           const allItems: HistoryItem[] = [];
           await Promise.allSettled(storeIds.map(async storeId => {
-            const res = await fetch(`/api/check/results/history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" });
+            const res = await fetch(`/api/check/results/history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store", signal: ac.signal });
             if (!res.ok) return;
             const data = await res.json();
             for (const item of (data.items ?? [])) {
               allItems.push({ ...item, storeId, storeName: item.storeName || "自店舗" });
             }
           }));
+          if (ac.signal.aborted) return;
           allItems.sort((a, b) => String(b.submittedAt).localeCompare(String(a.submittedAt)));
           setItems(allItems);
         } else {
-          const myName = isInspector ? (session?.name ?? "") : "";
+          const myName = isInspector ? sessionName : "";
           const url = myName
             ? `/api/check/results/all-history?userName=${encodeURIComponent(myName)}`
             : `/api/check/results/all-history`;
-          const res = await fetch(url, { cache: "no-store" });
+          const res = await fetch(url, { cache: "no-store", signal: ac.signal });
           if (!res.ok) return;
           const data = await res.json();
-          setItems(data.items ?? []);
+          if (!ac.signal.aborted) setItems(data.items ?? []);
         }
       } catch (e) {
+        if ((e as { name?: string })?.name === "AbortError") return;
         console.error(e);
       } finally {
-        setLoadingItems(false);
+        if (!ac.signal.aborted) setLoadingItems(false);
       }
     };
     fetch_();
-  }, [sessionLoading, session, isStore, isInspector]);
+    return () => ac.abort();
+  }, [sessionLoading, isStore, isInspector, sessionName, sessionStoreIdsKey]);
 
   // セルフチェック結果の取得（店舗アカウントのみ）
   useEffect(() => {
     if (sessionLoading || !isStore || activeTab !== "self") return;
+    const ac = new AbortController();
     const fetchSelf = async () => {
       setLoadingSelfItems(true);
       try {
-        const singleId = (session as Record<string, unknown>)?.assignedStoreId as string | undefined;
-        const multiIds = (session as Record<string, unknown>)?.assignedStoreIds as string[] | undefined;
-        const storeIds = Array.isArray(multiIds) && multiIds.length > 0
-          ? multiIds
-          : singleId ? [singleId] : [];
+        const storeIds = sessionStoreIdsKey ? sessionStoreIdsKey.split(",") : [];
         if (storeIds.length === 0) { setLoadingSelfItems(false); return; }
         const allItems: HistoryItem[] = [];
         await Promise.allSettled(storeIds.map(async storeId => {
-          const res = await fetch(`/api/check/results/self-history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store" });
+          const res = await fetch(`/api/check/results/self-history?storeId=${encodeURIComponent(storeId)}`, { cache: "no-store", signal: ac.signal });
           if (!res.ok) return;
           const data = await res.json();
           for (const item of (data.items ?? [])) {
             allItems.push({ ...item, storeId, storeName: item.storeName || "自店舗" });
           }
         }));
+        if (ac.signal.aborted) return;
         allItems.sort((a, b) => String(b.submittedAt).localeCompare(String(a.submittedAt)));
         setSelfItems(allItems);
       } catch (e) {
+        if ((e as { name?: string })?.name === "AbortError") return;
         console.error(e);
       } finally {
-        setLoadingSelfItems(false);
+        if (!ac.signal.aborted) setLoadingSelfItems(false);
       }
     };
     fetchSelf();
-  }, [sessionLoading, session, isStore, activeTab]);
+    return () => ac.abort();
+  }, [sessionLoading, isStore, activeTab, sessionStoreIdsKey]);
 
   if (sessionLoading) {
     return (

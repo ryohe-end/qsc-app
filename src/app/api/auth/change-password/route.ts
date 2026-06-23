@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import { cookies } from "next/headers";
+import { hashPassword, verifyPassword } from "@/app/lib/password";
 
 export const dynamic = "force-dynamic";
 
@@ -30,16 +31,18 @@ export async function POST(req: NextRequest) {
     }));
     const user = res.Item;
     if (!user) return NextResponse.json({ error: "ユーザーが見つかりません" }, { status: 404 });
-    if (user.password !== currentPassword) {
+    const verify = await verifyPassword(user.password as string | undefined, currentPassword);
+    if (!verify.ok) {
       return NextResponse.json({ error: "現在のパスワードが正しくありません" }, { status: 401 });
     }
 
-    // パスワード更新
+    // 新しいパスワードをハッシュ化して保存
+    const hashed = await hashPassword(newPassword);
     await docClient.send(new UpdateCommand({
       TableName: TABLE_NAME,
       Key: { email: userEmail.toLowerCase(), SK: "METADATA" },
       UpdateExpression: "SET password = :p, updatedAt = :u",
-      ExpressionAttributeValues: { ":p": newPassword, ":u": new Date().toISOString() },
+      ExpressionAttributeValues: { ":p": hashed, ":u": new Date().toISOString() },
     }));
 
     return NextResponse.json({ ok: true });

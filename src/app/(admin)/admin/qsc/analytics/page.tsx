@@ -142,17 +142,22 @@ function getScoreColor(score: number) {
 }
 
 /* ========================= CSV Export ========================= */
+function csvEscape(value: unknown): string {
+  const s = value === null || value === undefined ? "" : String(value);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+
 function exportCSV(storeList: StoreRow[], label: string) {
   const header = ["店舗名", "総合スコア", "Q（品質）", "S（接客）", "C（清潔）", "点検日"];
   const rows = storeList.map(s => [
     s.name,
     s.score,
-    s.q ?? "—",
-    s.s ?? "—",
-    s.c ?? "—",
-    s.inspectionDate ?? "—",
+    s.q ?? "",
+    s.s ?? "",
+    s.c ?? "",
+    s.inspectionDate ?? "",
   ]);
-  const csv = [header, ...rows].map(r => r.join(",")).join("\n");
+  const csv = [header, ...rows].map(r => r.map(csvEscape).join(",")).join("\r\n");
   const bom = "\uFEFF";
   const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
   const url = URL.createObjectURL(blob);
@@ -161,6 +166,103 @@ function exportCSV(storeList: StoreRow[], label: string) {
   a.download = `QSCランキング_${label}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function downloadCSV(rows: (string | number | null | undefined)[][], filename: string) {
+  const csv = rows.map(r => r.map(csvEscape).join(",")).join("\r\n");
+  const bom = "﻿";
+  const blob = new Blob([bom + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+type AllHistoryRow = {
+  resultId: string;
+  storeId: string;
+  storeName: string;
+  submittedAt: string;
+  userName?: string;
+  summary?: {
+    point?: number;
+    ok?: number;
+    ng?: number;
+    hold?: number;
+    inspectionDate?: string;
+    categoryScores?: Record<string, { point?: number }>;
+  };
+};
+
+async function exportAllHistoryCSV(): Promise<{ ok: boolean; message?: string }> {
+  const res = await fetch("/api/check/results/all-history?limit=1000", { cache: "no-store" });
+  if (!res.ok) return { ok: false, message: "全検査履歴の取得に失敗しました" };
+
+  const data = await res.json();
+  const items: AllHistoryRow[] = Array.isArray(data?.items) ? data.items : [];
+
+  const pickScore = (cs: Record<string, { point?: number }>, ...keys: string[]) => {
+    for (const k of keys) {
+      const v = cs[k]?.point;
+      if (v !== undefined && v !== null) return v;
+    }
+    return "";
+  };
+
+  const header = [
+    "店舗ID", "店舗名", "検査日", "検査者", "総合スコア",
+    "Q（品質）", "S（接客）", "C（清潔）",
+    "OK数", "NG数", "保留数", "提出日時",
+  ];
+  const rows = items.map(it => {
+    const cs = it.summary?.categoryScores ?? {};
+    return [
+      String(it.storeId ?? "").replace(/^STORE#/, ""),
+      it.storeName ?? "",
+      it.summary?.inspectionDate ?? "",
+      it.userName ?? "",
+      it.summary?.point ?? "",
+      pickScore(cs, "Q", "q", "Quality"),
+      pickScore(cs, "S", "s", "Service"),
+      pickScore(cs, "C", "c", "Cleanliness"),
+      it.summary?.ok ?? "",
+      it.summary?.ng ?? "",
+      it.summary?.hold ?? "",
+      it.submittedAt ?? "",
+    ];
+  });
+
+  const today = new Date().toISOString().slice(0, 10);
+  downloadCSV([header, ...rows], `QSC全検査履歴_${today}.csv`);
+  return { ok: true };
+}
+
+function exportStoreDetailCSV(
+  detail: ResultDetail | null,
+  storeName: string,
+  inspectionDate: string,
+) {
+  if (!detail) return;
+  const stateLabel = (s: string) =>
+    s === "ok" ? "OK" : s === "ng" ? "NG" : s === "hold" ? "保留" : s === "na" ? "該当なし" : s;
+  const header = ["エリア", "カテゴリ", "項目名", "状態", "コメント"];
+  const rows: (string | number)[][] = [];
+  for (const sec of detail.sections ?? []) {
+    for (const it of sec.items ?? []) {
+      rows.push([
+        sec.title ?? "",
+        it.category ?? "",
+        it.label ?? "",
+        stateLabel(it.state),
+        it.note ?? "",
+      ]);
+    }
+  }
+  const dateForName = (inspectionDate || new Date().toISOString().slice(0, 10)).replace(/\//g, "-");
+  const safeStore = (storeName || "店舗").replace(/[\\/:*?"<>|]/g, "_");
+  downloadCSV([header, ...rows], `QSC詳細_${safeStore}_${dateForName}.csv`);
 }
 
 /* ========================= Analysis helpers ========================= */
@@ -205,6 +307,18 @@ export default function QuarterAnalyticsPage() {
   const [activeTab, setActiveTab] = useState<"ng" | "ok" | "hold" | "analysis">("ng");
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
   const [expandedPhotos, setExpandedPhotos] = useState<Set<string>>(new Set());
+  const [allHistoryBusy, setAllHistoryBusy] = useState(false);
+
+  const handleExportAllHistory = useCallback(async () => {
+    if (allHistoryBusy) return;
+    setAllHistoryBusy(true);
+    try {
+      const r = await exportAllHistoryCSV();
+      if (!r.ok && r.message) alert(r.message);
+    } finally {
+      setAllHistoryBusy(false);
+    }
+  }, [allHistoryBusy]);
 
   const togglePhotos = (id: string) => {
     setExpandedPhotos(prev => {
@@ -235,47 +349,56 @@ export default function QuarterAnalyticsPage() {
       .finally(() => setLoading(false));
   }, [selectedOption.quarter, selectedOption.fiscalYear]);
 
-  // 詳細取得
+  // 詳細取得（AbortController で店舗切替時に古いfetchを破棄）
   useEffect(() => {
     if (!selectedStoreId) { setCurrentDetail(null); setPrevDetail(null); setHistory([]); return; }
     setDetailLoading(true);
     setActiveTab("ng");
+    setCurrentDetail(null);
+    setPrevDetail(null);
 
+    const ac = new AbortController();
     const fetchDetail = async () => {
       try {
-        // 履歴取得
-        const histRes = await fetch(`/api/check/results/history?storeId=${encodeURIComponent(selectedStoreId)}`, { cache: "no-store" });
+        const histRes = await fetch(`/api/check/results/history?storeId=${encodeURIComponent(selectedStoreId)}`, { cache: "no-store", signal: ac.signal });
         const histJson = histRes.ok ? await histRes.json() : { items: [] };
         const items: HistoryItem[] = Array.isArray(histJson?.items) ? histJson.items : [];
+        if (ac.signal.aborted) return;
         setHistory(items);
 
         if (items.length === 0) return;
 
-        // 最新の詳細取得
         const latest = items[0];
         const detailRes = await fetch(
           `/api/check/results/detail?storeId=${encodeURIComponent(selectedStoreId)}&resultId=${encodeURIComponent(latest.resultId)}`,
-          { cache: "no-store" }
+          { cache: "no-store", signal: ac.signal }
         );
-        if (detailRes.ok) setCurrentDetail(await detailRes.json());
+        if (detailRes.ok) {
+          const d = await detailRes.json();
+          if (!ac.signal.aborted) setCurrentDetail(d);
+        }
 
-        // 前回の詳細取得
         if (items.length >= 2) {
           const prev = items[1];
           const prevRes = await fetch(
             `/api/check/results/detail?storeId=${encodeURIComponent(selectedStoreId)}&resultId=${encodeURIComponent(prev.resultId)}`,
-            { cache: "no-store" }
+            { cache: "no-store", signal: ac.signal }
           );
-          if (prevRes.ok) setPrevDetail(await prevRes.json());
+          if (prevRes.ok) {
+            const d = await prevRes.json();
+            if (!ac.signal.aborted) setPrevDetail(d);
+          }
         }
       } catch (e) {
+        if ((e as { name?: string })?.name === "AbortError") return;
         console.error(e);
       } finally {
-        setDetailLoading(false);
+        if (!ac.signal.aborted) setDetailLoading(false);
       }
     };
 
     fetchDetail();
+    return () => ac.abort();
   }, [selectedStoreId]);
 
   const storeList: StoreRow[] = useMemo(() =>
@@ -365,12 +488,20 @@ export default function QuarterAnalyticsPage() {
                   {q.shortLabel}
                 </button>
               ))}
-              {/* CSV出力 */}
+              {/* CSV出力（ランキング） */}
               <button
                 onClick={() => exportCSV(storeList, selectedOption.label)}
                 disabled={storeList.length === 0}
                 style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 18px", borderRadius: 12, border: "1.5px solid #e2e8f0", background: "#fff", color: storeList.length === 0 ? "#94a3b8" : "#1e293b", fontSize: 13, fontWeight: 800, cursor: storeList.length === 0 ? "not-allowed" : "pointer" }}>
-                <Download size={15} /> CSV出力
+                <Download size={15} /> ランキングCSV
+              </button>
+              {/* 全検査履歴CSV（全店舗×検査ごとに1行） */}
+              <button
+                onClick={handleExportAllHistory}
+                disabled={allHistoryBusy}
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 18px", borderRadius: 12, border: "1.5px solid #c7d2fe", background: allHistoryBusy ? "#eef2ff" : "#eef2ff", color: "#4338ca", fontSize: 13, fontWeight: 800, cursor: allHistoryBusy ? "wait" : "pointer" }}>
+                {allHistoryBusy ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> : <Download size={15} />}
+                全検査履歴CSV
               </button>
             </div>
           </header>
@@ -468,10 +599,18 @@ export default function QuarterAnalyticsPage() {
 
           {/* ===== 左サイドバー ===== */}
           <aside style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-            <button onClick={() => setSelectedStoreId(null)}
-              style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", color: "#4f46e5", fontWeight: 800, cursor: "pointer", padding: 0, fontSize: 14 }}>
-              <ArrowLeft size={18} /> ランキングに戻る
-            </button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+              <button onClick={() => setSelectedStoreId(null)}
+                style={{ display: "flex", alignItems: "center", gap: 8, background: "none", border: "none", color: "#4f46e5", fontWeight: 800, cursor: "pointer", padding: 0, fontSize: 14 }}>
+                <ArrowLeft size={18} /> ランキングに戻る
+              </button>
+              <button
+                onClick={() => exportStoreDetailCSV(currentDetail, selectedStore?.name ?? "", currentDetail?.summary?.inspectionDate ?? "")}
+                disabled={!currentDetail}
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, border: "1.5px solid #e2e8f0", background: "#fff", color: !currentDetail ? "#94a3b8" : "#1e293b", fontSize: 12, fontWeight: 800, cursor: !currentDetail ? "not-allowed" : "pointer" }}>
+                <Download size={13} /> 詳細CSV
+              </button>
+            </div>
 
             {/* スコアカード */}
             <div style={{ background: "#fff", padding: 24, borderRadius: 24, border: "1px solid #e2e8f0" }}>

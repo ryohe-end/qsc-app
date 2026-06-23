@@ -36,16 +36,12 @@ function buildRunUrl(s: SelectedStoreCache) {
 export default function AppBottomNav() {
   const pathname = usePathname() || "/";
   const router = useRouter();
-  
+
   // セッション情報を取得
   const { session } = useSession();
 
-  // ログイン画面などは非表示
   const hide = pathname.startsWith("/login") || pathname.startsWith("/auth");
-  if (hide) return null;
-
   const isCheckPage = pathname === "/check";
-  
   // /check/run など実行中はFAB不要
   const isRunning = pathname.startsWith("/check/");
 
@@ -131,13 +127,19 @@ export default function AppBottomNav() {
       }
     };
     read();
+    // 別タブからの変更を検知
     const onStorage = (e: StorageEvent) => { if (e.key === "qsc_check_selected_store") read(); };
+    // 同一タブ内変更は CustomEvent で通知させる（書き込み側で dispatchEvent）
+    const onCustom = () => read();
+    // フォーカス復帰時にも再読込
+    const onFocus = () => read();
     window.addEventListener("storage", onStorage);
-    // ポーリングでも監視（簡易実装）
-    const t = window.setInterval(read, 500);
+    window.addEventListener("qsc:selected-store-changed", onCustom);
+    window.addEventListener("focus", onFocus);
     return () => {
       window.removeEventListener("storage", onStorage);
-      window.clearInterval(t);
+      window.removeEventListener("qsc:selected-store-changed", onCustom);
+      window.removeEventListener("focus", onFocus);
     };
   }, [isCheckPage]);
 
@@ -173,6 +175,9 @@ export default function AppBottomNav() {
     if (!fab.enabled) return;
     router.push(fab.href);
   };
+
+  // 全Hook呼び出し後に早期return（フック順を維持するため）
+  if (hide) return null;
 
   return (
     <nav className={styles.tabbar} aria-label="アプリメニュー">

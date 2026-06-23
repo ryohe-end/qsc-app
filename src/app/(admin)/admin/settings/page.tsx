@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 
 import { useState } from "react";
 import Link from "next/link";
-import { Home, ChevronRight, Send, Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Home, ChevronRight, Send, Loader2, CheckCircle2, XCircle, BellRing } from "lucide-react";
 
 const EMAIL_TYPES = [
   { type: "welcome", label: "アカウント作成", desc: "ログイン情報を送信" },
@@ -18,6 +18,26 @@ export default function AdminSettingsPage() {
   const [to, setTo] = useState("");
   const [results, setResults] = useState<Record<string, "idle" | "loading" | "success" | "error">>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  const [reminderStatus, setReminderStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [reminderMessage, setReminderMessage] = useState<string>("");
+
+  const runRemindersNow = async () => {
+    if (reminderStatus === "loading") return;
+    if (!confirm("3日後が改善期限の店舗にリマインドメールを今すぐ送信します。よろしいですか？")) return;
+    setReminderStatus("loading");
+    setReminderMessage("");
+    try {
+      const res = await fetch("/api/admin/send-reminders", { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "送信失敗");
+      setReminderStatus("success");
+      setReminderMessage(`対象日: ${data.date}, 送信店舗数: ${data.sentCount}${data.errors?.length ? `, エラー: ${data.errors.length}件` : ""}`);
+    } catch (e: unknown) {
+      setReminderStatus("error");
+      setReminderMessage(e instanceof Error ? e.message : "送信失敗");
+    }
+  };
 
   const sendTest = async (type: string) => {
     if (!to.trim()) { alert("送信先メールアドレスを入力してください"); return; }
@@ -51,6 +71,40 @@ export default function AdminSettingsPage() {
         </nav>
 
         <h1 style={{ fontSize: 28, fontWeight: 950, color: "#1e293b", margin: "0 0 32px" }}>設定</h1>
+
+        {/* リマインダー手動実行 */}
+        <div style={{ background: "#fff", borderRadius: 24, border: "1px solid #e2e8f0", padding: 32, marginBottom: 24 }}>
+          <h2 style={{ fontSize: 18, fontWeight: 900, color: "#1e293b", margin: "0 0 8px", display: "flex", alignItems: "center", gap: 8 }}>
+            <BellRing size={20} color="#f59e0b" /> 改善期限リマインダー
+          </h2>
+          <p style={{ fontSize: 13, color: "#64748b", fontWeight: 600, margin: "0 0 20px" }}>
+            通常はEventBridgeで毎朝9時(JST)に自動送信されます。下のボタンで今すぐ手動実行できます（3日後が改善期限の店舗が対象）。
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <button
+              onClick={runRemindersNow}
+              disabled={reminderStatus === "loading"}
+              style={{
+                height: 44, padding: "0 22px", borderRadius: 12, border: "none", fontWeight: 900, fontSize: 14,
+                cursor: reminderStatus === "loading" ? "default" : "pointer",
+                background: reminderStatus === "success" ? "#d1fae5" : reminderStatus === "error" ? "#fee2e2" : "#f59e0b",
+                color: reminderStatus === "success" ? "#059669" : reminderStatus === "error" ? "#dc2626" : "#fff",
+                display: "flex", alignItems: "center", gap: 8,
+              }}
+            >
+              {reminderStatus === "loading" && <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />}
+              {reminderStatus === "success" && <CheckCircle2 size={16} />}
+              {reminderStatus === "error" && <XCircle size={16} />}
+              {reminderStatus === "idle" && <Send size={16} />}
+              {reminderStatus === "loading" ? "送信中..." : reminderStatus === "success" ? "送信完了" : reminderStatus === "error" ? "失敗" : "今すぐリマインド送信"}
+            </button>
+            {reminderMessage && (
+              <span style={{ fontSize: 13, fontWeight: 700, color: reminderStatus === "error" ? "#dc2626" : "#475569" }}>
+                {reminderMessage}
+              </span>
+            )}
+          </div>
+        </div>
 
         {/* メールテスト */}
         <div style={{ background: "#fff", borderRadius: 24, border: "1px solid #e2e8f0", padding: 32, marginBottom: 24 }}>
