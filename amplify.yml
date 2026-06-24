@@ -3,7 +3,7 @@ frontend:
   phases:
     preBuild:
       commands:
-        - env | grep -E "NEXT_PUBLIC_|NEXTAUTH_|QSC_|SENDGRID_" > .env.local
+        - env | grep -E "NEXT_PUBLIC_|NEXTAUTH_|QSC_|SENDGRID_|ADMIN_|CRON_|GEMINI_" > .env.local
         - npm ci --cache .npm --prefer-offline
     build:
       commands:
