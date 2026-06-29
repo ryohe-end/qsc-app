@@ -147,6 +147,8 @@ export default function CheckRunPage() {
 
   const [storeName, setStoreName] = useState("");
   const assetIdRef = useRef<string>("");
+  // 設問のAPI読み込みが完了したか（完了前はオートセーブ禁止：DEFAULT_SECTIONS等のダミーを下書き保存しないため）
+  const loadedRef = useRef<boolean>(false);
   const [inspectionDate] = useState(() => new Date().toLocaleDateString("sv-SE"));
   const [improvementDeadline, setImprovementDeadline] = useState(() => { const d = new Date(); d.setMonth(d.getMonth() + 1); return d.toLocaleDateString("sv-SE"); });
   const [userName, setUserName] = useState("");
@@ -180,25 +182,48 @@ export default function CheckRunPage() {
   const draftKeyRef = useRef(DRAFT_KEY);
   useEffect(() => { draftKeyRef.current = DRAFT_KEY; }, [DRAFT_KEY]);
 
-  const loadDraft = useCallback((fallback?: Section[]) => {
+  const loadDraft = useCallback((base: Section[]) => {
     try {
       const raw = localStorage.getItem(draftKeyRef.current);
       if (!raw) return false;
       const parsed = JSON.parse(raw) as unknown;
-      // 旧フォーマット: Section[] / 新フォーマット: { sections, notices }
+      // 旧フォーマット: Section[] / 新フォーマット: { sections, notices, assetId }
       let rawSections: Section[] = [];
       let rawNotices: unknown = [];
+      let draftAssetId = "";
       if (Array.isArray(parsed)) {
         rawSections = parsed as Section[];
       } else if (parsed && typeof parsed === "object") {
-        const wrapped = parsed as { sections?: Section[]; notices?: unknown };
+        const wrapped = parsed as { sections?: Section[]; notices?: unknown; assetId?: unknown };
         rawSections = Array.isArray(wrapped.sections) ? wrapped.sections : [];
         rawNotices = wrapped.notices;
+        draftAssetId = typeof wrapped.assetId === "string" ? wrapped.assetId : "";
       }
       if (rawSections.length === 0 && (!Array.isArray(rawNotices) || rawNotices.length === 0)) return false;
-      const patched = rawSections.length > 0 ? patchSections(rawSections) : [];
+
+      // 設問セットが変わっている下書き（別アセット）は採用せず破棄する
+      const currentAssetId = assetIdRef.current || "";
+      if (draftAssetId && currentAssetId && draftAssetId !== currentAssetId) {
+        try { localStorage.removeItem(draftKeyRef.current); } catch {}
+        return false;
+      }
+
+      // 設問構成は常にAPI最新(base)を採用し、回答状態のみ id 一致でマージする。
+      // → 古い/ダミーの下書き(DEFAULT_SECTIONS等)は id が一致せず自然に無視される。
+      const draftItemMap = new Map<string, CheckItem>();
+      for (const s of patchSections(rawSections)) {
+        for (const it of s.items) draftItemMap.set(`${s.id}::${it.id}`, it);
+      }
+      const patched: Section[] = base.map(s => ({
+        ...s,
+        items: s.items.map(it => {
+          const d = draftItemMap.get(`${s.id}::${it.id}`);
+          if (!d) return it;
+          return { ...it, state: d.state, note: d.note, holdNote: d.holdNote, photos: d.photos ?? [] };
+        }),
+      }));
       const patchedNotices = patchNotices(rawNotices);
-      if (patched.length > 0) setSections(patched);
+      setSections(patched);
       setNotices(patchedNotices);
       // s3Keyがある写真のPresigned URLを取得
       const keys: { secId: string; itemId: string; photoId: string; key: string }[] = [];
@@ -243,7 +268,7 @@ export default function CheckRunPage() {
       }
       return true;
     } catch {
-      if (fallback) setSections(fallback);
+      // 失敗時は base（API最新の設問）がそのまま使われる
       return false;
     }
   }, []); // 依存なし → 再生成されないので loadQuestions が再実行されない
@@ -262,6 +287,8 @@ export default function CheckRunPage() {
         const nextSections: Section[] = Array.isArray(json.questions) && json.questions.length > 0 ? json.questions : DEFAULT_SECTIONS;
         setStoreName(nextStoreName);
         assetIdRef.current = nextAssetId;
+        // ここで初めて正規の設問構成が確定 → 以降オートセーブを許可
+        loadedRef.current = true;
 
         if (mode === "edit" && resultId) {
           // editモード: サーバーから既存データを取得
@@ -294,6 +321,7 @@ export default function CheckRunPage() {
     saveTimerRef.current = setTimeout(() => {
       try {
         if (mode === "edit") return; // editモードでは下書き保存しない
+        if (!loadedRef.current) return; // API設問の読み込み前（DEFAULT_SECTIONS等のダミー）は保存しない
         // dataUrl（base64）は保存しない（サイズが大きいため）、s3Urlがあればそちらを使う
         const sectionsToSave = sections.map(s => ({
           ...s,
@@ -317,7 +345,7 @@ export default function CheckRunPage() {
             s3Key: p.s3Key,
           })),
         }));
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({ sections: sectionsToSave, notices: noticesToSave }));
+        localStorage.setItem(DRAFT_KEY, JSON.stringify({ sections: sectionsToSave, notices: noticesToSave, assetId: assetIdRef.current || "" }));
       } catch {}
     }, 2000);
     return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
@@ -608,7 +636,7 @@ export default function CheckRunPage() {
             })),
           }));
           try {
-            localStorage.setItem(DRAFT_KEY, JSON.stringify({ sections: sectionsToSave, notices: noticesToSave }));
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({ sections: sectionsToSave, notices: noticesToSave, assetId: assetIdRef.current || "" }));
           } catch (err) {
             const isQuota = err instanceof DOMException && (err.name === "QuotaExceededError" || err.code === 22);
             setSheet({
