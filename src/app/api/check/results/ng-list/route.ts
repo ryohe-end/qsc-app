@@ -213,15 +213,19 @@ export async function GET(req: NextRequest) {
           const beforePhoto = await resolveBeforePhotoUrl(item);
           const beforePhotos = await resolveBeforePhotoUrls(item);
 
-          // afterPhotos（是正後写真）のPresigned URL取得
+          // afterPhotos（是正後写真）の署名URLを取得。
+          // 再提出時に key を保持できるよう { url, key } 形式で返す。
           const afterPhotoRaws = Array.isArray(item.afterPhotos) ? item.afterPhotos : [];
-          const afterPhotos = await Promise.all(afterPhotoRaws.map(async (photo: unknown) => {
+          const afterPhotos = (await Promise.all(afterPhotoRaws.map(async (photo: unknown) => {
             const key = extractPhotoKey(photo);
+            let url = "";
             if (key) {
-              try { return await buildSignedPhotoUrl(key); } catch {}
+              try { url = await buildSignedPhotoUrl(key); } catch {}
             }
-            return extractPhotoUrl(photo);
-          })).then(urls => urls.filter(Boolean));
+            if (!url) url = extractPhotoUrl(photo);
+            if (!url && !key) return null;
+            return { url, key };
+          }))).filter(Boolean);
 
           ngList.push({
             id: item.id || "",

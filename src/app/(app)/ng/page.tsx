@@ -17,7 +17,8 @@ type CorrectionStatus = "pending" | "submitted" | "reviewing" | "approved" | "re
 type UploadedPhoto = { id?: string; key?: string; url?: string; contentType?: string };
 
 // 既存写真は file=undefined（再アップロード不要）。新規写真は File を持つ。
-type AfterPhoto = { file?: File; previewUrl: string; existingUrl?: string };
+// existingKey: 既存写真の S3 key（再提出時に key を保持し、期限切れ署名URLの保存を防ぐ）
+type AfterPhoto = { file?: File; previewUrl: string; existingUrl?: string; existingKey?: string };
 
 type NgIssue = {
   id: string;
@@ -107,32 +108,123 @@ function formatDate(iso?: string) {
 }
 
 /* ========================= API helpers ========================= */
+// S3 Key セグメント用にサニタイズ（presigned 側の SAFE_ID = [A-Za-z0-9_-] に合わせる）
+function safeSeg(v: unknown, fallback: string): string {
+  const s = String(v ?? "").replace(/^STORE#/, "").replace(/[^A-Za-z0-9_-]/g, "");
+  return s || fallback;
+}
+
+function readFileAsDataUrl(file: File): Promise<string> {
+  return new Promise((res, rej) => {
+    const r = new FileReader();
+    r.onload = () => res(String(r.result || ""));
+    r.onerror = () => rej(new Error("read fail"));
+    r.readAsDataURL(file);
+  });
+}
+
+// 撮影画像を JPEG に再エンコード＆縮小する。
+// iOS の HEIC は Safari が <img> でデコードできるため、これで JPEG に変換され表示崩れを防ぐ。
+async function fileToJpegBlob(file: File, maxDim = 1600, quality = 0.82): Promise<Blob> {
+  const dataUrl = await readFileAsDataUrl(file);
+  const img = await new Promise<HTMLImageElement>((res, rej) => {
+    const im = new Image();
+    im.onload = () => res(im);
+    im.onerror = () => rej(new Error("decode fail"));
+    im.src = dataUrl;
+  });
+  const w = img.naturalWidth, h = img.naturalHeight;
+  const scale = Math.min(1, maxDim / Math.max(w, h || 1));
+  const tw = Math.max(1, Math.round(w * scale));
+  const th = Math.max(1, Math.round(h * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = tw; canvas.height = th;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("canvas未対応");
+  ctx.drawImage(img, 0, 0, tw, th);
+  const blob = await new Promise<Blob | null>(res => canvas.toBlob(res, "image/jpeg", quality));
+  if (!blob) throw new Error("画像変換に失敗しました");
+  return blob;
+}
+
+// ng-list が返す afterPhotos（{url,key} 配列 / 旧データの文字列配列）を AfterPhoto[] に正規化。
+// key を existingKey として保持し、再提出時に署名URL（期限切れ）を保存しないようにする。
+function normalizeAfterPhotos(value: unknown): AfterPhoto[] {
+  if (!Array.isArray(value)) {
+    return normalizeImageUrls(value).map(url => ({ previewUrl: url, existingUrl: url }));
+  }
+  return value.flatMap((e): AfterPhoto[] => {
+    if (typeof e === "string") {
+      return e.trim() ? [{ previewUrl: e.trim(), existingUrl: e.trim() }] : [];
+    }
+    if (e && typeof e === "object") {
+      const o = e as Record<string, unknown>;
+      const url = String(o.url || o.previewUrl || o.src || "").trim();
+      const key = String(o.key || "").trim();
+      if (!url && !key) return [];
+      return [{ previewUrl: url || key, existingUrl: url || undefined, existingKey: key || undefined }];
+    }
+    return [];
+  });
+}
+
+// 既存チェックフローと同じ presigned 方式で、クライアントから直接 S3 へアップロードする
 async function uploadAfterPhotos(target: NgIssue): Promise<UploadedPhoto[]> {
   if (!target.afterPhotos.length) return [];
   const uploaded: UploadedPhoto[] = [];
+
+  const storeId = safeSeg(target.storeId || target.resultPk, "store");
+  const resultId = safeSeg(target.resultId || target.resultSk, "result");
+  const sectionId = safeSeg(String(target.sectionIndex), "0");
+  const itemId = safeSeg(target.id, "item");
+
   for (const p of target.afterPhotos) {
-    // 既存写真（file 無し or 0byte File）はそのまま URL を保持し、再アップロードしない
+    // 既存写真（file 無し or 0byte File）は再アップロードしない。
+    // key があれば key を保持（ng-list が再署名する）。無ければ URL を保持。
     if (!p.file || p.file.size === 0) {
-      if (p.existingUrl || p.previewUrl) {
+      if (p.existingKey) {
+        uploaded.push({ key: p.existingKey, url: p.existingUrl || p.previewUrl });
+      } else if (p.existingUrl || p.previewUrl) {
         uploaded.push({ url: p.existingUrl || p.previewUrl });
       }
       continue;
     }
-    const form = new FormData();
-    form.append("file", p.file);
-    form.append("pk", target.resultPk);
-    form.append("sk", target.resultSk);
-    form.append("itemId", target.id);
-    form.append("sectionIndex", String(target.sectionIndex));
-    const res = await fetch("/api/check/results/upload-after-photo", { method: "POST", body: form });
-    const json = await res.json().catch(() => ({}));
-    if (!res.ok) throw new Error(json?.error || "After画像アップロード失敗");
-    if (json?.photo) uploaded.push(json.photo);
+
+    // 撮影画像を JPEG に変換（HEIC 対策＋サイズ削減）。失敗時は原本でフォールバック。
+    let uploadBlob: Blob = p.file;
+    try {
+      uploadBlob = await fileToJpegBlob(p.file);
+    } catch {
+      uploadBlob = p.file;
+    }
+    const contentType = "image/jpeg";
+    const photoId = `after${Date.now()}${Math.floor(Math.random() * 10000)}`;
+
+    // 1. presigned POST を取得
+    const presignRes = await fetch("/api/check/upload-presigned", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ storeId, resultId, sectionId, itemId, photoId, contentType }),
+    });
+    const presign = await presignRes.json().catch(() => ({}));
+    if (!presignRes.ok) throw new Error(presign?.error || "アップロード準備に失敗しました");
+
+    // 2. S3 へ直接アップロード（Content-Type フィールドを file より前に append）
+    const { url, fields, key, s3Url } = presign;
+    const formData = new FormData();
+    Object.entries(fields as Record<string, string>).forEach(([k, v]) => formData.append(k, v));
+    formData.append("file", uploadBlob);
+    const uploadRes = await fetch(url, { method: "POST", body: formData });
+    if (!uploadRes.ok) throw new Error("After画像アップロード失敗");
+
+    // 3. key を保存（ng-list 側で署名URL化される）
+    uploaded.push({ key: key || (fields as Record<string, string>)?.key, url: s3Url, contentType });
   }
   return uploaded;
 }
 
-async function patchIssue(target: NgIssue, newStatus: CorrectionStatus = "submitted") {
+// notify=false の場合は admin への提出通知メールを抑止する（まとめて送信で1通に集約するため）
+async function patchIssue(target: NgIssue, newStatus: CorrectionStatus = "submitted", notify = true) {
   const afterPhotos = await uploadAfterPhotos(target);
   const res = await fetch("/api/check/results/update", {
     method: "PATCH",
@@ -140,7 +232,7 @@ async function patchIssue(target: NgIssue, newStatus: CorrectionStatus = "submit
     body: JSON.stringify({
       pk: target.resultPk, sk: target.resultSk,
       sectionIndex: target.sectionIndex, itemIndex: target.id,
-      correction: target.comment, status: newStatus, afterPhotos,
+      correction: target.comment, status: newStatus, afterPhotos, notify,
     }),
   });
   const json = await res.json().catch(() => ({}));
@@ -521,7 +613,7 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
           reviewedAt: item.reviewedAt ? String(item.reviewedAt) : undefined,
           storeId: item.storeId ? String(item.storeId) : undefined,
           storeName: item.storeName ? String(item.storeName) : undefined,
-          afterPhotos: normalizeImageUrls(item.afterPhotos || item.afterPhoto || "").map(url => ({ previewUrl: url, existingUrl: url })),
+          afterPhotos: normalizeAfterPhotos(item.afterPhotos || item.afterPhoto || ""),
         })));
       })
       .catch(e => { console.error(e); setError("データの読み込みに失敗しました"); })
@@ -640,12 +732,23 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
         setSheet({ open: false });
         setIsBulkSubmitting(true);
         let success = 0;
+        // 個別メールは抑止（notify=false）し、最後に1通だけまとめて通知する
         for (const t of targets) {
           try {
-            await patchIssue(t, "submitted");
+            await patchIssue(t, "submitted", false);
             t.afterPhotos.forEach(p => cleanupPreviewUrl(p.previewUrl));
             updateIssue(t.id, { correctionStatus: "submitted", afterPhotos: [] });
             success++;
+          } catch (e) { console.error(e); }
+        }
+        // admin へ提出通知メールを1通だけ送る
+        if (success > 0) {
+          try {
+            await fetch("/api/check/results/notify-correction", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ storeName, submittedCount: success }),
+            });
           } catch (e) { console.error(e); }
         }
         setIsBulkSubmitting(false);
@@ -653,7 +756,7 @@ function StoreNgView({ storeName, storeId, isAdmin, onBack }: {
       },
       onCancel: () => setSheet({ open: false }),
     });
-  }, [issues, updateIssue]);
+  }, [issues, updateIssue, storeName]);
 
   const statusCounts = issues.reduce((acc, i) => {
     acc[i.correctionStatus] = (acc[i.correctionStatus] ?? 0) + 1;

@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, UpdateCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { cookies } from "next/headers";
-import { sendApprovalEmail, sendRejectionEmail } from "@/app/lib/sendgrid";
+import { sendApprovalEmail, sendRejectionEmail, sendCorrectionSubmittedEmail } from "@/app/lib/sendgrid";
+import { getAdminEmails } from "@/app/lib/adminEmails";
 
 export const dynamic = "force-dynamic";
 
@@ -44,6 +45,109 @@ async function getStoreContacts(storeId: string): Promise<string[]> {
 }
 
 /**
+ * 店舗からの是正報告提出を処理する。
+ * body: { pk, sk, sectionIndex, itemIndex, correction, status, afterPhotos }
+ * - 改善コメント / 是正後写真 / correctionStat="submitted" を保存
+ * - admin へ提出通知メールを送信
+ */
+async function handleStoreSubmission(
+  body: Record<string, unknown>,
+  role: string,
+  cookieStore: Awaited<ReturnType<typeof cookies>>
+) {
+  // ログイン済みであれば店舗(manager/store)・admin いずれも提出可
+  if (!role) {
+    return NextResponse.json({ error: "権限がありません" }, { status: 403 });
+  }
+
+  const pk = String(body.pk ?? "");
+  const sk = String(body.sk ?? "");
+  const sectionIndex = body.sectionIndex as number | undefined;
+  const itemIndex = body.itemIndex as string | undefined;
+  const correction = body.correction;
+  const status = String(body.status ?? "");
+  const afterPhotos = body.afterPhotos;
+  // まとめて送信時は個別メールを抑止し、最後に1通だけ送る（notify-correction）
+  const notify = body.notify !== false;
+
+  if (!pk || !sk || sectionIndex === undefined || !itemIndex) {
+    return NextResponse.json({ error: "不足しているパラメーターがあります" }, { status: 400 });
+  }
+
+  const submitterName = decodeURIComponent(cookieStore.get("qsc_user_name")?.value ?? "店舗担当者");
+
+  const getRes = await docClient.send(new GetCommand({
+    TableName: resultTableName,
+    Key: { PK: pk, SK: sk },
+  }));
+  const result = getRes.Item;
+  if (!result?.sections) {
+    return NextResponse.json({ error: "対象の点検結果が見つかりません" }, { status: 404 });
+  }
+
+  const section = result.sections[sectionIndex];
+  if (!section?.items) {
+    return NextResponse.json({ error: "セクションが見つかりません" }, { status: 404 });
+  }
+
+  const realItemIndex = section.items.findIndex((it: { id: string }) => it.id === itemIndex);
+  if (realItemIndex === -1) {
+    return NextResponse.json({ error: `設問ID ${itemIndex} が見つかりません` }, { status: 404 });
+  }
+
+  const now = new Date().toISOString();
+  // 店舗からの提出は常に "submitted"（status は将来の拡張用に受け取るだけ）
+  void status;
+  const newStatus: CorrectionStatus = "submitted";
+
+  const updateExprParts = [
+    `sections[${sectionIndex}].items[${realItemIndex}].correctionStatus = :cs`,
+    `sections[${sectionIndex}].items[${realItemIndex}].correctionDate = :cd`,
+    `sections[${sectionIndex}].items[${realItemIndex}].correctionBy = :cb`,
+  ];
+  const exprValues: Record<string, unknown> = {
+    ":cs": newStatus,
+    ":cd": now,
+    ":cb": submitterName,
+  };
+
+  if (correction !== undefined) {
+    updateExprParts.push(`sections[${sectionIndex}].items[${realItemIndex}].correction = :corr`);
+    exprValues[":corr"] = String(correction);
+  }
+  if (Array.isArray(afterPhotos)) {
+    updateExprParts.push(`sections[${sectionIndex}].items[${realItemIndex}].afterPhotos = :ap`);
+    exprValues[":ap"] = afterPhotos;
+  }
+
+  await docClient.send(new UpdateCommand({
+    TableName: resultTableName,
+    Key: { PK: pk, SK: sk },
+    UpdateExpression: `SET ${updateExprParts.join(", ")}`,
+    ExpressionAttributeValues: exprValues,
+  }));
+
+  // admin へ是正報告提出通知メール（まとめて送信時は notify=false で抑止）
+  if (notify) {
+    try {
+      const adminEmails = await getAdminEmails();
+      if (adminEmails.length > 0) {
+        await sendCorrectionSubmittedEmail({
+          to: adminEmails,
+          storeName: String(result.storeName || pk.replace(/^STORE#/, "")),
+          submittedCount: 1,
+          submittedBy: submitterName,
+        });
+      }
+    } catch (mailErr) {
+      console.error("correction submitted mail failed:", mailErr);
+    }
+  }
+
+  return NextResponse.json({ ok: true, correctionStatus: newStatus, correctionBy: submitterName, correctionDate: now });
+}
+
+/**
  * PATCH: correctionStatus を更新する（admin のみ）
  * body: { pk, sk, sectionIndex, itemIndex, correctionStatus, reviewNote? }
  */
@@ -51,13 +155,20 @@ export async function PATCH(req: NextRequest) {
   try {
     const cookieStore = await cookies();
     const role = cookieStore.get("qsc_user_role")?.value ?? "";
+
+    const body = await req.json();
+    const { pk, sk, sectionIndex, itemIndex, correctionStatus, reviewNote, holdResolution } = body;
+
+    // correctionStatus が無い場合は「店舗からの是正報告提出」として処理する
+    if (correctionStatus === undefined) {
+      return await handleStoreSubmission(body, role, cookieStore);
+    }
+
+    // 以降は admin による承認/差し戻し（ステータス更新）
     if (role !== "admin") {
       return NextResponse.json({ error: "権限がありません" }, { status: 403 });
     }
     const reviewerName = decodeURIComponent(cookieStore.get("qsc_user_name")?.value ?? "管理者");
-
-    const body = await req.json();
-    const { pk, sk, sectionIndex, itemIndex, correctionStatus, reviewNote, holdResolution } = body;
 
     if (!pk || !sk || sectionIndex === undefined || !itemIndex || !correctionStatus) {
       return NextResponse.json({ error: "不足しているパラメーターがあります" }, { status: 400 });
