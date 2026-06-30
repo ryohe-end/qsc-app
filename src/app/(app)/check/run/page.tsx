@@ -521,7 +521,7 @@ export default function CheckRunPage() {
     setNotices(p => p.map(n => n.id !== noticeId ? n : { ...n, note }));
   }, []);
 
-  // AI判定（Gemini 2.5 Flash）
+  // AI判定（Gemini 2.5 Pro）
   type AIResultState =
     | { open: false }
     | { open: true; secId: string; itemId: string; itemLabel: string; recommendedState: "ok" | "hold" | "ng"; confidence: number; reasoning: string };

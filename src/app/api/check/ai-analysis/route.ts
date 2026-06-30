@@ -3,6 +3,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
 import type { Readable } from "stream";
 
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+// gemini-2.5-pro は思考込みで応答が遅いため、関数の実行上限を延長（タイムアウト対策）
+export const maxDuration = 60;
+
 const region = process.env.QSC_AWS_REGION || "us-east-1";
 const photoBucketName = process.env.QSC_PHOTO_BUCKET_NAME || "qsc-check-photos-prod";
 const s3 = new S3Client({ region });
@@ -64,15 +69,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "画像データの取得に失敗しました" }, { status: 400 });
     }
 
-    const systemInstruction = `あなたは飲食店のQSC点検（品質・サービス・清潔）の専門家です。提供された写真と点検項目に基づき、その項目の状態を客観的に判定してください。
+    const systemInstruction = `あなたは飲食店のQSC点検（品質・サービス・清潔）の専門家AIです。
+提供された写真と点検項目に基づき、毎回ぶれない一貫した客観基準で状態を判定します。
+判定は「写真から実際に目視で確認できる事実」のみを根拠とし、推測や主観は使いません。
+同じ写真には常に同じ判定を返してください。
 
-判定区分:
-- ok: 問題なし。清潔で整理整頓されており、合格レベル。
-- hold: 写真からは明確に判断できない／一部改善余地あり／要確認。
-- ng: 明確な問題あり（ホコリ蓄積・油汚れ・乱雑・破損・整理整頓不良など）。
+【判定区分（厳密に適用）】
+- ok（合格）: ホコリ・油汚れ・こびり付き・ゴミ・水垢などの汚れが目視で確認できず、整理整頓されている。
+- ng（不合格）: 次のいずれかが目視で明確に確認できる — ホコリの蓄積、油汚れ、こびり付き、ゴミ・異物の放置、破損、著しい乱雑。軽微でも明確に見える汚れがあれば ng。
+- hold（要確認）: 写真がブレ／暗所／対象に寄れておらず該当箇所を十分確認できない場合、または ok か ng の判断が真に拮抗する場合のみ。安易に hold へ逃げない。
 
-判定は点検項目の主旨に沿って総合判断してください。例えば「換気扇」ならホコリ・油汚れを重視、「冷蔵庫内」なら整理整頓・清潔さを重視。
-理由文は日本語で具体的に、写真から確認できる事実を80〜140文字程度で記述してください。`;
+【判定手順（必ずこの順で）】
+1. 点検項目の主旨から「重点的に見る箇所」を特定する（例：換気扇＝フィルター/羽根のホコリ・油、冷蔵庫内＝整理整頓・清潔、床/排水溝＝ゴミ・汚れ・水垢、調理台＝こびり付き・油）。
+2. その箇所を写真上で観察し、汚れ・異常の有無と程度を具体的に確認する。
+3. 上記の区分基準に当てはめて機械的に判定する。
+
+【出力】
+- recommendedState: ok / hold / ng のいずれか。
+- confidence: 写真の鮮明さと判定の明確さに基づく 0.0〜1.0。不鮮明・拮抗時は低く。
+- reasoning: 写真から確認できた事実を日本語80〜140文字で具体的に（どの箇所に何が・どの程度あるか／無いかを明示）。「〜と思われる」等の推測表現は使わない。`;
 
     const userText = `点検項目: 「${itemLabel}」${category ? `\nカテゴリ: ${category}` : ""}
 添付写真: ${resolved.length}枚
@@ -85,10 +100,14 @@ export async function POST(req: NextRequest) {
     ];
 
     const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
+      model: "gemini-2.5-pro",
       contents: [{ role: "user", parts }],
       config: {
         systemInstruction,
+        // 同じ画像で判定がぶれないよう、貪欲デコード（temperature 0）＋ seed 固定で再現性を高める
+        temperature: 0,
+        topP: 1,
+        seed: 42,
         responseMimeType: "application/json",
         responseSchema: {
           type: Type.OBJECT,
@@ -99,7 +118,8 @@ export async function POST(req: NextRequest) {
           },
           required: ["recommendedState", "confidence", "reasoning"],
         },
-        thinkingConfig: { thinkingBudget: 0 },
+        // ホコリ等の微妙な視覚判断の精度を上げるため思考を有効化（旧設定は 0＝思考オフだった）
+        thinkingConfig: { thinkingBudget: 2048 },
       },
     });
 
