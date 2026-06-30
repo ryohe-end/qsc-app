@@ -58,8 +58,9 @@ export default function LoginPage() {
               body: JSON.stringify({ idToken }),
             });
             const data = await res.json();
-            if (!res.ok) throw new Error("Google認証に失敗しました");
-            
+            // サーバーが返す具体的な理由（未登録・利用停止・設定不備など）をそのまま表示する
+            if (!res.ok) throw new Error(data.error || "Google認証に失敗しました");
+
             // ✅ Googleログイン成功時も本名を保存
             if (data.user) {
               saveSession(data.user);

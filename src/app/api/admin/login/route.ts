@@ -34,6 +34,8 @@ export async function POST(req: NextRequest) {
     cookieStore.set("qsc_role", "admin", opts);
     cookieStore.set("qsc_user_name", encodeURIComponent("システム管理者"), opts);
     cookieStore.set("qsc_user_role", "admin", opts);
+    // qsc_user_id が無いと申請承認(PATCH /store-requests)等が「未ログイン」で弾かれるため設定する
+    cookieStore.set("qsc_user_id", expectedUserId, opts);
 
     return NextResponse.json({ ok: true });
   } catch (e: unknown) {
@@ -50,5 +52,6 @@ export async function DELETE() {
   cookieStore.set("qsc_role", "", deleteOpts);
   cookieStore.set("qsc_user_name", "", deleteOpts);
   cookieStore.set("qsc_user_role", "", deleteOpts);
+  cookieStore.set("qsc_user_id", "", deleteOpts);
   return NextResponse.json({ ok: true });
 }

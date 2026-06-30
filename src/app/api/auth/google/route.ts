@@ -25,9 +25,18 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Server misconfig: missing clientId" }, { status: 500 });
     }
 
-    // ✅ Googleトークン検証
-    const ticket = await oauthClient.verifyIdToken({ idToken, audience: clientId });
-    const payload = ticket.getPayload();
+    // ✅ Googleトークン検証（OAuth設定不備とサーバー例外を区別する）
+    let payload;
+    try {
+      const ticket = await oauthClient.verifyIdToken({ idToken, audience: clientId });
+      payload = ticket.getPayload();
+    } catch (verifyErr) {
+      console.error("[google-auth] token verify failed:", verifyErr);
+      return NextResponse.json(
+        { error: "Googleトークンの検証に失敗しました（OAuthクライアントID／承認済みドメイン設定をご確認ください）" },
+        { status: 401 }
+      );
+    }
     if (!payload) {
       return NextResponse.json({ error: "Invalid token payload" }, { status: 401 });
     }

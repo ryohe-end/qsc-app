@@ -91,9 +91,11 @@ export async function PATCH(req: NextRequest) {
     const cookieStore = await cookies();
     const reviewerEmail = decodeURIComponent(cookieStore.get("qsc_user_id")?.value ?? "");
     const reviewerName  = decodeURIComponent(cookieStore.get("qsc_user_name")?.value ?? "");
+    const role = cookieStore.get("qsc_user_role")?.value ?? "";
 
-    if (!reviewerEmail) {
-      return NextResponse.json({ error: "未ログインです" }, { status: 401 });
+    // 承認/却下は管理者のみ（qsc_user_id の有無ではなくロールで判定する）
+    if (role !== "admin") {
+      return NextResponse.json({ error: "管理者権限がありません" }, { status: 403 });
     }
 
     const body = await req.json();
