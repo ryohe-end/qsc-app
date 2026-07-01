@@ -8,6 +8,8 @@ import {
   GetCommand,
 } from "@aws-sdk/lib-dynamodb";
 import { cookies } from "next/headers";
+import { getAdminEmails } from "@/app/lib/adminEmails";
+import { sendStoreRequestSubmittedEmail, sendStoreRequestReviewedEmail } from "@/app/lib/sendgrid";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -18,6 +20,22 @@ const docClient = DynamoDBDocumentClient.from(client);
 const REQUEST_TABLE = process.env.QSC_REQUEST_TABLE || "QSC_StoreRequestTable";
 const MASTER_TABLE  = process.env.QSC_MASTER_TABLE  || "QSC_MasterTable";
 const USER_TABLE    = process.env.QSC_USER_TABLE    || "QSC_UserTable";
+
+/** 店舗IDの配列を店舗名の配列に解決する（見つからなければIDをそのまま返す） */
+async function resolveStoreNames(ids: string[]): Promise<string[]> {
+  if (!ids || ids.length === 0) return [];
+  return Promise.all(ids.map(async (id) => {
+    try {
+      const r = await docClient.send(new GetCommand({
+        TableName: MASTER_TABLE,
+        Key: { PK: `STORE#${id}`, SK: "METADATA" },
+      }));
+      return String(r.Item?.name ?? id);
+    } catch {
+      return id;
+    }
+  }));
+}
 
 /* ========================= GET: 一覧取得 ========================= */
 export async function GET() {
@@ -77,6 +95,25 @@ export async function POST(req: NextRequest) {
         requestedAt,
       },
     }));
+
+    // 管理者へ申請通知メール（失敗しても申請自体は成立させる）
+    try {
+      const [adminEmails, fromNames, toNames] = await Promise.all([
+        getAdminEmails(),
+        resolveStoreNames(fromStoreIds ?? []),
+        resolveStoreNames(toStoreIds),
+      ]);
+      await sendStoreRequestSubmittedEmail({
+        to: adminEmails,
+        userName: userName || userEmail,
+        userEmail: userEmail.toLowerCase(),
+        fromStoreNames: fromNames,
+        toStoreNames: toNames,
+        note,
+      });
+    } catch (mailErr) {
+      console.error("[store-requests] 申請通知メール送信失敗:", mailErr);
+    }
 
     return NextResponse.json({ ok: true, requestId });
   } catch (e: unknown) {
@@ -211,6 +248,25 @@ export async function PATCH(req: NextRequest) {
               console.error(`managers add error for store ${storeId}:`, err);
             }
           }
+        }
+
+        // 申請者へ審査結果メール（失敗しても審査自体は成立させる）
+        try {
+          const requesterEmail = String(requestItem.userEmail ?? "");
+          if (requesterEmail) {
+            const toNames = await resolveStoreNames(
+              Array.isArray(requestItem.toStoreIds) ? (requestItem.toStoreIds as string[]) : []
+            );
+            await sendStoreRequestReviewedEmail({
+              to: requesterEmail,
+              userName: String(requestItem.userName ?? "") || requesterEmail,
+              action,
+              toStoreNames: toNames,
+              reviewedBy: reviewerName || reviewerEmail,
+            });
+          }
+        } catch (mailErr) {
+          console.error(`[store-requests] 審査結果メール送信失敗 (${requestId}):`, mailErr);
         }
 
         results.push({ requestId, ok: true });

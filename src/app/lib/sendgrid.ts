@@ -7,6 +7,8 @@
  * ④ sendApprovalEmail        - 承認通知（店舗向け）
  * ⑤ sendRejectionEmail       - 差し戻し通知（店舗向け）
  * ⑥ sendDeadlineReminderEmail - 改善期限リマインダー
+ * ⑦ sendStoreRequestSubmittedEmail - 担当店舗変更 申請通知（管理者向け）
+ * ⑧ sendStoreRequestReviewedEmail  - 担当店舗変更 審査結果通知（申請者向け）
  */
 
 const SENDGRID_API_URL = "https://api.sendgrid.com/v3/mail/send";
@@ -338,5 +340,78 @@ export async function sendDeadlineReminderEmail(params: {
       ${emailFooter()}
     `),
     text: `【QSC】改善期限のお知らせ\n\n店舗: ${params.storeName}\n改善期限: ${params.deadline}\n未対応NG: ${params.ngCount}件\n\nこちらのURLより是正報告を提出してください。\n${url}`.trim(),
+  });
+}
+
+/* ========================= ⑦ 担当店舗変更 申請通知（管理者向け） ========================= */
+export async function sendStoreRequestSubmittedEmail(params: {
+  to: string[];
+  userName: string;
+  userEmail: string;
+  fromStoreNames: string[];
+  toStoreNames: string[];
+  note?: string;
+}): Promise<void> {
+  if (params.to.length === 0) return;
+  const url = `${APP_URL}/admin/qsc/store-requests`;
+  const fromText = params.fromStoreNames.length ? params.fromStoreNames.join("、") : "（なし）";
+  const toText = params.toStoreNames.length ? params.toStoreNames.join("、") : "（なし）";
+
+  await sendEmail({
+    to: params.to,
+    subject: `【QSC】担当店舗変更の申請がありました - ${params.userName}`,
+    html: emailWrapper(`
+      ${emailHeader("担当店舗変更 申請通知")}
+      <tr><td style="background:#fff;padding:36px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+        <div style="background:#eff6ff;border:1px solid #dbeafe;border-radius:14px;padding:18px;margin-bottom:24px;">
+          <div style="font-size:14px;font-weight:900;color:#2563eb;">🔔 担当店舗変更の申請が提出されました</div>
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;margin-bottom:24px;">
+          <tr style="background:#f8fafc;"><td style="padding:12px 16px;font-size:12px;font-weight:900;color:#94a3b8;border-bottom:1px solid #e2e8f0;width:110px;">申請者</td><td style="padding:12px 16px;font-size:14px;font-weight:800;color:#1e293b;border-bottom:1px solid #e2e8f0;">${params.userName}<span style="font-size:12px;font-weight:600;color:#94a3b8;">（${params.userEmail}）</span></td></tr>
+          <tr><td style="padding:12px 16px;font-size:12px;font-weight:900;color:#94a3b8;border-bottom:1px solid #e2e8f0;">現在の担当</td><td style="padding:12px 16px;font-size:13px;font-weight:700;color:#64748b;border-bottom:1px solid #e2e8f0;line-height:1.5;">${fromText}</td></tr>
+          <tr><td style="padding:12px 16px;font-size:12px;font-weight:900;color:#94a3b8;${params.note ? "border-bottom:1px solid #e2e8f0;" : ""}">希望の担当</td><td style="padding:12px 16px;font-size:13px;font-weight:800;color:#2563eb;${params.note ? "border-bottom:1px solid #e2e8f0;" : ""}line-height:1.5;">${toText}</td></tr>
+          ${params.note ? `<tr><td style="padding:12px 16px;font-size:12px;font-weight:900;color:#94a3b8;">備考</td><td style="padding:12px 16px;font-size:13px;font-weight:600;color:#1e293b;line-height:1.5;">${params.note}</td></tr>` : ""}
+        </table>
+        ${ctaButton("申請を確認する", url)}
+      </td></tr>
+      ${emailFooter()}
+    `),
+    text: `【QSC】担当店舗変更の申請がありました\n\n申請者: ${params.userName}（${params.userEmail}）\n現在の担当: ${fromText}\n希望の担当: ${toText}${params.note ? `\n備考: ${params.note}` : ""}\n\nこちらのURLより承認/却下してください。\n${url}`.trim(),
+  });
+}
+
+/* ========================= ⑧ 担当店舗変更 審査結果通知（申請者向け） ========================= */
+export async function sendStoreRequestReviewedEmail(params: {
+  to: string;
+  userName: string;
+  action: "approved" | "rejected";
+  toStoreNames: string[];
+  reviewedBy: string;
+}): Promise<void> {
+  if (!params.to) return;
+  const approved = params.action === "approved";
+  const url = `${APP_URL}`;
+  const toText = params.toStoreNames.length ? params.toStoreNames.join("、") : "（なし）";
+
+  await sendEmail({
+    to: params.to,
+    subject: `【QSC】担当店舗変更の申請が${approved ? "承認" : "却下"}されました`,
+    html: emailWrapper(`
+      ${emailHeader("担当店舗変更 審査結果")}
+      <tr><td style="background:#fff;padding:36px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+        <p style="font-size:16px;font-weight:700;color:#1e293b;margin:0 0 20px;">${params.userName} 様</p>
+        <div style="background:${approved ? "#f0fdf4" : "#fef2f2"};border:1px solid ${approved ? "#d1fae5" : "#fee2e2"};border-radius:14px;padding:18px;margin-bottom:24px;">
+          <div style="font-size:14px;font-weight:900;color:${approved ? "#059669" : "#dc2626"};">${approved ? "✅ 担当店舗変更の申請が承認されました" : "⚠️ 担当店舗変更の申請が却下されました"}</div>
+        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;margin-bottom:24px;">
+          <tr style="background:#f8fafc;"><td style="padding:12px 16px;font-size:12px;font-weight:900;color:#94a3b8;border-bottom:1px solid #e2e8f0;width:110px;">申請した担当</td><td style="padding:12px 16px;font-size:13px;font-weight:800;color:#1e293b;border-bottom:1px solid #e2e8f0;line-height:1.5;">${toText}</td></tr>
+          <tr><td style="padding:12px 16px;font-size:12px;font-weight:900;color:#94a3b8;">審査者</td><td style="padding:12px 16px;font-size:14px;font-weight:800;color:${approved ? "#059669" : "#dc2626"};">${params.reviewedBy}</td></tr>
+        </table>
+        ${approved ? `<p style="font-size:13px;color:#64748b;line-height:1.7;margin:0 0 4px;">担当店舗が更新されました。アプリよりご確認ください。</p>` : `<p style="font-size:13px;color:#64748b;line-height:1.7;margin:0 0 4px;">ご不明な点は管理者にお問い合わせください。</p>`}
+        ${ctaButton("アプリを開く", url)}
+      </td></tr>
+      ${emailFooter()}
+    `),
+    text: `${params.userName} 様\n\n担当店舗変更の申請が${approved ? "承認" : "却下"}されました。\n\n申請した担当: ${toText}\n審査者: ${params.reviewedBy}\n\n${approved ? "担当店舗が更新されました。アプリよりご確認ください。" : "ご不明な点は管理者にお問い合わせください。"}\n${url}`.trim(),
   });
 }
